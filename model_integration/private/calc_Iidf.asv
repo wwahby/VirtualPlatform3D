@@ -1,0 +1,4 @@
+function Iidf = calc_Iidf(alpha,k,p,Lx,S,r)
+
+Mt3d = Mt_3d_joyner(Lx,S,r);
+Iexp = calc_Iexp(alpha,k,p,Mt,Lx,S,r)
