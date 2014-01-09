@@ -1,4 +1,57 @@
-function [iidf l Ln pn pn_orig Cxc Ltot Cn Pdyn Plk Pw Prep Ng_act N_tsvs T_tsvs Atf_act iidf_rewire] = gen_design(Ng,alpha,k,p,S,h_tsv_m,Atf_max,AR_tsv,Ach_m2,chi,rho_m,epsr_d,Tclk,alpha_t,gate_pitch,w_trans,eps_ox,tox,N_trans_per_gate,a,Ioff,Vdd,Ro,use_joyner,redo_wiring)
+%function [iidf l Ln pn pn_orig Cxc Ltot Cn Pdyn Plk Pw Prep Ng_act N_tsvs iidf_rewire] = gen_design(chip,tsv,gate,transistor,wire)
+function [chip power wire repeater tsv] = gen_design(chip,tsv,gate,transistor,wire,simulation)
+
+%% Unpack inputs from objects
+Ng = chip.num_gates;
+alpha = chip.alpha;
+k = chip.rent_k;
+p = chip.rent_p;
+S = chip.num_layers;
+
+
+Ach_m2 = chip.area_total;
+chi = chip.chi;
+Tclk = chip.clock_period;
+a = chip.logic_activity_factor;
+Vdd = chip.Vdd;
+
+gate_pitch = chip.gate_pitch;
+
+w_trans = transistor.gate_length;
+eps_ox = transistor.oxide_rel_permittivity;
+tox = transistor.oxide_thickness;
+Ioff = transistor.leakage_current_per_micron;
+
+Ro = gate.output_resistance;
+N_trans_per_gate = gate.num_transistors;
+
+use_joyner = simulation.use_joyner;
+redo_wiring = simulation.redo_wiring_after_repeaters;
+
+AR_tsv = tsv.aspect_ratio;
+Atf_max = tsv.max_area_fraction;
+h_tsv_m = tsv.height;
+
+alpha_t = wire.delay_constant;
+rho_m = wire.resistivity;
+epsr_d = wire.dielectric_epsr;
+
+%% Update some objects where necessary
+% [FIX] This assumes the case where all metal layers for the entire 3D
+% stack are routed on top of one another (so vias from the top must
+% traverse EACH layer)
+%wire.layer_area = chip.area_total/chip.num_layers;
+
+% Much more likely is having separate metallization layers near each device
+% layer, which significantly reduces the via burden. we can approximate
+% this case by just using the entire chip surface area for routing, with
+% the understanding that the pitches we find will be defined PER DEVICE
+% TIER
+% [FIX] Still need a better way to do this. Most likely we'll have to do
+% something like this for the first few metal layers, and then when the
+% interconnects get long enough we can start considering combined tiers
+% Will need to deal with how vias traverse each layer in each case.
+wire.layer_area = chip.area_total;
 
 %% Presize the chip and TSVs
 Ns = Ng/S;
@@ -22,7 +75,7 @@ if ((S == 1) || (use_joyner == 1)) % no TSVs for single layer device, or when us
     Ngc = Ng;
     Nuc_1d = 1;
     N_tsvs = 0;
-    T_tsvs = 0;
+    Tc = 0;
 else
     %Nsp = floor( (1+Atf_max)*Ns );
     Nsp = floor(Ns/(1-Atf_max));
@@ -33,7 +86,6 @@ else
     slack = 0.2;
     [Lxc Tc Nuc_1d gfrac_L gfrac_T] = find_LT_combination(Lxp,Tp,slack);
     N_tsvs = Nuc_1d^2;
-    T_tsvs = Tc;
 end
 
 Nsc = Lxc^2;
@@ -42,11 +94,17 @@ Ngc = Nsc*S;
 g_tsv = (Nuc_1d*w_tsv)^2; % number of gates displaced by TSVs
 Atf_act = g_tsv/Nsc;
 
+tsv.pitch_gp = Tc;
+tsv.pitch_m = Tc*gate_pitch;
+tsv.actual_area_fraction = Atf_act;
+tsv.num = N_tsvs;
+
 Ns_act = Nsc - g_tsv;
 Ng_act = Ns_act*S;
+chip.Ng_actual = Ng_act;
 
-% repstr1 = sprintf('Ng_nom: %.4g\tNg_cor: %.4g\tNg_act: %.4g\tAtf_act: %.4g',Ng,Ngc,Ng_act,Atf_act);
-% disp(repstr1)
+repstr1 = sprintf('Ng_nom: %.4g\tNg_cor: %.4g\tNg_act: %.4g\tAtf_act: %.4g',Ng,Ngc,Ng_act,Atf_act);
+disp(repstr1)
 
 %% Calculate WLD
 iidf = calc_Iidf_corrected(alpha,k,p,Lx,S,h_tsv,Nuc_1d,w_tsv);
@@ -57,56 +115,71 @@ iidf(isnan(iidf)) = 0;
 lmax = length(iidf) - 1;
 l = 0:lmax;
 
-%% Determine wire pitch and layer assignment
+chip.iidf = iidf;
+chip.lengths = l;
 
-Ach_wla = Ach_tier_gp; % Reduce the chip area by a factor of S when we're folding a design across S layers
-[Ln pn pn_orig Nm] = wire_layer_assignment_alt(iidf,lmax,Ach_wla,chi,rho_m,epsr_d,Tclk,alpha_t);
-[Cxc Ltot Cn] = calc_total_wiring_capacitance2(pn,Ln,Nm,iidf,epsr_d,gate_pitch);
+%% Wire Layer Assignment (WLA) and Repeater Insertion (RI)
+
+% Simultaneously do WLA and RI, starting with TOP metal layer and working
+% downward.
+% This method has the advantage of accurately determining wiring pitch
+% based on the POST-RI wire delay, as well as knowing in advance the total
+% repeater and wire via area required on lower levels. The disadvantage is
+% that the bottom metal layer may not be well-utilized
+if (simulation.topdown_WLARI == 1)
+    [wire repeater] = wla_topdown_with_repeaters(chip,gate,wire);
+else
+    % Do sequentla WLA and RI. In this method the repeater via area is not
+    % known, and the real wire delay (after repeaters) is not known during
+    % the initial WLA.
+    % These problems can be circumvented by doing this step several times
+    % to converge on the real result, but for now we're just doing a
+    % single-shot.
+    
+    % Determine wire pitch and layer assignment
+    wire = wla_improved(chip,wire);
+
+    % Repeater insertion
+    repeater = repeater_insertion(chip,gate,transistor,wire);
+end
+
 
 %% Power estimates
-
 eps0 = 8.854e-12; % (F/m)
+Ilk = Ioff*(w_trans*1e6); % [FIX] very coarse leakage model -- update this with something better (incl temp, gate size, etc)
 
-Ilk = Ioff*(w_trans*1e6);
-Cox = eps_ox*eps0*w_trans^2/tox;
+Cox = 1.5*transistor.capacitance; % (1.5 because pmos should have ~3X nmos width, and half the transistors should be pmos)
 Co = Cox; % Need to include parasitics for realistic estimate
+Co_rep = Cox*repeater.size;
+Ilk_rep = Ilk*repeater.size;
 
 Nt = N_trans_per_gate * Ng;
 f = 1/Tclk;
-
+Cxc = wire.capacitance_total;
 Pdyn = 1/2*a*Co*Vdd^2*f*Nt;
 Plk = (1-a)*Vdd*Ilk*Nt;
 Pw = 1/2*a*Cxc*Vdd^2*f;
 
-%% Repeater insertion
-
-Ach_ri = Ach_tier_m2;
-Ainv_min = gate_pitch^2*9; % assume 3:1 W/L for nmos, 3x that for pmos
-rho_xcn = rho_m;
-
-Co = N_trans_per_gate*Cox;
-[iidf_rep h_vec k_vec Arep_used num_vec size_vec] = repeater_insertion(iidf,Ach_ri,Ainv_min,pn,Ln,Cn,rho_xcn,Ro,Co,gate_pitch);
-
-Co_rep = Cox*size_vec;
-Ilk_rep = Ilk*size_vec;
-Plk_rep_vec = (1-a)*Vdd*Ilk_rep.*num_vec;
+% [FIX] Can't just multiply by number of repeaters since they're all sized
+% differently --  do sum of size_vec.*num_vec.*Leakage
+Plk_rep_vec = (1-a)*Vdd*Ilk_rep.* repeater.num_per_wire .* repeater.size;
 Plk_rep = sum(Plk_rep_vec);
 
-Pdyn_rep_vec = 1/2*a*Vdd^2*f.*num_vec.*Co_rep;
+Pdyn_rep_vec = 1/2*a*Vdd^2*f.* repeater.num_per_wire .*Co_rep.* repeater.size;
 Pdyn_rep = sum(Pdyn_rep_vec);
 
 Prep = Pdyn_rep + Plk_rep;
 
-Arep_used_mm2 = Arep_used*(1e3)^2;
+Arep_used_mm2 = repeater.area_total*(1e3)^2;
 
-%% Redo wiring now that we've changed Iidf
-if(redo_wiring == 1)
-    iidf_rewire = [0 iidf_rep]; % add zero-length value back in
-    [Ln pn pn_orig Nm] = wire_layer_assignment_alt(iidf_rewire,lmax,Ach_wla,chi,rho_m,epsr_d,Tclk,alpha_t);
-    [Cxc Ltot Cn] = calc_total_wiring_capacitance2(pn,Ln,Nm,iidf_rewire,epsr_d,gate_pitch);
+%% update output objects
+chip.iidf = iidf;
+chip.lengths = l;
 
-    Pw = 1/2*a*Cxc*Vdd^2*f;
-else
-    iidf_rewire = 0;
-end
+power.dynamic = Pdyn;
+power.leakage = Plk;
+power.wiring = Pw;
+power.repeater = Prep;
+power.total = Pdyn + Plk + Pw + Prep;
+
 

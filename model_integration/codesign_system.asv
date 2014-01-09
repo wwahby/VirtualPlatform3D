@@ -2,83 +2,23 @@
 close all
 clear all
 
-%% ==================================================
-%  ================== BEGIN INPUTS ==================
-%  ==================================================
-
-%% Stack parameters
-S = 4;
-
-%% 65nm Merom, entire chip
-% Ng = 291e6/4;
-% Ach_mm2 = 143;
-% gate_pitch = 700e-9; % average gate pitch (sqrt(A_core/Ngates))
-% min_pitch = 220e-9; % actual contacted gate pitch
-% fmax = 3.0e9;
-
-%% 65nm Merom, single core, wrong area
-% Ng = 10e6;
-% Ach_mm2 = 16;
-% gate_pitch = 630e-9; % average gate pitch (sqrt(A_core/Ngates))
-% min_pitch = 220e-9; % actual contacted gate pitch
-% fmax = 3.0e9;
-
-%% 65nm Merom, single core
-% Ng = 10e6;
-% Ach_mm2 = 27;
-% gate_pitch = 820e-9; % average gate pitch (sqrt(A_core/Ngates))
-% min_pitch = 220e-9; % actual contacted gate pitch
-% fmax = 3.0e9;
-
-%% 32nm Sandy Bridge, entire chip
-% Ng = 2.27e9/4;
-% Ach_mm2 = 435;
-% gate_pitch = 875e-9;
-% min_pitch = 112.5e-9;
-% fmax = 3.6e9;
-
-%% 32nm Sandy Bridge, one core
-% Ng = 107e6/4;
-% Ach_mm2 = 20;
-% gate_pitch = 435e-9;
-% min_pitch = 112.5e-9;
-% fmax = 3.6e9;
-
-%% 22nm Ivy Bridge, entire chip
-% Ng = 2.86e9/4;
-% Ach_mm2 = 346.5;
-% gate_pitch = 348e-9;
-% min_pitch = 90e-9;
-% fmax = 3.0e9;
-
-%% 22nm Ivy Bridge, one core
-Ng = 95e6/4;
-Ach_mm2 = 11.5;
-gate_pitch = 348e-9;
-min_pitch = 90e-9;
-fmax = 3.0e9;
-
-%% Arbitrarily huge test case
-% Ng = 1e9;
-% Ach_mm2 = 100;
-% gate_pitch = 100e-9;
-% min_pitch = 100e-9;
-% fmax = 3.0e9;
 %% Chip descriptors
-
+% Stack parameters
+Ng = 1.0e9;
+S = 4;
+Ach_mm2 = 100;
 Ach_m2 = Ach_mm2*1e-6;
 
 % gate parameters
 eps_ox = 25; % HfO2
 tox = 1e-9;
-w_trans = 30e-9;
+w_trans = 32e-9;
 N_trans_per_gate = 4;
 Ioff = 10e-9; %(A/um)
 
 % Tsv parameters
-Atf_max = 0.10; % maximum allowable TSV area, as a fraction of total chip area
-h_tsv_m_thin = 10e-6;
-h_tsv_m_thick = 300e-6;
+Atf_max = 0.01; % maximum allowable TSV area, as a fraction of total chip area
+gate_pitch = 300e-9;
 AR_tsv = 20;
 
 % Rent parameters
@@ -88,6 +28,7 @@ alpha = fo/(fo+1); % input terminal fraction
 k = 3/alpha; %rent constant
 
 % Wiring parameters
+fmax = 1e9;
 chi = 2/3;
 rho_m = 17.2e-9; % Cu
 epsr_d = 3.0; % Low-k dielectric
@@ -101,30 +42,10 @@ Ro = 1e3; % (Ohm) Gate output resistance
 a = 0.1; % logic activity factor
 Vdd = 1.0; % (V)
 
-%% constants
-eps0 = 8.854e-12; % (F/m) vacuum permittivity
+% Model flags
+use_joyner = 0; % 0=Use corrected distribution, 1=use original joyner distribution
+redo_wiring = 0; % Redo wire layer assignment after repeater insertion? 0=no, 1=yes
 
-%% Power supply noise model parameters
-psn_target = 0.1;   % (mV) Acceptable power supply noise
-mu_m = 1.257e-6;      %copper permeability
-
-decap = 0.1; % (Ratio) - Fraction of chip area dedicated to decoupling capacitors
-Npad1d = 32;
-Npad = Npad1d^2;         %total number of power or ground pads
-Ngrid = 21*21;        %grid fineness
-padsize = 1;          % Pad size is in terms of segment number
-Tseg = 1e-6;          % Thickness of grid segment
-Wseg = 2e-6;          % width of grid segment
-
-T = 25; % (deg C) Temperature
-
-% Package parameters
-RPKG = 0.006; % (Ohm)
-LPKG = 0.5e-9; % (H)
-
-%% ==================================================
-%  ================ BEGIN SIMULATION ================
-%  ==================================================
 %% Pack objects with inputs
 chip.num_gates = Ng;
 chip.alpha = alpha;
@@ -166,6 +87,26 @@ wire.Rc = 0;
 simulation.use_joyner = 0;
 simulation.redo_wiring_after_repeaters = 0;
 simulation.topdown_WLARI = 1;
+
+
+
+%% Power supply noise model parameters
+psn_target = 0.1;   % (mV) Acceptable power supply noise
+mu_m = 1.257e-6;      %copper permeability
+
+decap = 0.1; % (Ratio) - Fraction of chip area dedicated to decoupling capacitors
+Npad1d = 32;
+Npad = Npad1d^2;         %total number of power or ground pads
+Ngrid = 21*21;        %grid fineness
+padsize = 1;          % Pad size is in terms of segment number
+Tseg = 1e-6;          % Thickness of grid segment
+Wseg = 2e-6;          % width of grid segment
+
+T = 25; % (deg C) Temperature
+
+% Package parameters
+RPKG = 0.006; % (Ohm)
+LPKG = 0.5e-9; % (H)
 
 tic % begin timing
 %% TSV number determination
@@ -272,7 +213,7 @@ end
 disp(' ')
 disp('Final system parameters:')
 repstr = sprintf('\tNg_nom %d \t Ng_act: %d \t Atsv_nom: %.3g \t Atsv_act: %.3g \n\tN_tsvs: %d \t Npads_pow %d \t psn_nom %.4g \t psn_act %.4g', ...
-                  Ng, chip.Ng_actual, Atf_max, tsv.actual_area_fraction, tsv.num, Npad, psn_target, psn_max);
+                  Ng, chip.Ng_act, Atf_max, Atf_act, N_tsvs, Npad, psn_target, psn_max);
 disp(repstr)
 repstr = sprintf('\th_tsv_um: %.4g \t w_tsv_um: %.4g',h_tsv_m/1e-6,w_tsv_m/1e-6);
 disp(repstr);

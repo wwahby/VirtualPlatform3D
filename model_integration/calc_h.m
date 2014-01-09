@@ -21,6 +21,8 @@ if(Nuc_1d > 0)
     h(A) = nt(A)*w_tsv;
     h(B) = (nt(B)-1)*w_tsv;
     h(C) = nt(C)*w_tsv - lxm(C) +t;
+else
+    h = zeros(1,Lx+1);
 end
 
 

@@ -1,20 +1,6 @@
-%function [Iidf_rep h_vec k_vec Arep_used num_vec size_vec] = repeater_insertion(Iidf,Ach,Ainv_min,pn,Ln,Cn,rho_xcn,Ro_n,Co,w_gate)
-function repeater = repeater_insertion(chip,gate,transistor,wire)
+function [Iidf_rep h_vec k_vec Arep_used num_vec size_vec] = repeater_insertion_old_capfix(Iidf,Ach,Ainv_min,pn,Ln,Cn,rho_xcn,Ro_n,Co,w_gate,chip,wire)
 %Ach (m^2)
 % Ainv_min (m^2)
-
-%% unpack inputs
-Iidf = chip.iidf;
-Ach = chip.area_total/chip.num_layers;
-Ainv_min = 9*chip.gate_pitch^2;
-pn = wire.pn;
-Ln = wire.Ln;
-%Cn = wire.Cn;
-rho_xcn = wire.resistivity;
-Ro_n = gate.output_resistance;
-Co = gate.capacitance;
-w_gate = transistor.gate_length;
-gate_pitch = chip.gate_pitch;
 
 
 Iidf = round(Iidf); % let's just deal with integer numbers of interconnects
@@ -49,10 +35,13 @@ while (add_repeaters == 1)
     xc_tier = find(lmax_cur <= Ln,1,'first');
     rho_xc = get_nth_or_last(rho_xcn,xc_tier);
     Ro = get_nth_or_last(Ro_n,xc_tier);
-    
     %Cxc = Cn(xc_tier)*lmax_cur*w_gate;
-    Cxc = get_capacitance_from_length(lmax_cur,chip,wire); %
-    Rxc = rho_xc*lmax_cur*gate_pitch/pn(xc_tier)^2; % pn has units [m]
+    %[FIX] This needs to calculate the capacitance of a wire of this length
+    % need to change around inputs a bit to get this to work
+    %Cxc = get_capacitance_from_length(lmax_cur,Ln,pn,epsr_d,gate_pitch) %
+    
+    Cxc = get_capacitance_from_length(lmax_cur,chip,wire);
+    Rxc = rho_xc*lmax_cur*w_gate/pn(xc_tier)^2/(w_gate^2);
     
     if(Rxc*Cxc >= 7*Ro*Co)
     % Make sure we actually get a benefit from inserting repeaters
@@ -89,18 +78,9 @@ end
 
 %repstr = sprintf('k %d\t h %d\t Arep_ins %d\t Arep_rem %d\t lmax_cur %d \t Iidf(l) %d',k,h,Arep_ins,Arep_rem,lmax_cur,Iidf(lmax_cur));
 %disp(repstr)
-%% pack outputs
-% wire.via_area = A_vias_wiring + A_vias_repeaters;
-% wire.via_area_wires = A_vias_wiring;
-% wire.via_area_repeaters = A_vias_repeaters;
-% wire.area_per_layer = A_layer;
-% wire.delay_rc = tau_rc_vec;
-% wire.delay_repeaters = tau_rep_vec;
 
-repeater.num_per_wire = k_vec;
-repeater.size = h_vec;
-repeater.area_total = Arep_used;
-repeater.num_per_tier = num_vec;
+Iidf_rep = Iidf;
+        
         
     
     
