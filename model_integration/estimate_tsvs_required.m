@@ -24,7 +24,11 @@ Ns = round(Ng/S);
 Ng = Ns*S;
 
 
-nint = 0:S-2; % possible numbers of interstitial layers
+if S == 1
+    nint = 0;
+else
+    nint = 0:S-2; % possible numbers of interstitial layers
+end
 
 Tac = 2*k*(Ns*(1+nint)).^p - k*( Ns*(2+nint)).^p - k*(nint*Ns).^p;
 

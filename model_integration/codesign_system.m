@@ -143,7 +143,12 @@ end
 %Overshoot
 while ((psn_max > psn_target) && (psn_iterations < 20))
     Npad1d = round(1.05*Npad1d);
-    Npad = Npad1d^2;
+    Npad_tentative = Npad1d^2;
+    if(Npad_tentative == Npad)
+        Npad = Npad + 1;
+    else
+        Npad = Npad_tentative;
+    end
     psn_max = calc_psn(Ach_m2,Npad,rho_m,mu_m,S,Vdd,Pdens,decap,h_tsv_m,w_tsv_m,pitch_tsv,RPKG,LPKG,Ngrid,padsize,Tseg,Wseg,T);
     psn_iterations = psn_iterations+1;
     
