@@ -190,6 +190,11 @@ tsv_area_ratio = Atf_max;
 h_tsv_m = h_tsv_gp*gate_pitch;
 w_tsv_m = w_tsv_gp*gate_pitch;
 
+tsv.width_m = w_tsv_m;
+tsv.height_m = h_tsv_m;
+tsv.width_gp = w_tsv_gp;
+tsv.height_gp = h_tsv_gp;
+
 %% System determination
 % Run WLD + WLA + RI to get power estimate
 disp('Generating system...')
@@ -199,6 +204,12 @@ disp('Generating system...')
 Pdens = power.total/Ach_m2;
 pitch_tsv = tsv.pitch_m*100; % [FIX] Power TSVs aren't going to be on the same pitch as signal TSVs
 
+%% System temperature check may go here
+chip
+wire
+power
+repeater
+tsv
 %% Power noise estimation
 % Inputs:
 %   Total power (from previous step)
@@ -210,7 +221,9 @@ psn_max = calc_psn(Ach_m2,Npad,rho_m,mu_m,S,Vdd,Pdens,decap,h_tsv_m,w_tsv_m,pitc
 dispstr = sprintf('\tpsn_runs: %d\tNpads: %d\tpsn_target: %d\tpsn_max: %d',psn_iterations,Npad, psn_target, psn_max);
 disp(dispstr)
 
-% These three while loops help us hone in on the actual psn target
+%[FIX] Use a better method to home in on the PSN target
+
+% These three while loops help us home in on the actual psn target
 % This is a pretty ghetto way of doing it, but it's quick and gets us a lot
 % closer than just doing one loop (and was quicker to code than a binary
 % search or what have you)
