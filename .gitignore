@@ -201,6 +201,17 @@ sdist/
 develop-eggs/
 .installed.cfg
 
+#############
+## Vim
+#############
+*.swp
+
+#############
+## MATLAB
+#############
+*.asv
+
+
 # Installer logs
 pip-log.txt
 
