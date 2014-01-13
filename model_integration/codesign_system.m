@@ -7,7 +7,7 @@ clear all
 %  ==================================================
 
 %% Stack parameters
-S = 4;
+S = 1;
 
 %% 65nm Merom, entire chip
 % Ng = 291e6/4;
@@ -52,18 +52,18 @@ S = 4;
 % fmax = 3.0e9;
 
 %% 22nm Ivy Bridge, one core
-Ng = 95e6/4;
-Ach_mm2 = 11.5;
-gate_pitch = 348e-9;
-min_pitch = 90e-9;
-fmax = 3.0e9;
+% Ng = 95e6/4;
+% Ach_mm2 = 11.5;
+% gate_pitch = 348e-9;
+% min_pitch = 90e-9;
+% fmax = 3.0e9;
 
 %% Arbitrarily huge test case
-% Ng = 1e9;
-% Ach_mm2 = 100;
-% gate_pitch = 100e-9;
-% min_pitch = 100e-9;
-% fmax = 3.0e9;
+Ng = 1e9;
+Ach_mm2 = 100;
+gate_pitch = 100e-9;
+min_pitch = 100e-9;
+fmax = 3.0e9;
 %% Chip descriptors
 
 Ach_m2 = Ach_mm2*1e-6;
@@ -99,14 +99,14 @@ Ro = 1e3; % (Ohm) Gate output resistance
 
 % Power parameters
 a = 0.1; % logic activity factor
-Vdd = 1.0; % (V)
+Vdd = 1.25; % (V)
 
 %% constants
 eps0 = 8.854e-12; % (F/m) vacuum permittivity
 
 %% Power supply noise model parameters
 
-psn.noise_target = 10;                    % (mV) Acceptable power supply noise
+psn.noise_target = 0.1875;              % (mV) Acceptable power supply noise
 psn.decap_area_fraction = 0.1;      % (Ratio) - Fraction of chip area dedicated to decoupling capacitors
 psn.Npads_1d = 32;                  % Number of pads from one side of chip to the other
 psn.Npads = psn.Npads_1d^2;         % total number of power pads (does not include ground pads)
@@ -118,7 +118,7 @@ psn.package_resistance = 0.006;     % (Ohm)
 psn.package_inductance = 0.5e-9;    % (H)
 
 
-psn.target = 0.1;   % (mV) Acceptable power supply noise
+psn.target = 0.1;   % (V) Acceptable power supply noise
 mu_m = 1.257e-6;      %copper permeability
 
 % decap = 0.1; % (Ratio) - Fraction of chip area dedicated to decoupling capacitors
@@ -215,7 +215,7 @@ disp('Generating system...')
 [chip power wire repeater tsv] = gen_design(chip,tsv,gate,transistor,wire,simulation);
 
 %Pdens = power.total/chip.area_per_layer_m2;
-power.density = power.total/chip.area_per_layer_m2;
+power.density = power.total/chip.area_total;
 psn.pitch_tsv = tsv.pitch_m*100; % [FIX] Power TSVs aren't going to be on the same pitch as signal TSVs
 
 %% System temperature check may go here
@@ -227,75 +227,28 @@ psn.pitch_tsv = tsv.pitch_m*100; % [FIX] Power TSVs aren't going to be on the sa
 disp('Evaluating power supply noise...')
 
 psn_iterations = 1;
-%psn_max = calc_psn(chip.area_per_layer_m2,Npad,rho_m,mu_m,S,Vdd,Pdens,decap,h_tsv_m,w_tsv_m,pitch_tsv,RPKG,LPKG,Ngrid,padsize,Tseg,Wseg,T);
-
-%psn_max = calc_psn(chip.area_per_layer_m2,Npad,rho_m,mu_m,S,Vdd,Pdens,decap,h_tsv_m,w_tsv_m,pitch_tsv,RPKG,LPKG,Ngrid,padsize,Tseg,Wseg,T);
 psn_max = calc_psn(psn,power,chip,tsv,rho_m,mu_m,T);
 
 dispstr = sprintf('\tpsn_runs: %d\tNpads: %d\tpsn_target: %d\tpsn_max: %d',psn_iterations,psn.Npads, psn.noise_target, psn_max);
 disp(dispstr)
 
-%[FIX] Use a better method to home in on the PSN target
 
-% These three while loops help us home in on the actual psn target
-% This is a pretty ghetto way of doing it, but it's quick and gets us a lot
-% closer than just doing one loop (and was quicker to code than a binary
-% search or what have you)
-%   The idea is to just blindly increase the number of power/gnd pads by some
-% multiplicative factor until we satisfy the power noise constraint
-%   Then we decrease the power/gnd pad allocation by a (smaller) factor
-%  until we no longer satisfy the constraint
-%   And finally we increase the pad allocation again (by an even smaller
-%   factor) until we satisfy the constraint again
-% This method is definitely slower than something more intelligent (and probably doesn't get us as close to to the target as possible), but
-% since the PSN calculation runs reasonably fast and since we can get close
-% enough to the PSN target (and since the power/gnd tsv demands are usually
-% much lower than the signal TSV requirements), we can live with these
-% inefficiencies for now
-
-%Overshoot
-while ((psn_max > psn.noise_target) && (psn_iterations < 20))
-    psn.Npads_1d = round(1.3*psn.Npads_1d);
+%% Home in on the best number of power TSVs to use to meet the target
+psn.noise = psn_max;
+mismatch_norm = psn.noise/psn.noise_target;
+psn_iterations_max = 20;
+psn_mismatch_tolerance = 0.05; % 5% mismatch is OK
+while ( (abs(mismatch_norm-1) > psn_mismatch_tolerance) && (psn_iterations < psn_iterations_max) )
+    % more pads -> less noise, and vice versa
+    psn.Npads_1d = round(sqrt(psn.Npads*mismatch_norm));
     psn.Npads = psn.Npads_1d^2;
     psn_max = calc_psn(psn,power,chip,tsv,rho_m,mu_m,T);
-    psn_iterations = psn_iterations+1;
-    
-    dispstr = sprintf('\tpsn_runs: %d\tNpads: %d\tpsn_target: %d\tpsn_max: %d',psn_iterations,psn.Npads, psn.noise_target, psn_max);
-    disp(dispstr)
+    psn.noise = psn_max;
+    mismatch_norm = psn.noise/psn.noise_target;
+    dispstr = sprintf('\tpsn_runs: %d\tNpads: %d\tpsn_target: %d\tpsn_max: %d\tmismatch_norm: %.3g',psn_iterations,psn.Npads, psn.noise_target, psn_max,mismatch_norm);
+	disp(dispstr)
 end
 
-%Undershoot
-while ((psn_max < psn.noise_target) && (psn_iterations < 20))
-    psn.Npads_1d = round(0.9*psn.Npads_1d);
-    psn.Npads = psn.Npads_1d^2;
-    psn_max = calc_psn(psn,power,chip,tsv,rho_m,mu_m,T);
-    psn_iterations = psn_iterations+1;
-    
-    dispstr = sprintf('\tpsn_runs: %d\tNpads: %d\tpsn_target: %d\tpsn_max: %d',psn_iterations,psn.Npads, psn.noise_target, psn_max);
-    disp(dispstr)
-end
-
-%Overshoot
-while ((psn_max > psn.noise_target) && (psn_iterations < 20))
-    psn.Npads_1d = round(1.05*psn.Npads_1d);
-    Npad_tentative = psn.Npads_1d^2;
-    
-    if(Npad_tentative == psn.Npads)
-        psn.Npads = psn.Npads + 1;
-    else
-        psn.Npads = Npad_tentative;
-    end
-    psn_max = calc_psn(psn,power,chip,tsv,rho_m,mu_m,T);
-    psn_iterations = psn_iterations+1;
-    
-    dispstr = sprintf('\tpsn_runs: %d\tNpads: %d\tpsn_target: %d\tpsn_max: %d',psn_iterations,psn.Npads, psn.noise_target, psn_max);
-    disp(dispstr)
-end
-
-% print inputs to calc_psn for debug purposes -- leave this commented out
-% most of the time
-% instr = sprintf('Ach_m2__%d	Npad__%d	rho_m__%d	mu_m__%d	S__%d	Vdd__%d	Pdens__%d	decap__%d	h_tsv_m__%d	w_tsv_m__%d	pitch_tsv__%d	RPKG__%d	LPKG__%d	Ngrid__%d	padsize__%d	Tseg__%d	Wseg__%d	T__%d',Ach_m2,Npad,rho_m,mu_m,S,Vdd,Pdens,decap,h_tsv_m,w_tsv_m,pitch_tsv,RPKG,LPKG,Ngrid,padsize,Tseg,Wseg,T);
-% disp(instr);
 %% Final report
 disp(' ')
 disp('Final system parameters:')
