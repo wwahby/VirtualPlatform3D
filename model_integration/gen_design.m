@@ -58,6 +58,8 @@ Ns = Ng/S;
 Lx = round(sqrt(Ns));
 Ach_tier_gp = Ach_m2/gate_pitch^2/S; % Force chip to use specified area 
 Ach_tier_m2 = Ach_m2/S;
+chip.area_per_layer_gp = Ach_tier_gp;
+chip.area_per_layer_m2 = Ach_tier_m2;
 
 % Recalculate these to make sure everything is a nice integer
 Ns = Lx^2;

@@ -1,4 +1,4 @@
-function [psn_max] = calc_psn(area,Npad,rho_m,mu_m,Nstrata,Vdd,Pdens,decap,h_tsv,w_tsv,pitch_tsv,RPKG,LPKG,Ngrid,padsize,Tseg,Wseg,T)
+function [psn_max] = calc_psn(psn,power,chip,tsv,rho_m,mu_m,T)
 % === INPUTS ===
 % area      (m^2)   chip area
 % Npad      (-)     Number of power pads -- does not include ground pads!
@@ -52,6 +52,26 @@ function [psn_max] = calc_psn(area,Npad,rho_m,mu_m,Nstrata,Vdd,Pdens,decap,h_tsv
 % %% Package parameters
 % RPKG = 0.006; % (Ohm)
 % LPKG = 0.5e-9; % (H)
+
+%% Unpack inputs from objects
+%psn_max = calc_psn(chip.area_per_layer_m2,Npad,rho_m,mu_m,S,Vdd,Pdens,decap,h_tsv_m,w_tsv_m,pitch_tsv,RPKG,LPKG,Ngrid,padsize,Tseg,Wseg,T);
+
+area = chip.area_per_layer_m2;
+Npad = psn.Npads;
+Nstrata = chip.num_layers;
+Vdd = chip.Vdd;
+Pdens = power.density;
+decap = psn.decap_area_fraction;
+h_tsv = tsv.height_m;
+w_tsv = tsv.width_m;
+pitch_tsv = psn.pitch_tsv;
+RPKG = psn.package_resistance;
+LPKG = psn.package_inductance;
+Ngrid = psn.Ngrid;
+padsize = psn.pad_size;
+Tseg = psn.segment_thickness;
+Wseg = psn.segment_width;
+
 
 %% Calculate useful quantities
 Jch = Pdens/Vdd; % (A/cm^2) Current density
