@@ -7,7 +7,7 @@ clear all
 %  ==================================================
 
 %% Stack parameters
-S = 2;
+S = 1;
 
 %% 65nm Merom, entire chip
 % Ng = 291e6/4;
@@ -28,7 +28,7 @@ S = 2;
 %% 65nm Merom, single core
 % Ng = 10e6;
 % Ach_mm2 = 27;
-% gate_pitch = 820e-9; % average gate pitch (sqrt(A_core/Ngates))
+% gate_pitch = 2*820e-9; % average gate pitch (sqrt(A_core/Ngates))
 % min_pitch = 220e-9; % actual contacted gate pitch
 % fmax = 3.0e9;
 % w_trans = 65e-9;
@@ -36,7 +36,7 @@ S = 2;
 %% 32nm Sandy Bridge, entire chip
 % Ng = 2.27e9/4;
 % Ach_mm2 = 435;
-% gate_pitch = 875e-9;
+% gate_pitch = 435e-9*2;
 % min_pitch = 112.5e-9;
 % fmax = 3.6e9;
 % w_trans = 32e-9;
@@ -44,25 +44,57 @@ S = 2;
 %% 32nm Sandy Bridge, one core
 % Ng = 107e6/4;
 % Ach_mm2 = 20;
-% gate_pitch = 435e-9;
+% gate_pitch = 435e-9*2;
 % min_pitch = 112.5e-9;
 % fmax = 3.6e9;
 % w_trans = 32e-9;
 
-%% 22nm Ivy Bridge, entire chip
+%% 32nm Sandy Bridge i7, entire chip
+% Ng = 995e6/4;
+% Ach_mm2 = 216;
+% gate_pitch = 465e-9*2;
+% min_pitch = 112.5e-9;
+% fmax = 3.6e9;
+% w_trans = 32e-9;
+
+%% 32nm Sandy Bridge i7, one core
+% Ng = 85e6/4;
+% Ach_mm2 = 18.5;
+% gate_pitch = 465e-9*2;
+% min_pitch = 112.5e-9;
+% fmax = 3.6e9;
+% w_trans = 32e-9;
+
+%% 22nm Ivy Bridge EP10, entire chip
 % Ng = 2.86e9/4;
 % Ach_mm2 = 346.5;
-% gate_pitch = 348e-9;
+% gate_pitch = 348e-9*2;
 % min_pitch = 90e-9;
 % fmax = 3.0e9;
 % w_trans = 80e-9;
 
-%% 22nm Ivy Bridge, one core
-Ng = 95e6/4;
-Ach_mm2 = 11.5;
-gate_pitch = 348e-9;
+%% 22nm Ivy Bridge EP 10, one core
+% Ng = 95e6/4;
+% Ach_mm2 = 11.5;
+% gate_pitch = 348e-9*2;
+% min_pitch = 90e-9;
+% fmax = 3.0e9;
+% w_trans = 80e-9;
+
+%% 22nm Ivy Bridge i7, entire chip
+% Ng = 1.4e9/4;
+% Ach_mm2 = 160;
+% gate_pitch = 338e-9*2;
+% min_pitch = 90e-9;
+% fmax = 3.5e9;
+% w_trans = 80e-9;
+
+%% 22nm Ivy Bridge i7, one core
+Ng = 105e6/4;
+Ach_mm2 = 11.95;
+gate_pitch = 338e-9*2;
 min_pitch = 90e-9;
-fmax = 3.0e9;
+fmax = 3.5e9;
 w_trans = 80e-9;
 
 %% Arbitrarily huge test case
@@ -72,45 +104,10 @@ w_trans = 80e-9;
 % min_pitch = 100e-9;
 % fmax = 3.0e9;
 % w_trans = 25e-9;
-% %% Chip descriptors
-% 
-% Ach_m2 = Ach_mm2*1e-6;
-% 
-% % gate parameters
-% eps_ox = 25; % HfO2
-% tox = 1e-9;
-% 
-% N_trans_per_gate = 4;
-% Ioff = 10e-9; %(A/um)
-% 
-% % Tsv parameters
-% Atf_max = 0.10; % maximum allowable TSV area, as a fraction of total chip area
-% h_tsv_m_thin = 10e-6;
-% h_tsv_m_thick = 300e-6;
-% AR_tsv = 20;
-% 
-% % Rent parameters
-% p = 0.6; % rent exponent
-% fo = 4; % avg fanout
-% alpha = fo/(fo+1); % input terminal fraction
-% k = 3/alpha; %rent constant
-% 
-% % Wiring parameters
-% chi = 2/3;
-% rho_m = 17.2e-9; % Cu
-% epsr_d = 3.0; % Low-k dielectric
-% Tclk = 1/fmax; % (s)
-% alpha_t = 1.1*6.2;
-% 
-% % Repeater parameters
-% Ro = 1e3; % (Ohm) Gate output resistance
-% 
-% % Power parameters
-% a = 0.1; % logic activity factor
-% Vdd = 1.25; % (V)
 
 %% constants
 eps0 = 8.854e-12; % (F/m) vacuum permittivity
+%gate_pitch = sqrt( Ach_mm2/1e6/Ng);
 
 %% ==================================================
 %  ================ BEGIN SIMULATION ================
@@ -154,8 +151,8 @@ wire.resistivity = 17.2e-9;     % (Ohm*m) Copper wires
 wire.permeability_rel = 1;      % (-) Relative permeability of wiring material
 wire.dielectric_epsr = 3.0;     % (-) Relative dielectric constant for wiring ILD -- Low-K dielectric
 wire.layers_per_tier = 1;       % (-) Number of metal layers sharing same pitch in each tier
-wire.routing_efficiency = 0.4;  % (-) Fraction of available area that the wire routing tool can actually use
-wire.repeater_fraction = [0.5 0.3]; % (-) fraction of optimal repeaters to insert
+wire.routing_efficiency = 0.55;  % (-) Fraction of available area that the wire routing tool can actually use
+wire.repeater_fraction = [1 0.5 0.3]; % (-) fraction of optimal repeaters to insert
 wire.Beta = [0.9];              % (-v) Fraction of total clock period that a single point-to-point interconnect can consume
 wire.Rc = 0;                    % (-v) Contact resistance between tiers (can be a vector)
 
@@ -177,6 +174,9 @@ psn.segment_width = 2e-6;           % (m) width of a power grid segment
 psn.package_resistance = 0.006;     % (Ohm) Resistance per pad on the package
 psn.package_inductance = 0.5e-9;    % (H) Inductance per package pad
 
+% Power TSV determination
+psn.mismatch_tolerance = 0.05;      % (-) Allowable normalized deviation from noise target
+
 mu_m = 1.257e-6;      %copper permeability
 
 % decap = 0.1; % (Ratio) - Fraction of chip area dedicated to decoupling capacitors
@@ -191,9 +191,26 @@ mu_m = 1.257e-6;      %copper permeability
 simulation.use_joyner = 0;
 simulation.redo_wiring_after_repeaters = 0;
 simulation.topdown_WLARI = 1; % Use topdown simultaneous WLA and RI (0 = use standard bottom-up optimal WLA, followed by one pass of RI)
+simulation.skip_psn_loops = 1; % Skip PSN TSV homing for faster debug
 
 %% Codesign system
 tic % begin timing
 [chip power tsv wire repeater psn] = codesign_system(chip,tsv,gate,transistor,wire,psn,simulation);
 toc % finish timing
 
+%% WLA Validation
+figure(1)
+clf
+plot(wire.pn*1e9)
+xlabel('wiring layer')
+ylabel('wire pitch (nm)')
+grid on
+fixfigs(1,3,14,12)
+
+figure(2)
+clf
+semilogy(wire.wire_area./wire.layer_area,'k')
+hold on
+semilogy(wire.via_area_wires./wire.layer_area,'b')
+semilogy(wire.via_area_repeaters./wire.layer_area,'r')
+fixfigs(2,3,14,12)
