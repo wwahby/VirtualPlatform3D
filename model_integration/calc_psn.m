@@ -74,7 +74,7 @@ Wseg = psn.segment_width;
 
 
 %% Calculate useful quantities
-Jch = Pdens/Vdd; % (A/cm^2) Current density
+Jch = Pdens/Vdd; % (A/m^2) Current density
 pp = sqrt(2*pitch_tsv^2); % [FIX] Not really sure what the point of this is
 
 %% Determine Unit Cell parameters

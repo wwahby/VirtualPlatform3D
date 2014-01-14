@@ -27,21 +27,23 @@
 close all
 clear all
 %% Chip parameters
-area = 100e-6;        %chip area (m^2)
-%Npad = 32*32;         %total number of power or ground pads
+Nstrata = 4;
+area_mm2 = 50;
 Npad = 4000;
-rho_m = 1.68*10^-8;     %copper resistivity
-mu_m = 1.257e-6;      %copper permeability
-Nstrata = 2;
-
 Vdd = 1.00; % (V)
 Power = 100; % (W)
-Pdens_m2 = Power/area; % (W/m2)
-Pdens = Pdens_m2/1e4; % (W/cm2)
 decap = 0.1; % (Ratio) - Fraction of chip area dedicated to decoupling capacitors
-decap = 0.0053;
-
 T = 25; % (deg C) Temperature
+
+area = area_mm2/1e6;        %chip area (m^2)
+%Npad = 32*32;         %total number of power or ground pads
+rho_m = 1.68*10^-8;     %copper resistivity
+mu_m = 1.257e-6;      %copper permeability
+
+Pdens_m2 = Power/area; % (W/m2)
+%Pdens = Pdens_m2/1e4; % (W/cm2)
+Pdens = Pdens_m2;
+
 
 %% Unit Cell Constants
 Ngrid = 21*21;        %grid fineness
@@ -80,7 +82,7 @@ LPKG = 0.5e-9; % (H)
 
 
 %% Calculate useful quantities
-Jch = Pdens/Vdd; % (A/cm^2) Current density
+Jch = Pdens/Vdd; % (A/m^2) Current density
 pp = sqrt(2*pitch_tsv^2); % [FIX] Not really sure what the point of this is
 
 %% Determine Unit Cell parameters
@@ -97,7 +99,7 @@ acell = lcell;
 layer = Nstrata; % Just worry about top die (worst case scenario)
 RTSV = 0.01;  %Resistance of a TSV
 LTSV = 2.5e-11; %Inductance of a TSV
-Jch= 1e6;%Current density, A/cm^2
+Jch= 2e6;%Current density, A/cm^2
 Rseg = 0.17; %segment resistance
 rpad = 4.04e-6; %Equivalent pad radius
 acell = 212e-6; %unit cell side length
