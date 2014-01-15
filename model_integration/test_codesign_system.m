@@ -26,12 +26,12 @@ S = 1;
 % w_trans = 65e-9;
 
 %% 65nm Merom, single core
-% Ng = 10e6;
-% Ach_mm2 = 27;
-% gate_pitch = 2*820e-9; % average gate pitch (sqrt(A_core/Ngates))
-% min_pitch = 220e-9; % actual contacted gate pitch
-% fmax = 3.0e9;
-% w_trans = 65e-9;
+Ng = 10e6;
+Ach_mm2 = 27;
+gate_pitch = 2*820e-9; % average gate pitch (sqrt(A_core/Ngates))
+min_pitch = 220e-9; % actual contacted gate pitch
+fmax = 3.0e9;
+w_trans = 65e-9;
 
 %% 32nm Sandy Bridge, entire chip
 % Ng = 2.27e9/4;
@@ -90,12 +90,12 @@ S = 1;
 % w_trans = 80e-9;
 
 %% 22nm Ivy Bridge i7, one core
-Ng = 105e6/4;
-Ach_mm2 = 11.95;
-gate_pitch = 338e-9*2;
-min_pitch = 90e-9;
-fmax = 3.5e9;
-w_trans = 80e-9;
+% Ng = 105e6/4;
+% Ach_mm2 = 11.95;
+% gate_pitch = 338e-9*2;
+% min_pitch = 90e-9;
+% fmax = 3.5e9;
+% w_trans = 80e-9;
 
 %% Arbitrarily huge test case
 % Ng = 1e9;
@@ -152,9 +152,10 @@ wire.resistivity = 17.2e-9;     % (Ohm*m) Copper wires
 wire.permeability_rel = 1;      % (-) Relative permeability of wiring material
 wire.dielectric_epsr = 3.0;     % (-) Relative dielectric constant for wiring ILD -- Low-K dielectric
 wire.layers_per_tier = 1;       % (-) Number of metal layers sharing same pitch in each tier
-wire.routing_efficiency = 0.55;  % (-) Fraction of available area that the wire routing tool can actually use
-wire.repeater_fraction = [0 0 0.3 0.5 0.5 0.8]; % (-) fraction of optimal repeaters to insert
-wire.Beta = [0.25 0.9];              % (-v) Fraction of total clock period that a single point-to-point interconnect can consume
+wire.routing_efficiency = 0.5;  % (-) Fraction of available area that the wire routing tool can actually use
+wire.repeater_fraction = fliplr([0 0 0.3 0.3 0.5 0.8]); % (-) fraction of optimal repeaters to insert
+wire.Beta = [0.9];              % (-v) Fraction of total clock period that a single point-to-point interconnect can consume
+wire.Beta_short = 0.25;         % (-) Beta for shortest wiring layers (used for the top down WLARI)
 wire.Rc = 0;                    % (-v) Contact resistance between tiers (can be a vector)
 
 %% Power supply noise model parameters

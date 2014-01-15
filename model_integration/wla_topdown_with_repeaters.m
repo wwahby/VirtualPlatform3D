@@ -212,7 +212,7 @@ while (Lm >= 0 && n < max_layers)
     if (Lm > 0)
         Ln_vec(n+1) = Lm;
     else
-        Beta_n = 0.25;
+        Beta_n = wire.Beta_short;
         %routing_efficiency = 0.2;
         if(final_layers == 0)
             n = n-1;
