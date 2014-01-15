@@ -32,7 +32,6 @@ AR_tsv = tsv.aspect_ratio;
 Atf_max = tsv.max_area_fraction;
 h_tsv_m = tsv.height;
 
-alpha_t = wire.delay_constant;
 rho_m = wire.resistivity;
 epsr_d = wire.dielectric_epsr;
 
@@ -128,6 +127,8 @@ chip.lengths = l;
 % based on the POST-RI wire delay, as well as knowing in advance the total
 % repeater and wire via area required on lower levels. The disadvantage is
 % that the bottom metal layer may not be well-utilized
+
+wire.capacitance_constant = calc_capacitance_constant(wire.aspect_ratio,wire.width_fraction);
 if (simulation.topdown_WLARI == 1)
     [wire repeater] = wla_topdown_with_repeaters(chip,gate,wire);
 else

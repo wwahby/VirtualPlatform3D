@@ -48,7 +48,7 @@ routing_efficiency_vec = wire.routing_efficiency;
 layer_area = wire.layer_area;
 rho_m = wire.resistivity;
 epsr_d = wire.dielectric_epsr;
-alpha_t = wire.delay_constant;
+cap_const = wire.capacitance_constant;
 Beta = wire.Beta;
 Tclk = chip.clock_period;
 Rc = wire.Rc;
@@ -126,14 +126,14 @@ while (Lm >= 0 && n < max_layers)
     
     Ln_m = @(Ln) gate_pitch*Ln;
     R_int = @(pn,Ln) 4*rho_m_n*Ln_m(Ln)/pn^2 + Rc_n;
-    C_int = @(Ln) 6.2*eps_d*Ln_m(Ln);
+    C_int = @(Ln) cap_const*eps_d*Ln_m(Ln);
     
     % Fit function to determine delay when using sub-optimal repeater
     % fraction (from Joyner) (gamma)
     alpha_rep = @(gamma) (1.44 + 0.53*(gamma + 1/gamma) );
     
-    pn_rc = @(Ln,gamma) max(min_pitch, sqrt(1.1*6.2*4*rho_m_n*eps_d/(Beta_n*Tclk - 1.1*6.2*Rc_n*eps_d*Ln_m(Ln))) * Ln_m(Ln) );
-    pn_rep = @(Ln,gamma) max( min_pitch, sqrt(1.1*6.2*4*rho_m*eps_d / ( (Beta_n*Tclk)^2/(alpha_rep(gamma)^2*Ro*Co) - 1.1*6.2*Rc*eps_d*Ln_m(Ln) )) * Ln_m(Ln) );
+    pn_rc = @(Ln,gamma) max(min_pitch, sqrt(1.1*cap_const*4*rho_m_n*eps_d/(Beta_n*Tclk - 1.1*cap_const*Rc_n*eps_d*Ln_m(Ln))) * Ln_m(Ln) );
+    pn_rep = @(Ln,gamma) max( min_pitch, sqrt(1.1*cap_const*4*rho_m*eps_d / ( (Beta_n*Tclk)^2/(alpha_rep(gamma)^2*Ro*Co) - 1.1*cap_const*Rc*eps_d*Ln_m(Ln) )) * Ln_m(Ln) );
     
     % First, figure out what the pitch would be with and without repeaters
     pn_no_rep = pn_rc(Ln,gamma);

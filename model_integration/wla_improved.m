@@ -28,8 +28,8 @@ function wire = wla_improved(chip,wire)
 %         the first n wiring tiers, and all tiers above n will use the nth
 %         entry.
 % epsr_d - (-) relative permittivity of interlayer dielectric
-% alpha_t - (-) timing constant related to wiring capacitance and delay
-%            Venkatesan gives this as 1.1*6.2
+% cap_const - (-) multiplicative constant related to wiring capacitance and delay
+%            Venkatesan gives this as 6.2 for unity aspect ratio wires
 % Beta - (-) Fraction [0-1] of clock period that wire delay in each
 %         tier can consume. Handles vectors the same way rho_m does
 % Tclk - (s) Clock period
@@ -46,7 +46,7 @@ routing_efficiency_vec = wire.routing_efficiency;
 layer_area = wire.layer_area;
 rho_m = wire.resistivity;
 epsr_d = wire.dielectric_epsr;
-alpha_t = wire.delay_constant;
+cap_const = wire.capacitance_constant;
 Beta = wire.Beta;
 Tclk = chip.clock_period;
 Rc = wire.Rc;
@@ -83,7 +83,7 @@ while ((Ln < lmax-1) && (Ln > 0))
     Rc_n = get_nth_or_last(Rc,n);
     routing_efficiency = get_nth_or_last(routing_efficiency_vec,n);
     
-    pnf = @(Ln) sqrt( 4*alpha_t*rho_m_n*eps_d*(Ln*gate_pitch)^2 / (Beta_n*Tclk - alpha_t*Rc_n*eps_d*(Ln*gate_pitch)) );
+    pnf = @(Ln) sqrt( 4*1.1*cap_const*rho_m_n*eps_d*(Ln*gate_pitch)^2 / (Beta_n*Tclk - 1.1*cap_const*Rc_n*eps_d*(Ln*gate_pitch)) );
     A_wires_n = @(Lm,Ln) chi*pnf(Ln)*gate_pitch*sum(LIDF(Lm+2:Ln+1)); % +2 and +1 in LIDF because we need the indices, not the actual lengths
     A_vias_n = @(Ln) layers_per_tier * (1.5*pnf(Ln))^2 * sum(Iidf(Ln+2:end)); % +2 in Iidf because we need the index, not the length, 1.5 because min via pitch design rule is usually 3*min size
     A_req_n = @(Lm,Ln) A_wires_n(Lm,Ln) + A_vias_n(Ln);
@@ -128,7 +128,7 @@ while ((Ln < lmax-1) && (Ln > 0))
         Ln_vec(n) = Ln;
         A_wires(n) = A_wires_n(Lm,Ln);
         A_vias(n) = A_vias_n(Ln);
-        tau(n) =  4*alpha_t*rho_m_n*eps_d*(Ln*gate_pitch/pn)^2 + alpha_t*Rc_n*eps_d*(Ln*gate_pitch) ;
+        tau(n) =  4*1.1*cap_const*rho_m_n*eps_d*(Ln*gate_pitch/pn)^2 + 1.1*cap_const*Rc_n*eps_d*(Ln*gate_pitch) ;
         tau_allowed(n) = Beta_n*Tclk;
         n = n+1;
         Lm = Ln;

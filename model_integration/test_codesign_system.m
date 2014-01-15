@@ -146,14 +146,15 @@ tsv.aspect_ratio = 20;          % (-) TSV height / TSV width
 tsv.max_area_fraction = 0.10;   % (-) % Maximum fraction of total chip area that TSVs are allowed to consume
 tsv.height = 50e-6;             % (m) TSV height
 
-wire.delay_constant = 1.1*6.2;  % (-) Multiplicative constant determining average wire delay (1.1 is to get more than 50% delay, 6.2 comes from average wire capacitance -- see Venkatesan)
+wire.aspect_ratio = 1.8;        % (-) h/w of wires in metal layers
+wire.width_fraction = 0.25;     % (-) width/pitch of wires in metal layers
 wire.resistivity = 17.2e-9;     % (Ohm*m) Copper wires
 wire.permeability_rel = 1;      % (-) Relative permeability of wiring material
 wire.dielectric_epsr = 3.0;     % (-) Relative dielectric constant for wiring ILD -- Low-K dielectric
 wire.layers_per_tier = 1;       % (-) Number of metal layers sharing same pitch in each tier
 wire.routing_efficiency = 0.55;  % (-) Fraction of available area that the wire routing tool can actually use
-wire.repeater_fraction = [1 0.5 0.3]; % (-) fraction of optimal repeaters to insert
-wire.Beta = [0.9];              % (-v) Fraction of total clock period that a single point-to-point interconnect can consume
+wire.repeater_fraction = [0 0 0.3 0.5 0.5 0.8]; % (-) fraction of optimal repeaters to insert
+wire.Beta = [0.25 0.9];              % (-v) Fraction of total clock period that a single point-to-point interconnect can consume
 wire.Rc = 0;                    % (-v) Contact resistance between tiers (can be a vector)
 
 %% Power supply noise model parameters
