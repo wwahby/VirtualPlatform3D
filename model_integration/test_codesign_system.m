@@ -26,12 +26,28 @@ S = 1;
 % w_trans = 65e-9;
 
 %% 65nm Merom, single core
-Ng = 10e6;
-Ach_mm2 = 27;
-gate_pitch = 2*820e-9; % average gate pitch (sqrt(A_core/Ngates))
-min_pitch = 220e-9; % actual contacted gate pitch
+% Ng = 10e6;
+% Ach_mm2 = 27;
+% gate_pitch = 2*820e-9; % average gate pitch (sqrt(A_core/Ngates))
+% min_pitch = 220e-9; % actual contacted gate pitch
+% fmax = 3.0e9;
+% w_trans = 65e-9;
+
+%% 45nm Penryn, entire chip
+% Ng = 410e6/4;
+% Ach_mm2 = 107;
+% gate_pitch = 2*510e-9; % average gate pitch (sqrt(A_core/Ngates))
+% min_pitch = 160e-9; % actual contacted gate pitch
+% fmax = 3.0e9;
+% w_trans = 45e-9;
+
+%% 45nm Penryn, single core
+Ng = 83e6/4;
+Ach_mm2 = 21.6;
+gate_pitch = 2*510e-9; % average gate pitch (sqrt(A_core/Ngates))
+min_pitch = 160e-9; % actual contacted gate pitch
 fmax = 3.0e9;
-w_trans = 65e-9;
+w_trans = 45e-9;
 
 %% 32nm Sandy Bridge, entire chip
 % Ng = 2.27e9/4;
@@ -141,19 +157,20 @@ gate.output_resistance = 1e3;   % (Ohm) Output resistance of a minimum-sized 2in
 gate.num_transistors = 4;       % (-) number of transistors per average logic gate
 gate.capacitance = gate.num_transistors*transistor.capacitance;
 
-%% TSV and wire parameters
+%% TSV parameters
 tsv.aspect_ratio = 20;          % (-) TSV height / TSV width
 tsv.max_area_fraction = 0.10;   % (-) % Maximum fraction of total chip area that TSVs are allowed to consume
 tsv.height = 50e-6;             % (m) TSV height
 
+%% Wiring parameters
 wire.aspect_ratio = 1.8;        % (-) h/w of wires in metal layers
-wire.width_fraction = 0.25;     % (-) width/pitch of wires in metal layers
+wire.width_fraction = 0.5;     % (-) width/pitch of wires in metal layers
 wire.resistivity = 17.2e-9;     % (Ohm*m) Copper wires
 wire.permeability_rel = 1;      % (-) Relative permeability of wiring material
 wire.dielectric_epsr = 3.0;     % (-) Relative dielectric constant for wiring ILD -- Low-K dielectric
 wire.layers_per_tier = 1;       % (-) Number of metal layers sharing same pitch in each tier
 wire.routing_efficiency = 0.5;  % (-) Fraction of available area that the wire routing tool can actually use
-wire.repeater_fraction = fliplr([0 0 0.3 0.3 0.5 0.8]); % (-) fraction of optimal repeaters to insert
+wire.repeater_fraction = fliplr([0 0 0.3 0.3 0.5 0.5]); % (-) fraction of optimal repeaters to insert
 wire.Beta = [0.9];              % (-v) Fraction of total clock period that a single point-to-point interconnect can consume
 wire.Beta_short = 0.25;         % (-) Beta for shortest wiring layers (used for the top down WLARI)
 wire.Rc = 0;                    % (-v) Contact resistance between tiers (can be a vector)
