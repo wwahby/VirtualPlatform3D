@@ -42,12 +42,12 @@ S = 1;
 % w_trans = 45e-9;
 
 %% 45nm Penryn, single core
-Ng = 83e6/4;
-Ach_mm2 = 21.6;
-gate_pitch = 2*510e-9; % average gate pitch (sqrt(A_core/Ngates))
-min_pitch = 160e-9; % actual contacted gate pitch
-fmax = 3.0e9;
-w_trans = 45e-9;
+% Ng = 83e6/4;
+% Ach_mm2 = 21.6;
+% gate_pitch = 2*510e-9; % average gate pitch (sqrt(A_core/Ngates))
+% min_pitch = 160e-9; % actual contacted gate pitch
+% fmax = 3.0e9;
+% w_trans = 45e-9;
 
 %% 32nm Sandy Bridge, entire chip
 % Ng = 2.27e9/4;
@@ -106,12 +106,12 @@ w_trans = 45e-9;
 % w_trans = 80e-9;
 
 %% 22nm Ivy Bridge i7, one core
-% Ng = 105e6/4;
-% Ach_mm2 = 11.95;
-% gate_pitch = 338e-9*2;
-% min_pitch = 90e-9;
-% fmax = 3.5e9;
-% w_trans = 80e-9;
+Ng = 105e6/4;
+Ach_mm2 = 11.95;
+gate_pitch = 338e-9*2;
+min_pitch = 90e-9;
+fmax = 3.5e9;
+w_trans = 80e-9;
 
 %% Arbitrarily huge test case
 % Ng = 1e9;
@@ -153,7 +153,7 @@ transistor.oxide_thickness = 1e-9;
 transistor.leakage_current_per_micron = 10e-9; %(A/um)
 transistor.capacitance = transistor.oxide_rel_permittivity*eps0*transistor.gate_length^2/transistor.oxide_thickness;
 
-gate.output_resistance = 1e3;   % (Ohm) Output resistance of a minimum-sized 2in NAND gate
+gate.output_resistance = 10e3;   % (Ohm) Output resistance of a minimum-sized 2in NAND gate
 gate.num_transistors = 4;       % (-) number of transistors per average logic gate
 gate.capacitance = gate.num_transistors*transistor.capacitance;
 
@@ -169,8 +169,8 @@ wire.resistivity = 17.2e-9;     % (Ohm*m) Copper wires
 wire.permeability_rel = 1;      % (-) Relative permeability of wiring material
 wire.dielectric_epsr = 3.0;     % (-) Relative dielectric constant for wiring ILD -- Low-K dielectric
 wire.layers_per_tier = 1;       % (-) Number of metal layers sharing same pitch in each tier
-wire.routing_efficiency = 0.5;  % (-) Fraction of available area that the wire routing tool can actually use
-wire.repeater_fraction = fliplr([0 0 0.3 0.3 0.5 0.5]); % (-) fraction of optimal repeaters to insert
+wire.routing_efficiency = 0.55;  % (-) Fraction of available area that the wire routing tool can actually use
+wire.repeater_fraction = fliplr([0.5 0.5 1]); % (-) fraction of optimal repeaters to insert
 wire.Beta = [0.9];              % (-v) Fraction of total clock period that a single point-to-point interconnect can consume
 wire.Beta_short = 0.25;         % (-) Beta for shortest wiring layers (used for the top down WLARI)
 wire.Rc = 0;                    % (-v) Contact resistance between tiers (can be a vector)
