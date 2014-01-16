@@ -100,13 +100,15 @@ my_ib_n1_dyneff_pitch = [	90	90	90	115.836	210.5411	322.5414	493.471	];
 my_ib_tdwithrep_pitch1 = [ 90.0000   90.0000   90.0000   90.0000   93.0672  164.8177  218.1233  249.1480 ];
 my_ib_tdwithrep_pitch2 = [ 90.0000   90.0000   90.0000  112.9949  183.4550  249.1480];
 my_ib_tdwlari3 = [90.0000   90.0000   90.0000   90.0000  123.0972  188.4797  257.9700  339.7838  457.6400];
+my_ib_sbbest = [0.0900 0.0900 0.0900 0.0900 0.1610 0.2402 0.3196 0.3991 0.4794 0.5611 0.6463 0.7386 0.8447 0.9918 1.2331 ] * 1e3;
 
 figure(10)
 clf
 plot(intel_ib_pitch,'k')
 hold on
 plot(my_ib_tdwithrep_pitch2,'b')
-plot(my_ib_tdwlari3,'r')
+%plot(my_ib_tdwlari3,'r')
+plot(my_ib_sbbest,'r')
 xlabel('metal layer')
 ylabel('Pitch (nm)')
 ylim([0 1.1*max(my_ib_n1_dyneff_pitch)])
@@ -116,16 +118,40 @@ fixfigs(10,3,14,12)
 %% Num metal layers
 
 intel_nodes = [65 45 32 22];
+intel_nodes = [1 2 3 4];
 intel_num_metal_layers = [8 9 8 9];
 my_num_metal_layers = [6 8 6 9];
+my_num_metal_layers_sbbest = [9 10 9 15];
 
 figure(11)
 clf
 plot(intel_nodes,intel_num_metal_layers,'k')
 hold on
 plot(intel_nodes,my_num_metal_layers,'r')
+plot(intel_nodes,my_num_metal_layers_sbbest,'m')
 xlabel('Process node (nm)')
 ylabel('Number of metal layers')
-ylim([0 10])
+set(gca,'xtick',[1 2 3 4])
+set(gca,'xticklabel',['65'; '45'; '32'; '22'])
+ylim([5 15])
 fixfigs(11,3,14,12)
+
+
+%% Power
+intel_nodes = [1 2 3 4];
+intel_tdp = [44 55 95 77];
+my_core_power = [21.8 24.7 21.74 69.86];
+intel_num_cores = [2 2 4 4];
+my_power_nomem = my_core_power*intel_num_cores;
+
+figure(12)
+clf
+plot(intel_tdp,'k')
+hold on
+plot(intel_nodes,my_power_nomem,'r')
+xlabel('Process node (nm)')
+ylabel('Power (W)')
+set(gca,'xtick',[1 2 3 4])
+set(gca,'xticklabel',[65 45 32 22])
+
 
