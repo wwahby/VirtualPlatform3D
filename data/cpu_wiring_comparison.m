@@ -142,7 +142,7 @@ intel_nodes = [1 2 3 4];
 intel_tdp = [44 55 95 77];
 my_core_power = [21.8 24.7 21.74 69.86];
 intel_num_cores = [2 2 4 4];
-my_power_nomem = my_core_power*intel_num_cores;
+my_power_nomem = my_core_power.*intel_num_cores;
 
 figure(12)
 clf
@@ -153,5 +153,6 @@ xlabel('Process node (nm)')
 ylabel('Power (W)')
 set(gca,'xtick',[1 2 3 4])
 set(gca,'xticklabel',[65 45 32 22])
+fixfigs(12,3,14,12)
 
 
