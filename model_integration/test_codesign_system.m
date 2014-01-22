@@ -7,7 +7,7 @@ clear all
 %  ==================================================
 
 %% Stack parameters
-S = 1;
+S = 2;
 
 %% 65nm Merom, entire chip
 % Ng = 291e6/4;

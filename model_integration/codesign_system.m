@@ -19,10 +19,10 @@ disp('Estimating TSV requirements...')
 %   Max area for TSVs
 %   TSV aspect ratio
 disp('Sizing TSVs...')
-[w_tsv_gp h_tsv_gp] = size_tsvs(chip.area_total/chip.num_layers, tsv.max_area_fraction, nt_max, tsv.aspect_ratio );
+[w_tsv_m h_tsv_m] = size_tsvs(chip.area_total/chip.num_layers, tsv.max_area_fraction, nt_max, tsv.aspect_ratio );
 %h_tsv_gp = round(h_tsv_gp);
-h_tsv_m = h_tsv_gp*chip.gate_pitch;
-w_tsv_m = w_tsv_gp*chip.gate_pitch;
+h_tsv_gp = ceil(h_tsv_m/chip.gate_pitch);
+w_tsv_gp = ceil(w_tsv_m/chip.gate_pitch);
 
 tsv.width_m = w_tsv_m;
 tsv.height_m = h_tsv_m;
