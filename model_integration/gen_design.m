@@ -149,14 +149,20 @@ end
 
 %% Power estimates
 eps0 = 8.854e-12; % (F/m)
-Ilk = Ioff*(w_trans*1e6); % [FIX] very coarse leakage model -- update this with something better (incl temp, gate size, etc)
+
+thermal_voltage = 0.0258 * (chip.temperature+273)/300; % kT/q (V)
+swing_at_temp = transistor.subthreshold_swing * (chip.temperature+273)/300; % (V) Subthreshold swing at the actual chip temperature
+Vth = transistor.Vt;
+Vgs = 0;
+Vds = chip.Vdd;
+Ilk = Ioff*(3*w_trans*1e6)*exp( (Vgs-Vth)/swing_at_temp)*(1-exp(-Vds/thermal_voltage)); % [FIX] very coarse leakage model -- update this with something better (incl temp, gate size, etc)
 
 Cox = 1.5*transistor.capacitance; % (1.5 because pmos should have ~3X nmos width, and half the transistors should be pmos)
 Co = Cox; % Need to include parasitics for realistic estimate
 Co_rep = Cox*repeater.size;
 Ilk_rep = Ilk*repeater.size;
 
-Nt = N_trans_per_gate * Ng;
+Nt = N_trans_per_gate * Ng
 f = 1/Tclk;
 Cxc = wire.capacitance_total;
 Pdyn = 1/2*a*Co*Vdd^2*f*Nt;

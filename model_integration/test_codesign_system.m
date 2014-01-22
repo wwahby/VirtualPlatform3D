@@ -144,16 +144,18 @@ chip.chi = 2/3;         % (-) Conversion factor for point-to-point interconnect 
 chip.clock_period = 1/fmax; % (s) Clock period
 chip.logic_activity_factor = 0.1; % (-) Fraction of gates switching at every clock cycle
 chip.Vdd = 1.25;        % (V) Supply voltage
-chip.temperature = 25;  % (deg C) Temperature
+chip.temperature = 90;  % (deg C) Temperature
 
 %% Transistor and gate parameters
 transistor.gate_length = w_trans;
 transistor.oxide_rel_permittivity = 25; % HfO2
 transistor.oxide_thickness = 1e-9;
-transistor.leakage_current_per_micron = 10e-9; %(A/um)
+transistor.leakage_current_per_micron = 3e-5; %(A/um)
 transistor.capacitance = transistor.oxide_rel_permittivity*eps0*transistor.gate_length^2/transistor.oxide_thickness;
+transistor.subthreshold_swing = .125; % (V/decade at 300K)
+transistor.Vt = 0.1; % (V) - Threhsold voltage
 
-gate.output_resistance = 10e3;   % (Ohm) Output resistance of a minimum-sized 2in NAND gate
+gate.output_resistance = 1e3;   % (Ohm) Output resistance of a minimum-sized 2in NAND gate
 gate.num_transistors = 4;       % (-) number of transistors per average logic gate
 gate.capacitance = gate.num_transistors*transistor.capacitance;
 
