@@ -30,7 +30,7 @@ redo_wiring = simulation.redo_wiring_after_repeaters;
 
 AR_tsv = tsv.aspect_ratio;
 Atf_max = tsv.max_area_fraction;
-h_tsv_m = tsv.height;
+h_tsv_m = tsv.height_m;
 
 rho_m = wire.resistivity;
 epsr_d = wire.dielectric_epsr;

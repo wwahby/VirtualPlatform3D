@@ -1,4 +1,4 @@
-function [chip power tsv wire repeater psn] = codesign_system(chip,tsv,gate,transistor,wire,psn,simulation)
+function [chip power tsv wire repeater psn] = codesign_system(chip,tsv,gate,transistor,wire,heat,psn,simulation)
 % Power and signal codesign
 %% constants
 eps0 = 8.854e-12; % (F/m) vacuum permittivity
@@ -37,7 +37,6 @@ disp('Generating system...')
 
 %Pdens = power.total/chip.area_per_layer_m2;
 power.density = power.total/chip.area_total;
-psn.pitch_tsv = tsv.pitch_m*10; % [FIX] Power TSVs aren't going to be on the same pitch as signal TSVs
 
 %% Thermal module -- Find actual system temperature
 
@@ -52,7 +51,7 @@ psn.pitch_tsv = tsv.pitch_m*10; % [FIX] Power TSVs aren't going to be on the sam
     thick.tim = 5e-6; %tim thickness; between the chip and heatsink
     thick.under = 5e-6; %underfill bonding thickness; between two dies
     thick.inter = 200e-6; %interposer thickness
-    thick.die = tsv.height; %die thickness
+    thick.die = tsv.height_m; %die thickness
     thick.ild = sum(wire.pn); %metal layer thickness
     
     layer_area = chip.area_per_layer_m2;
@@ -90,13 +89,17 @@ psn.pitch_tsv = tsv.pitch_m*10; % [FIX] Power TSVs aren't going to be on the sam
     portion = 0.5; %the metal portion in the ILD layers
     %This is used for equivalent thermal resistance calculation of metal
     %layer
+    
     power_therm_vec = ones(1,chip.num_layers)*power.total/chip.num_layers;  %power dissipation of each die
     % from top to bottom; unit: watt
+    
     granularity = 20;
     % thermal map, number of color used
-    draw = 1;
+    
+    draw = simulation.draw_thermal_map;
     % whether to draw the thermal map; 1 yes; 0 no
-    displayT = 1;
+    
+    displayT = simulation.print_thermal_data;
     % print the temperature information
 %%%%%%%%%%%%%%%%%%%%%%%%finish geometry information%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -105,25 +108,25 @@ psn.pitch_tsv = tsv.pitch_m*10; % [FIX] Power TSVs aren't going to be on the sam
     % r = 1/(hA); A is the size of top surface area
     % the cooling capability of the top heatsink; 20000, 1cm*1cm, means:
     % 0.5 W/K
-    h.up = 20000;
-    
-    h.down = 5; % the cooling of bottom surface; 
-    %(only the area with the same size of chip;)
-    %microfluidic is assumed to be as large as chip in the interposer
-    
-    h.side = 5;
-    % side surface cooling, usually near adiabatic
-    
-    h.d = 5;
-    %the cooling of the bottom surface except for the MFHS area
-    
-    h.Ta = 298;
+%     h.up = 20000;
+%     
+%     h.down = 5; % the cooling of bottom surface; 
+%     %(only the area with the same size of chip;)
+%     %microfluidic is assumed to be as large as chip in the interposer
+%     
+%     h.side = 5;
+%     % side surface cooling, usually near adiabatic
+%     
+%     h.d = 5;
+%     %the cooling of the bottom surface except for the MFHS area
+%     
+%     h.Ta = 298;
     %the ambient temperature
 %%%%%%%%%%%%%%%%%%%%%%%%%finish boundary condition%%%%%%%%%%%%%%%%%%%%%%%%%
     
     chip.temperature_K_vec = ThermSim( die, thick, chip_therm, pack, ...
               tsv_therm, bump, portion, power_therm_vec, ...
-              granularity, draw, h, displayT);
+              granularity, draw, heat, displayT);
     chip.temperature = max(chip.temperature_K_vec - 273.15);
 
 
@@ -134,6 +137,7 @@ psn.pitch_tsv = tsv.pitch_m*10; % [FIX] Power TSVs aren't going to be on the sam
 %   Total power (from previous step)
 %   TSV geometry from TSV Sizing step
 disp('Evaluating power supply noise...')
+psn.pitch_tsv = tsv.pitch_m*10; % [FIX] Power TSVs aren't going to be on the same pitch as signal TSVs
 psn_mismatch_tolerance = psn.mismatch_tolerance; % 5% mismatch is OK
 psn_iterations = 1;
 

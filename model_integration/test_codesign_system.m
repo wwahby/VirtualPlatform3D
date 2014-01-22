@@ -145,6 +145,7 @@ chip.clock_period = 1/fmax; % (s) Clock period
 chip.logic_activity_factor = 0.1; % (-) Fraction of gates switching at every clock cycle
 chip.Vdd = 1.25;        % (V) Supply voltage
 chip.temperature = 25;  % (deg C) Temperature
+% chip.thickness_nominal = 50e-6; % (m) Nominal substrate thickness
 
 %% Transistor and gate parameters
 transistor.gate_length = w_trans;
@@ -162,7 +163,7 @@ gate.capacitance = gate.num_transistors*transistor.capacitance;
 %% TSV parameters
 tsv.aspect_ratio = 20;          % (-) TSV height / TSV width
 tsv.max_area_fraction = 0.10;   % (-) % Maximum fraction of total chip area that TSVs are allowed to consume
-tsv.height = 50e-6;             % (m) TSV height
+
 
 %% Wiring parameters
 wire.aspect_ratio = 1.8;        % (-) h/w of wires in metal layers
@@ -208,17 +209,39 @@ mu_m = 1.257e-6;      %copper permeability
 % Tseg = 1e-6;          % Thickness of grid segment
 % Wseg = 2e-6;          % width of grid segment
 
+%% Thermal parameters
+%the heat transfer coefficient
+% r = 1/(hA); A is the size of top surface area
+% the cooling capability of the top heatsink; 20000, 1cm*1cm, means:
+% 0.5 W/K
+% h = q/dT - q = heat flux (W/m^2)
+heat.up = 20000;
+
+heat.down = 5; % the cooling of bottom surface; 
+%(only the area with the same size of chip;)
+%microfluidic is assumed to be as large as chip in the interposer
+
+heat.side = 5;
+% side surface cooling, usually near adiabatic
+
+heat.d = 5;
+%the cooling of the bottom surface except for the MFHS area
+
+heat.Ta = 298; % ambient temperature
+
 %% Simulation parameters
 simulation.use_joyner = 0;
 simulation.redo_wiring_after_repeaters = 0;
 simulation.topdown_WLARI = 1; % Use topdown simultaneous WLA and RI (0 = use standard bottom-up optimal WLA, followed by one pass of RI)
 simulation.skip_psn_loops = 1; % Skip PSN TSV homing for faster debug
+simulation.draw_thermal_map = 1; % Plot thermal profile of each chip
+simulation.print_thermal_data = 1; % Output max temp in each layer to console
 
 
 
 %% Codesign system
 tic % begin timing
-[chip power tsv wire repeater psn] = codesign_system(chip,tsv,gate,transistor,wire,psn,simulation);
+[chip power tsv wire repeater psn] = codesign_system(chip,tsv,gate,transistor,wire,heat,psn,simulation);
 toc % finish timing
 
 %% WLA Validation
