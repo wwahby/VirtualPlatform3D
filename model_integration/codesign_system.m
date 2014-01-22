@@ -39,7 +39,95 @@ disp('Generating system...')
 power.density = power.total/chip.area_total;
 psn.pitch_tsv = tsv.pitch_m*10; % [FIX] Power TSVs aren't going to be on the same pitch as signal TSVs
 
-%% System temperature check may go here
+%% Thermal module -- Find actual system temperature
+
+%%%%%%%%%%%%%%%%%%%%%%%geometry information of the chip%%%%%%%%%%%%%%%%%%%
+    die.N = chip.num_layers;
+    die.model = 3; % for each die, how many layers we model
+    
+    % flip chip package; order:
+    %heatsink->TIM->CHIP_BULK1->METAL->BONDING->CHIP_BULK2-> ...
+    %               CHIP_BULKN->METAL->MICRO-BUMPS->INTERPOSER    
+    thick.bump = 40e-6;  %micro-bump thickness; between second die and interposer
+    thick.tim = 5e-6; %tim thickness; between the chip and heatsink
+    thick.under = 5e-6; %underfill bonding thickness; between two dies
+    thick.inter = 200e-6; %interposer thickness
+    thick.die = tsv.height; %die thickness
+    thick.ild = sum(wire.pn); %metal layer thickness
+    
+    layer_area = chip.area_per_layer_m2;
+    side_length = sqrt(layer_area);
+    grid_factor = 50;
+    chip_therm.Xsize = side_length; %x dimension of chip
+    chip_therm.Ysize = side_length; %y dimension of chip
+    chip_therm.Xgrid = chip_therm.Xsize/grid_factor; %x grid size of chip
+    chip_therm.Ygrid = chip_therm.Ysize/grid_factor; %y grid size of chip
+    
+    %for the interposer dimension
+    pack.Xsize = 3.5*side_length;
+    pack.Ysize = 3.5*side_length;
+    pack.Xgrid = pack.Xsize/grid_factor;
+    pack.Ygrid = pack.Ysize/grid_factor;
+    
+    %assumed TSV starting from top metal layer of a top die
+    %            to the first metal layer of a bottom die
+    %Thus the TSV passes through bonding layer & bulk of a botom die
+    %TSV geometry 
+    tsv_therm.d = tsv.width_m; % tsv diameter including the liner thickness
+    tsv_therm.liner = tsv.width_m/10; %liner thickness
+    tsv_therm.px = tsv.pitch_m; %x direction pitch
+    tsv_therm.py = tsv.pitch_m; %y direction pitch
+    tsv_therm.Nx = round(sqrt(tsv.num)); %x direction number
+    tsv_therm.Ny = round(sqrt(tsv.num)); %y direction number
+
+    %Bump geometry
+    bump.d = 20e-6;
+    bump.px = 100e-6;
+    bump.py = 100e-6;
+    bump.Nx = 40;
+    bump.Ny = 40;
+    
+    portion = 0.5; %the metal portion in the ILD layers
+    %This is used for equivalent thermal resistance calculation of metal
+    %layer
+    power_therm_vec = ones(1,chip.num_layers)*power.total/chip.num_layers;  %power dissipation of each die
+    % from top to bottom; unit: watt
+    granularity = 20;
+    % thermal map, number of color used
+    draw = 1;
+    % whether to draw the thermal map; 1 yes; 0 no
+    displayT = 1;
+    % print the temperature information
+%%%%%%%%%%%%%%%%%%%%%%%%finish geometry information%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%boundary condition%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %the heat transfer coefficient
+    % r = 1/(hA); A is the size of top surface area
+    % the cooling capability of the top heatsink; 20000, 1cm*1cm, means:
+    % 0.5 W/K
+    h.up = 20000;
+    
+    h.down = 5; % the cooling of bottom surface; 
+    %(only the area with the same size of chip;)
+    %microfluidic is assumed to be as large as chip in the interposer
+    
+    h.side = 5;
+    % side surface cooling, usually near adiabatic
+    
+    h.d = 5;
+    %the cooling of the bottom surface except for the MFHS area
+    
+    h.Ta = 298;
+    %the ambient temperature
+%%%%%%%%%%%%%%%%%%%%%%%%%finish boundary condition%%%%%%%%%%%%%%%%%%%%%%%%%
+    
+    chip.temperature_K_vec = ThermSim( die, thick, chip_therm, pack, ...
+              tsv_therm, bump, portion, power_therm_vec, ...
+              granularity, draw, h, displayT);
+    chip.temperature = max(chip.temperature_K_vec - 273.15);
+
+
+%% ============== END THERMAL MODULE ================
 
 %% Power noise estimation
 % Inputs:

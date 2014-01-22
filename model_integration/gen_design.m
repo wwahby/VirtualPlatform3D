@@ -162,7 +162,7 @@ Co = Cox; % Need to include parasitics for realistic estimate
 Co_rep = Cox*repeater.size;
 Ilk_rep = Ilk*repeater.size;
 
-Nt = N_trans_per_gate * Ng
+Nt = N_trans_per_gate * Ng;
 f = 1/Tclk;
 Cxc = wire.capacitance_total;
 Pdyn = 1/2*a*Co*Vdd^2*f*Nt;
