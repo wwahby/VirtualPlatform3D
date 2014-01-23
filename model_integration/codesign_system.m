@@ -29,6 +29,11 @@ tsv.height_m = h_tsv_m;
 tsv.width_gp = w_tsv_gp;
 tsv.height_gp = h_tsv_gp;
 
+if(tsv.height_m > 0)
+    chip.thickness = tsv.height_m;
+else
+    chip.thickness = chip.thickness_nominal;
+end
 %% System determination
 % Run WLD + WLA + RI to get power estimate
 disp('Generating system...')
@@ -51,7 +56,7 @@ power.density = power.total/chip.area_total;
     thick.tim = 5e-6; %tim thickness; between the chip and heatsink
     thick.under = 5e-6; %underfill bonding thickness; between two dies
     thick.inter = 200e-6; %interposer thickness
-    thick.die = tsv.height_m; %die thickness
+    thick.die = chip.thickness; %die thickness
     thick.ild = sum(wire.pn); %metal layer thickness
     
     layer_area = chip.area_per_layer_m2;

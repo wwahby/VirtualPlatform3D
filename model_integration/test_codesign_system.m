@@ -7,7 +7,7 @@ clear all
 %  ==================================================
 
 %% Stack parameters
-S = 2;
+S = 1;
 
 %% 65nm Merom, entire chip
 % Ng = 291e6/4;
@@ -145,7 +145,7 @@ chip.clock_period = 1/fmax; % (s) Clock period
 chip.logic_activity_factor = 0.1; % (-) Fraction of gates switching at every clock cycle
 chip.Vdd = 1.25;        % (V) Supply voltage
 chip.temperature = 25;  % (deg C) Temperature
-% chip.thickness_nominal = 50e-6; % (m) Nominal substrate thickness
+chip.thickness_nominal = 50e-6; % (m) Nominal substrate thickness
 
 %% Transistor and gate parameters
 transistor.gate_length = w_trans;
