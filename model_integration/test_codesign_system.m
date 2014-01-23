@@ -257,18 +257,18 @@ tic % begin timing
 toc % finish timing
 
 %% WLA Validation
-figure(1)
-clf
-plot(wire.pn*1e9)
-xlabel('wiring layer')
-ylabel('wire pitch (nm)')
-grid on
-fixfigs(1,3,14,12)
-
-figure(2)
-clf
-semilogy(wire.wire_area./wire.layer_area,'k')
-hold on
-semilogy(wire.via_area_wires./wire.layer_area,'b')
-semilogy(wire.via_area_repeaters./wire.layer_area,'r')
-fixfigs(2,3,14,12)
+% figure(1)
+% clf
+% plot(wire.pn*1e9)
+% xlabel('wiring layer')
+% ylabel('wire pitch (nm)')
+% grid on
+% fixfigs(1,3,14,12)
+% 
+% figure(2)
+% clf
+% semilogy(wire.wire_area./wire.layer_area,'k')
+% hold on
+% semilogy(wire.via_area_wires./wire.layer_area,'b')
+% semilogy(wire.via_area_repeaters./wire.layer_area,'r')
+% fixfigs(2,3,14,12)

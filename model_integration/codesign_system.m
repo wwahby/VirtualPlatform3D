@@ -129,10 +129,10 @@ power.density = power.total/chip.area_total;
     %the ambient temperature
 %%%%%%%%%%%%%%%%%%%%%%%%%finish boundary condition%%%%%%%%%%%%%%%%%%%%%%%%%
     
-    chip.temperature_K_vec = ThermSim( die, thick, chip_therm, pack, ...
+    chip.temperature_vec = ThermSim( die, thick, chip_therm, pack, ...
               tsv_therm, bump, portion, power_therm_vec, ...
               granularity, draw, heat, displayT);
-    chip.temperature = max(chip.temperature_K_vec - 273.15);
+    chip.temperature = max(chip.temperature_vec);
 
 
 %% ============== END THERMAL MODULE ================
