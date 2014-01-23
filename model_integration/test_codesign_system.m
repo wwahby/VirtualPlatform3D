@@ -217,17 +217,29 @@ mu_m = 1.257e-6;      %copper permeability
 % h = q/dT - q = heat flux (W/m^2)
 heat.up = 20000;
 
-heat.down = 5; % the cooling of bottom surface; 
-%(only the area with the same size of chip;)
-%microfluidic is assumed to be as large as chip in the interposer
+% Bottom surface heat transfer coefficient
+% This parameter controls the area directly BELOW the bottom chip
+% If the interposer is larger than the bottom chip, heat.d controls the
+% rest of the area
+% Microfluidic heat sinks are assumed to be as large as the chip in the interposer
+heat.down = 5;  
 
-heat.side = 5;
-% side surface cooling, usually near adiabatic
-
+% Heat transfer coefficient for the interposer area NOT directly underneath
+% the chip(s)
 heat.d = 5;
-%the cooling of the bottom surface except for the MFHS area
+
+% Side surface heat coefficient, usually near adiabatic
+heat.side = 5;
 
 heat.Ta = 298; % ambient temperature
+
+% Alternative settings
+q_cm2 = 50; % (W/cm2) Top heat sink max heat flux
+q = q_cm2*1e4; % (W/m2) Top heat sink max heat flux
+dT = 70; % (deg C) Temp difference between chip surface and coolant (air)
+heat.up = q/dT;
+heat.down = 2*heat.up;
+heat.d = heat.down;
 
 %% Simulation parameters
 simulation.use_joyner = 0;
