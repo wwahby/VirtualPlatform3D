@@ -10,6 +10,7 @@ my_merom_n1_e03 = [ 220.0000	220.0000	220.0000	273.9328	483.7781	740.9495 ];
 my_merom_n1_dyneff = [ 220.0000	220.0000	220.0000	267.3597	524.3668	746.8653 ];
 
 my_merom_tdwithrep = [ 220.0000  220.0000  220.0000  230.1247  377.1137 ];
+my_merom_best = [0.2200    0.2200    0.2200    0.2200    0.3753    0.5540    0.7602    1.0547]*1e3;
 
 % figure(1)
 % clf
@@ -29,11 +30,30 @@ clf
 plot(intel_merom_pitch,'k')
 hold on
 plot(deepak_merom_pitch,'g')
-plot(my_merom_n1_dyneff,'b')
-plot(my_merom_tdwithrep,'r')
+% plot(my_merom_n1_dyneff,'b')
+% plot(my_merom_tdwithrep,'r')
+plot(my_merom_best,'r')
 xlabel('metal layer')
 ylabel('Pitch (nm)')
+title('Merom (65nm)')
 fixfigs(7,3,14,12)
+
+%% Intel Penryn
+
+intel_penryn_pitch = [160	160	160	250	280	360	560	810	30500];
+my_penryn_pitch = [160.0000  160.0000  160.0000  160.0000  160.0000  228.1994  340.6842  470.0975  660.0702];
+
+figure(8)
+clf
+plot(intel_penryn_pitch,'k')
+hold on
+plot(my_penryn_pitch,'r')
+xlabel('metal layer')
+ylabel('Pitch (nm)')
+ylim([0 1.1*max(intel_penryn_pitch(1:end-1))])
+title('Penryn (45nm)')
+fixfigs(8,3,14,12)
+
 
 %% Sandy bridge
 intel_sb_pitch = [ 112.5	112.5	112.5	168.8	225	337.6	450.1	566.5	19400 ];
@@ -59,7 +79,7 @@ my_sb_tdwithrep = [112.5000  112.5000  112.5000  119.2457  232.3208  314.6503  3
 % ylim([0 1.1*max(my_sb_n2_pitch)])
 % fixfigs(2,3,14,12)
 
-figure(8)
+figure(9)
 clf
 plot(intel_sb_pitch,'k')
 hold on
@@ -68,7 +88,8 @@ plot(my_sb_tdwithrep,'r')
 xlabel('metal layer')
 ylabel('Pitch (nm)')
 ylim([0 1.1*max(my_sb_n2_pitch)])
-fixfigs(8,3,14,12)
+title('Sandy Bridge (32nm)')
+fixfigs(9,3,14,12)
 
 %% Intel Ivy bridge
 
@@ -77,7 +98,7 @@ my_ib_n1_dyneff_pitch = [	90	90	90	115.836	210.5411	322.5414	493.471	];
 my_ib_tdwithrep_pitch = [ 90.0000   90.0000   90.0000   90.0000   93.0672  164.8177  218.1233  249.1480 ];
 my_ib_tdwithrep_pitch = [ 90.0000   90.0000   90.0000  112.9949  183.4550  249.1480];
 
-figure(9)
+figure(10)
 clf
 plot(intel_ib_pitch,'k')
 hold on
@@ -86,5 +107,8 @@ plot(my_ib_tdwithrep_pitch,'r')
 xlabel('metal layer')
 ylabel('Pitch (nm)')
 ylim([0 1.1*max(my_ib_n1_dyneff_pitch)])
-fixfigs(9,3,14,12)
+title('Ivy Bridge (22nm)')
+fixfigs(10,3,14,12)
+
+
 
