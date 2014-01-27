@@ -195,6 +195,8 @@ while (Lm >= 0 && n < max_layers)
     %% now that we know how many wires to route in this tier, size repeaters
     wire_lengths_gp = (Lm+1:Ln);
     wire_length_inds = wire_lengths_gp+1;
+    
+    
     if(use_repeaters) % use repeaters
         % Size repeaters
         repeater_num(wire_length_inds) = sqrt(0.4*R_int(pn_vec(n),wire_lengths_gp).*C_int(wire_lengths_gp)/0.7/Ro/Co); % number of repeaters
@@ -226,14 +228,14 @@ while (Lm >= 0 && n < max_layers)
 end
 
 %% Truncate overallocated vectors
-pn_vec = fliplr(pn_vec(pn_vec > 0));
-Ln_vec = fliplr(Ln_vec(pn_vec > 0));
-A_wires = fliplr(A_wires(pn_vec > 0));
-A_vias_wiring = fliplr(A_vias_wiring(pn_vec > 0));
-A_vias_repeaters = fliplr(A_vias_repeaters(pn_vec > 0));
-A_layer = fliplr(A_layer(pn_vec > 0));
-tau_rc_vec = fliplr(tau_rc_vec(pn_vec > 0));
-tau_rep_vec = fliplr(tau_rep_vec(pn_vec > 0));
+pn_vec = fliplr(pn_vec(Ln_vec > 0));
+Ln_vec = fliplr(Ln_vec(Ln_vec > 0));
+A_wires = fliplr(A_wires(Ln_vec > 0));
+A_vias_wiring = fliplr(A_vias_wiring(Ln_vec > 0));
+A_vias_repeaters = fliplr(A_vias_repeaters(Ln_vec > 0));
+A_layer = fliplr(A_layer(Ln_vec > 0));
+tau_rc_vec = fliplr(tau_rc_vec(Ln_vec > 0));
+tau_rep_vec = fliplr(tau_rep_vec(Ln_vec > 0));
 
 %% Pack outputs
 wire.Ln = Ln_vec;
