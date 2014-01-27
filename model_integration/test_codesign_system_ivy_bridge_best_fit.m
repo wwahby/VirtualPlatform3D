@@ -74,12 +74,12 @@ S = 1;
 % w_trans = 32e-9;
 
 %% 32nm Sandy Bridge i7, one core
-Ng = 85e6/4;
-Ach_mm2 = 18.5;
-gate_pitch = 465e-9*2;
-min_pitch = 112.5e-9;
-fmax = 3.6e9;
-w_trans = 32e-9;
+% Ng = 85e6/4;
+% Ach_mm2 = 18.5;
+% gate_pitch = 465e-9*2;
+% min_pitch = 112.5e-9;
+% fmax = 3.6e9;
+% w_trans = 32e-9;
 
 %% 22nm Ivy Bridge EP10, entire chip
 % Ng = 2.86e9/4;
@@ -106,12 +106,12 @@ w_trans = 32e-9;
 % w_trans = 80e-9;
 
 %% 22nm Ivy Bridge i7, one core
-% Ng = 105e6/4;
-% Ach_mm2 = 11.95;
-% gate_pitch = 338e-9*2;
-% min_pitch = 90e-9;
-% fmax = 3.5e9;
-% w_trans = 80e-9;
+Ng = 105e6/4;
+Ach_mm2 = 11.95;
+gate_pitch = 338e-9*2;
+min_pitch = 90e-9;
+fmax = 3.5e9;
+w_trans = 80e-9;
 
 %% Arbitrarily huge test case
 % Ng = 1e9;
@@ -156,7 +156,7 @@ transistor.capacitance = transistor.oxide_rel_permittivity*eps0*transistor.gate_
 transistor.subthreshold_swing = .060; % (V/decade at 300K)
 transistor.Vt = 0.25; % (V) - Threhsold voltage
 
-gate.output_resistance = 8e3;   % (Ohm) Output resistance of a minimum-sized 2in NAND gate
+gate.output_resistance = 1e3;   % (Ohm) Output resistance of a minimum-sized 2in NAND gate
 gate.num_transistors = 4;       % (-) number of transistors per average logic gate
 gate.capacitance = gate.num_transistors*transistor.capacitance;
 
