@@ -199,7 +199,7 @@ while (Lm >= 0 && n < max_layers)
     
     if(use_repeaters) % use repeaters
         % Size repeaters
-        repeater_num(wire_length_inds) = sqrt(0.4*R_int(pn_vec(n),wire_lengths_gp).*C_int(wire_lengths_gp)/0.7/Ro/Co); % number of repeaters
+        repeater_num(wire_length_inds) = gamma*sqrt(0.4*R_int(pn_vec(n),wire_lengths_gp).*C_int(wire_lengths_gp)/0.7/Ro/Co); % number of repeaters
         repeater_size(wire_length_inds) = sqrt(Ro/Co*C_int(wire_lengths_gp)./R_int(pn_vec(n),wire_lengths_gp)); % h*W/L is repeater size
         tau_rep_vec(n) = alpha_rep(gamma)*sqrt(Ro*Co*R_int(pn_vec(n),Ln)*C_int(Ln));
     else
