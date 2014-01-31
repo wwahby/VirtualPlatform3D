@@ -1,6 +1,6 @@
 function Nnst = calc_Nnst(Lx,S,r,g_tsv)
 
-[lmax_3d l3d Ns Ng] = get_params_3d(Lx,S,r);
+[lmax_3d l3d Ns Ng] = xcm.get_params_3d(Lx,S,r);
 
 Nnst = zeros(1,length(l3d));
 

@@ -11,7 +11,7 @@ mu0 = 4*pi*1e-7; % (H/m) Vacuum permeability
 %   Number of layers
 disp(' ')
 disp('Estimating TSV requirements...')
-[nt_max nt_tot nt_to nt_through Tacmat] = estimate_tsvs_required(chip.num_gates,chip.num_layers,chip.rent_k,chip.rent_p,chip.alpha);
+[nt_max nt_tot nt_to nt_through Tacmat] = xcm.estimate_tsvs_required(chip.num_gates,chip.num_layers,chip.rent_k,chip.rent_p,chip.alpha);
 
 %% TSV Sizing
 % Inputs:
@@ -19,7 +19,7 @@ disp('Estimating TSV requirements...')
 %   Max area for TSVs
 %   TSV aspect ratio
 disp('Sizing TSVs...')
-[w_tsv_m h_tsv_m] = size_tsvs(chip.area_total/chip.num_layers, tsv.max_area_fraction, nt_max, tsv.aspect_ratio );
+[w_tsv_m h_tsv_m] = xcm.size_tsvs(chip.area_total/chip.num_layers, tsv.max_area_fraction, nt_max, tsv.aspect_ratio );
 %h_tsv_gp = round(h_tsv_gp);
 h_tsv_gp = ceil(h_tsv_m/chip.gate_pitch);
 w_tsv_gp = ceil(w_tsv_m/chip.gate_pitch);
@@ -38,7 +38,7 @@ end
 % Run WLD + WLA + RI to get power estimate
 disp('Generating system...')
 %[ iidf l Ln pn pn_orig Cxc Ltot Cn Pdyn Plk Pw Prep Ng_act N_tsvs T_tsvs Atf_act ] = gen_design_old(Ng,alpha,k,p,S,h_tsv_m,Atf_max,AR_tsv,Ach_m2,chi,rho_m,epsr_d,Tclk,alpha_t,gate_pitch,w_trans,eps_ox,tox,N_trans_per_gate,a,Ioff,Vdd,Ro,use_joyner,redo_wiring);
-[chip power wire repeater tsv] = gen_design(chip,tsv,gate,transistor,wire,simulation);
+[chip power wire repeater tsv] = xcm.gen_design(chip,tsv,gate,transistor,wire,simulation);
 
 %Pdens = power.total/chip.area_per_layer_m2;
 power.density = power.total/chip.area_total;

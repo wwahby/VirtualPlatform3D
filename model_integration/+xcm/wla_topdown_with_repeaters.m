@@ -106,13 +106,13 @@ while (Lm >= 0 && n < max_layers)
     % If it's a vector, grab the nth element
     % If n is larger than the last element, grab the last element
     
-    rho_m_n = get_nth_or_last(rho_m,n);
-    Rc_n = get_nth_or_last(Rc,n);
+    rho_m_n = xcm.get_nth_or_last(rho_m,n);
+    Rc_n = xcm.get_nth_or_last(Rc,n);
     if( final_layers == 0)
-        routing_efficiency = get_nth_or_last(routing_efficiency_vec,n);
-        Beta_n = get_nth_or_last(Beta,n);
+        routing_efficiency = xcm.get_nth_or_last(routing_efficiency_vec,n);
+        Beta_n = xcm.get_nth_or_last(Beta,n);
     end
-    gamma = get_nth_or_last(repeater_fraction,n);
+    gamma = xcm.get_nth_or_last(repeater_fraction,n);
     
     % Determine layer area available
     A_max_n = layers_per_tier * routing_efficiency * layer_area;
@@ -249,7 +249,7 @@ wire.area_per_layer = A_layer;
 wire.delay_rc = tau_rc_vec;
 wire.delay_repeaters = tau_rep_vec;
 
-[Cxc Cn] = calc_wiring_capacitance_from_area(wire);
+[Cxc Cn] = xcm.calc_wiring_capacitance_from_area(wire);
 wire.capacitance_total = Cxc;
 wire.capacitance_per_tier = Cn;
 

@@ -61,9 +61,9 @@ while ((Ln < lmax-1) && (Ln > 0))
     % Each of these can be input as a vector
     % If it's a vector, grab the nth element
     % If n is larger than the last element, grab the last element
-    Beta_n = get_nth_or_last(Beta,n);
-    rho_m_n = get_nth_or_last(rho_m,n);
-    Rc_n = get_nth_or_last(Rc,n);
+    Beta_n = xcm.get_nth_or_last(Beta,n);
+    rho_m_n = xcm.get_nth_or_last(rho_m,n);
+    Rc_n = xcm.get_nth_or_last(Rc,n);
     
     pnf = @(Ln) sqrt( 4*alpha_t*rho_m_n*eps_d*(Ln*gate_pitch)^2 / (Beta_n*Tclk - alpha_t*Rc_n*eps_d*(Ln*gate_pitch)) );
     A_wires_n = @(Lm,Ln) chi*pnf(Ln)*gate_pitch*sum(LIDF(Lm+2:Ln+1)); % +2 and +1 in LIDF because we need the indices, not the actual lengths
@@ -73,7 +73,7 @@ while ((Ln < lmax-1) && (Ln > 0))
     LHSF = @(Ln) A_req_n(Lm,Ln);
     RHSF = @(ind) layers_per_tier * routing_efficiency * layer_area; % yes, this is independent of the input.
     
-    Ln_ind = binary_search_le(LHSF,RHSF,Lm+1,lmax);
+    Ln_ind = xcm.binary_search_le(LHSF,RHSF,Lm+1,lmax);
     Ln = Ln_ind - 1;
     
     if(Ln_ind == -1)
@@ -92,7 +92,7 @@ while ((Ln < lmax-1) && (Ln > 0))
             A_req_n = @(Lm,Ln) A_wires_n(Lm,Ln) + A_vias_n(Ln);
             LHSF = @(Ln) A_req_n(Lm,Ln);
             
-            Ln_ind = binary_search_le(LHSF,RHSF,Lm+1,lmax);
+            Ln_ind = xcm.binary_search_le(LHSF,RHSF,Lm+1,lmax);
             Ln = Ln_ind - 1;
             if(Ln_ind == -1)
                 err_str = sprintf('WLA Error! Impossible to route wires in layer %d',n);

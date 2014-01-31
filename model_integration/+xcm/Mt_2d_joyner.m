@@ -7,7 +7,7 @@ function Mt2d = Mt_2d_joyner(Lx)
 % Outputs:
 %   Mt2d: (1x[lmax + 1] vector) # of gate pairs separated by length l
 
-[lmax l Ns] = get_params_2d(Lx);
+[lmax l Ns] = xcm.get_params_2d(Lx);
 
 Mt2d = zeros(1,length(l));
 

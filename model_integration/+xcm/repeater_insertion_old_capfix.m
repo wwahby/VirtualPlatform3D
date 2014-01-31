@@ -33,14 +33,14 @@ while (add_repeaters == 1)
     % find properties of the interconnects we're looking at
     % have to multiply lmax_cur by w_gate to get real length
     xc_tier = find(lmax_cur <= Ln,1,'first');
-    rho_xc = get_nth_or_last(rho_xcn,xc_tier);
-    Ro = get_nth_or_last(Ro_n,xc_tier);
+    rho_xc = xcm.get_nth_or_last(rho_xcn,xc_tier);
+    Ro = xcm.get_nth_or_last(Ro_n,xc_tier);
     %Cxc = Cn(xc_tier)*lmax_cur*w_gate;
     %[FIX] This needs to calculate the capacitance of a wire of this length
     % need to change around inputs a bit to get this to work
     %Cxc = get_capacitance_from_length(lmax_cur,Ln,pn,epsr_d,gate_pitch) %
     
-    Cxc = get_capacitance_from_length(lmax_cur,chip,wire);
+    Cxc = xcm.get_capacitance_from_length(lmax_cur,chip,wire);
     Rxc = rho_xc*lmax_cur*w_gate/pn(xc_tier)^2/(w_gate^2);
     
     if(Rxc*Cxc >= 7*Ro*Co)

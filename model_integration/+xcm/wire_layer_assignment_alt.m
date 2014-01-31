@@ -83,7 +83,7 @@ while (Ln < lmax)
         RHSF = @(LIDF,Lm,Ln,Nm) Lm*Nm + sum(LIDF(Lm+2:Ln+1));
     end
 
-    [Ln Nm_new] = find_Ln_binary_search(Lm,Nm,lmax,LIDF,LHSF,RHSF,force_pn);
+    [Ln Nm_new] = xcm.find_Ln_binary_search(Lm,Nm,lmax,LIDF,LHSF,RHSF,force_pn);
 
     Ln_vec(ln_ind) = Ln;
     Nm_vec(ln_ind) = Nm_new;

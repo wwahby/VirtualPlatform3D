@@ -30,7 +30,7 @@ else
     Tp = ceil(w_tsv/sqrt(Atf_max));
 
     slack = 0.2;
-    [Lxc Tc Nuc_1d gfrac_L gfrac_T] = find_LT_combination(Lxp,Tp,slack);
+    [Lxc Tc Nuc_1d gfrac_L gfrac_T] = xcm.find_LT_combination(Lxp,Tp,slack);
     N_tsvs = Nuc_1d^2;
 end
 
@@ -47,7 +47,7 @@ repstr1 = sprintf('Ng_nom: %.4g\tNg_cor: %.4g\tNg_act: %.4g\tAtf_act: %.4g',Ng,N
 disp(repstr1)
 
 %% Calculate WLD
-iidf = calc_Iidf_corrected(alpha,k,p,Lx,S,h_tsv,Nuc_1d,w_tsv);
+iidf = xcm.calc_Iidf_corrected(alpha,k,p,Lx,S,h_tsv,Nuc_1d,w_tsv);
 %iidf = calc_Iidf(alpha,k,p,round(sqrt(Ng)),1,h_tsv);
 
 %% Cleanup - Get rid of NaNs
@@ -58,8 +58,8 @@ l = 0:lmax;
 %% Determine wire pitch and layer assignment
 
 Ach_wla = Ach_tier_gp; % Reduce the chip area by a factor of S when we're folding a design across S layers
-[Ln pn pn_orig Nm] = wire_layer_assignment_alt(iidf,lmax,Ach_wla,chi,rho_m,epsr_d,Tclk,alpha_t);
-[Cxc Ltot Cn] = calc_total_wiring_capacitance2(pn,Ln,Nm,iidf,epsr_d,gate_pitch);
+[Ln pn pn_orig Nm] = xcm.wire_layer_assignment_alt(iidf,lmax,Ach_wla,chi,rho_m,epsr_d,Tclk,alpha_t);
+[Cxc Ltot Cn] = xcm.calc_total_wiring_capacitance2(pn,Ln,Nm,iidf,epsr_d,gate_pitch);
 
 %% Power estimates
 
@@ -90,7 +90,7 @@ wire.pn = pn;
 wire.dielectric_epsr = epsr_d;
 chip.gate_pitch = gate_pitch;
 
-[iidf_rep h_vec k_vec Arep_used num_vec size_vec] = repeater_insertion_old_capfix(iidf,Ach_ri,Ainv_min,pn,Ln,Cn,rho_xcn,Ro,Co,gate_pitch,chip,wire);
+[iidf_rep h_vec k_vec Arep_used num_vec size_vec] = xcm.repeater_insertion_old_capfix(iidf,Ach_ri,Ainv_min,pn,Ln,Cn,rho_xcn,Ro,Co,gate_pitch,chip,wire);
 
 Co_rep = Cox*size_vec;
 Ilk_rep = Ilk*size_vec;
@@ -107,8 +107,8 @@ Arep_used_mm2 = Arep_used*(1e3)^2;
 %% Redo wiring now that we've changed Iidf
 if(redo_wiring == 1)
     iidf_rewire = [0 iidf_rep]; % add zero-length value back in
-    [Ln pn pn_orig Nm] = wire_layer_assignment_alt(iidf_rewire,lmax,Ach_wla,chi,rho_m,epsr_d,Tclk,alpha_t);
-    [Cxc Ltot Cn] = calc_total_wiring_capacitance2(pn,Ln,Nm,iidf_rewire,epsr_d,gate_pitch);
+    [Ln pn pn_orig Nm] = xcm.wire_layer_assignment_alt(iidf_rewire,lmax,Ach_wla,chi,rho_m,epsr_d,Tclk,alpha_t);
+    [Cxc Ltot Cn] = xcm.calc_total_wiring_capacitance2(pn,Ln,Nm,iidf_rewire,epsr_d,gate_pitch);
 
     Pw = 1/2*a*Cxc*Vdd^2*f;
 else
