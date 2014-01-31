@@ -26,12 +26,12 @@ S = 1;
 % w_trans = 65e-9;
 
 %% 65nm Merom, single core
-% Ng = 10e6;
-% Ach_mm2 = 27;
-% gate_pitch = 2*820e-9; % average gate pitch (sqrt(A_core/Ngates))
-% min_pitch = 220e-9; % actual contacted gate pitch
-% fmax = 3.0e9;
-% w_trans = 65e-9;
+Ng = 10e6;
+Ach_mm2 = 27;
+gate_pitch = 2*820e-9; % average gate pitch (sqrt(A_core/Ngates))
+min_pitch = 220e-9; % actual contacted gate pitch
+fmax = 3.0e9;
+w_trans = 65e-9;
 
 %% 45nm Penryn, entire chip
 % Ng = 410e6/4;
@@ -46,7 +46,7 @@ S = 1;
 % Ach_mm2 = 21.6;
 % gate_pitch = 2*510e-9; % average gate pitch (sqrt(A_core/Ngates))
 % min_pitch = 160e-9; % actual contacted gate pitch
-% fmax = 3.17e9;
+% fmax = 3.0e9;
 % w_trans = 45e-9;
 
 %% 32nm Sandy Bridge, entire chip
@@ -74,12 +74,12 @@ S = 1;
 % w_trans = 32e-9;
 
 %% 32nm Sandy Bridge i7, one core
-Ng = 85e6/4;
-Ach_mm2 = 18.5;
-gate_pitch = 465e-9*2;
-min_pitch = 112.5e-9;
-fmax = 3.6e9;
-w_trans = 32e-9;
+% Ng = 85e6/4;
+% Ach_mm2 = 18.5;
+% gate_pitch = 465e-9*2;
+% min_pitch = 112.5e-9;
+% fmax = 3.6e9;
+% w_trans = 32e-9;
 
 %% 22nm Ivy Bridge EP10, entire chip
 % Ng = 2.86e9/4;
@@ -156,7 +156,7 @@ transistor.capacitance = transistor.oxide_rel_permittivity*eps0*transistor.gate_
 transistor.subthreshold_swing = .060; % (V/decade at 300K)
 transistor.Vt = 0.25; % (V) - Threhsold voltage
 
-gate.output_resistance = 8e3;   % (Ohm) Output resistance of a minimum-sized 2in NAND gate
+gate.output_resistance = 5e3;   % (Ohm) Output resistance of a minimum-sized 2in NAND gate
 gate.num_transistors = 4;       % (-) number of transistors per average logic gate
 gate.capacitance = gate.num_transistors*transistor.capacitance;
 
@@ -172,8 +172,8 @@ wire.resistivity = 17.2e-9;     % (Ohm*m) Copper wires
 wire.permeability_rel = 1;      % (-) Relative permeability of wiring material
 wire.dielectric_epsr = 3.0;     % (-) Relative dielectric constant for wiring ILD -- Low-K dielectric
 wire.layers_per_tier = 1;       % (-) Number of metal layers sharing same pitch in each tier
-wire.routing_efficiency = [ 0.20 0.6 ];  % (-) Fraction of available area that the wire routing tool can actually use
-wire.repeater_fraction = fliplr([ 0.3 0.5 1]); % (-) fraction of optimal repeaters to insert
+wire.routing_efficiency = 0.50;  % (-) Fraction of available area that the wire routing tool can actually use
+wire.repeater_fraction = fliplr([0.5 0.5 1]); % (-) fraction of optimal repeaters to insert
 wire.Beta = [0.9];              % (-v) Fraction of total clock period that a single point-to-point interconnect can consume
 wire.Beta_short = 0.25;         % (-) Beta for shortest wiring layers (used for the top down WLARI)
 wire.Rc = 0;                    % (-v) Contact resistance between tiers (can be a vector)
@@ -253,22 +253,67 @@ simulation.print_thermal_data = 0; % Output max temp in each layer to console
 
 %% Codesign system
 tic % begin timing
-[chip power tsv wire repeater psn] = codesign_system(chip,tsv,gate,transistor,wire,heat,psn,simulation);
+[core.chip core.power core.tsv core.wire core.repeater core.psn] = codesign_system(chip,tsv,gate,transistor,wire,heat,psn,simulation);
 toc % finish timing
 
+%% 65nm Merom, SRAM
+Ng = 210e6/6;
+Ach_mm2 = 56;
+gate_pitch = 1.29e-6; % average gate pitch (sqrt(A_core/Ngates))
+min_pitch = 220e-9; % actual contacted gate pitch
+fmax = 3.0e9;
+w_trans = 65e-9;
+
+chip.num_gates = Ng;            % (-) Number gates in the system
+chip.num_layers = S;            % (-) Number of layers in the 3D stack
+chip.area_total = Ach_mm2*1e-6; % (m2) Total chip area
+chip.min_pitch = min_pitch;     % (m) Minimum printable pitch (generally contacted gate pitch)
+chip.gate_pitch = gate_pitch;   % (m) Actual average gate pitch
+
+chip.fanout = 4;        % average fanout
+chip.alpha = chip.fanout/(chip.fanout+1); % input terminal fraction
+chip.rent_p = 0.4;      % rent exponent
+chip.rent_k = 3/chip.alpha;  % rent constant
+chip.chi = 2/3;         % (-) Conversion factor for point-to-point interconnect length and total net length
+
+chip.clock_period = 1/fmax; % (s) Clock period
+chip.logic_activity_factor = 0.01; % (-) Fraction of gates switching at every clock cycle
+chip.Vdd = 1.25;        % (V) Supply voltage
+chip.temperature = 25;  % (deg C) Temperature
+chip.thickness_nominal = 50e-6; % (m) Nominal substrate thickness
+
+tic % begin timing
+[mem.chip mem.power mem.tsv mem.wire mem.repeater mem.psn] = codesign_system(chip,tsv,gate,transistor,wire,heat,psn,simulation);
+toc % finish timing
+
+%%
+chip_power_total = 2*core.power.total + mem.power.total
+
 %% WLA Validation
+
+intel_merom_pitch = [ 210 210 220 280 330 480 720 1080 ]; % Actual intel data
+deepak_merom_pitch = [ 220 220 283 283 283 283 880 880 ];
+intel_power_total = 65; 
 figure(1)
 clf
-plot(wire.pn*1e9)
+plot(intel_merom_pitch,'k')
+hold on
+plot(core.wire.pn*1e9,'r')
+plot(deepak_merom_pitch,'g')
 xlabel('wiring layer')
 ylabel('wire pitch (nm)')
+title('65nm Conroe')
 grid on
 fixfigs(1,3,14,12)
 
 figure(2)
 clf
-semilogy(wire.wire_area./wire.layer_area,'k')
+semilogy(core.wire.wire_area./core.wire.layer_area,'k')
 hold on
-semilogy(wire.via_area_wires./wire.layer_area,'b')
-semilogy(wire.via_area_repeaters./wire.layer_area,'r')
+semilogy(core.wire.via_area_wires./core.wire.layer_area,'b')
+semilogy(core.wire.via_area_repeaters./core.wire.layer_area,'r')
 fixfigs(2,3,14,12)
+
+figure(3)
+clf
+bar([chip_power_total intel_power_total])
