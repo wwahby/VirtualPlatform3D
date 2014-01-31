@@ -166,12 +166,12 @@ Nt = N_trans_per_gate * Ng;
 f = 1/Tclk;
 Cxc = wire.capacitance_total;
 Pdyn = 1/2*a*Co*Vdd^2*f*Nt;
-Plk = (1-a)*Vdd*Ilk*Nt;
+Plk = Vdd*Ilk*Nt;
 Pw = 1/2*a*Cxc*Vdd^2*f;
 
 % [FIX] Can't just multiply by number of repeaters since they're all sized
 % differently --  do sum of size_vec.*num_vec.*Leakage
-Plk_rep_vec = (1-a)*Vdd*Ilk_rep.* repeater.num_per_wire .* repeater.size;
+Plk_rep_vec = Vdd*Ilk_rep.* repeater.num_per_wire .* repeater.size;
 Plk_rep = sum(Plk_rep_vec);
 
 Pdyn_rep_vec = 1/2*a*Vdd^2*f.* repeater.num_per_wire .*Co_rep.* repeater.size;
