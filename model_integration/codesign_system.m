@@ -148,7 +148,7 @@ psn_iterations = 1;
 
 rho_m = wire.resistivity(1); % use top layer
 mu_m = wire.permeability_rel*mu0;
-psn_max = calc_psn(psn,power,chip,tsv,rho_m,mu_m,chip.temperature);
+psn_max = power_noise.calc_psn(psn,power,chip,tsv,rho_m,mu_m,chip.temperature);
 psn.noise = psn_max;
 mismatch_norm = psn.noise/psn.noise_target;
 
@@ -162,7 +162,7 @@ while ( (abs(mismatch_norm-1) > psn_mismatch_tolerance) && (psn_iterations < psn
     % more pads -> less noise, and vice versa
     psn.Npads_1d = round(sqrt(psn.Npads*mismatch_norm));
     psn.Npads = psn.Npads_1d^2;
-    psn_max = calc_psn(psn,power,chip,tsv,rho_m,mu_m,chip.temperature);
+    psn_max = power_noise.calc_psn(psn,power,chip,tsv,rho_m,mu_m,chip.temperature);
     psn.noise = psn_max;
     mismatch_norm = psn.noise/psn.noise_target;
     dispstr = sprintf('\tpsn_runs: %d\tNpads: %d\tpsn_target: %d\tpsn_max: %d\tmismatch_norm: %.3g',psn_iterations,psn.Npads, psn.noise_target, psn_max,mismatch_norm);

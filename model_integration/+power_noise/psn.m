@@ -1,7 +1,7 @@
 %Power supply noise functioin
 %Li Zheng, 9/21/2012
 
-function psn = psn_fast(Nstrata,layer,RTSV,LTSV,RPKG,LPKG,Cd,Jchip,temperature,acell,R,rpad)
+function psn = psn(Nstrata,layer,RTSV,LTSV,RPKG,LPKG,Cd,Jchip,temperature,acell,R,rpad)
 
 % %%% Testing code%%%%%
 % clear
@@ -77,54 +77,51 @@ for j=1:1:Nf
     for k=1:Nstrata
         lamda(k)=-2*i*Omg*R(k)*Cd(k);
     end
-    
-    
     if Nstrata==1
         m=1;
-        GG = Gr1_vec(rpad(m),0,0,0,lamda(m),acell(m));
-        AA(m,1)=1+R(m)/(4*s*Lv(m)+4*Rv(m))*GG;
-        BB(m,1)=R(m)/(4*s*Lv(m)+4*Rv(m))*GG*Js(m)/2/s/Cd(m);
-    elseif Nstrata>1
+        AA(m,1)=1+R(m)/(4*s*Lv(m)+4*Rv(m))*power_noise.Gr1(rpad(m),0,0,0,lamda(m),acell(m));
+        BB(m,1)=R(m)/(4*s*Lv(m)+4*Rv(m))*power_noise.Gr1(rpad(m),0,0,0,lamda(m),acell(m))*Js(m)/2/s/Cd(m);
+    end
+    
+    if Nstrata>1
         for m=1:Nstrata
-            GG = Gr1_vec(rpad(m),0,0,0,lamda(m),acell(m));
             if m==1
-                AA(m,1)=1+R(m)/(4*s*Lv(m)+4*Rv(m))*GG+R(m)/(4*s*Lv(m+1)+4*Rv(m+1))*GG;
-                AA(m,2)=-R(m)/(4*s*Lv(m+1)+4*Rv(m+1))*GG;
-                BB(m,1)=R(m)/(4*s*Lv(m)+4*Rv(m))*GG*Js(m)/2/s/Cd(m)+R(m)/(4*s*Lv(m+1)+4*Rv(m+1))*GG*Js(m)/2/s/Cd(m)-R(m)/(4*s*Lv(m+1)+4*Rv(m+1))*GG*Js(m+1)/2/s/Cd(m+1);
+                AA(m,1)=1+R(m)/(4*s*Lv(m)+4*Rv(m))*power_noise.Gr1(rpad(m),0,0,0,lamda(m),acell(m))+R(m)/(4*s*Lv(m+1)+4*Rv(m+1))*power_noise.Gr1(rpad(m),0,0,0,lamda(m),acell(m));
+                AA(m,2)=-R(m)/(4*s*Lv(m+1)+4*Rv(m+1))*power_noise.Gr1(rpad(m),0,0,0,lamda(m),acell(m));
+                BB(m,1)=R(m)/(4*s*Lv(m)+4*Rv(m))*power_noise.Gr1(rpad(m),0,0,0,lamda(m),acell(m))*Js(m)/2/s/Cd(m)+R(m)/(4*s*Lv(m+1)+4*Rv(m+1))*power_noise.Gr1(rpad(m),0,0,0,lamda(m),acell(m))*Js(m)/2/s/Cd(m)-R(m)/(4*s*Lv(m+1)+4*Rv(m+1))*power_noise.Gr1(rpad(m),0,0,0,lamda(m),acell(m))*Js(m+1)/2/s/Cd(m+1);
             end
             
             if m==Nstrata
-                AA(m,Nstrata-1)=-R(m)/(4*s*Lv(m)+4*Rv(m))*GG;
-                AA(m,Nstrata)=1+R(m)/(4*s*Lv(m)+4*Rv(m))*GG;
-                BB(m,1)=-R(m)/(4*s*Lv(m)+4*Rv(m))*GG*Js(m-1)/2/s/Cd(m-1)+R(m)/(4*s*Lv(m)+4*Rv(m))*GG*Js(m)/2/s/Cd(m);
+                AA(m,Nstrata-1)=-R(m)/(4*s*Lv(m)+4*Rv(m))*power_noise.Gr1(rpad(m),0,0,0,lamda(m),acell(m));
+                AA(m,Nstrata)=1+R(m)/(4*s*Lv(m)+4*Rv(m))*power_noise.Gr1(rpad(m),0,0,0,lamda(m),acell(m));
+                BB(m,1)=-R(m)/(4*s*Lv(m)+4*Rv(m))*power_noise.Gr1(rpad(m),0,0,0,lamda(m),acell(m))*Js(m-1)/2/s/Cd(m-1)+R(m)/(4*s*Lv(m)+4*Rv(m))*power_noise.Gr1(rpad(m),0,0,0,lamda(m),acell(m))*Js(m)/2/s/Cd(m);
             end
             
             if m>1 && m<Nstrata
-                AA(m,m-1)=-R(m)/(4*s*Lv(m)+4*Rv(m))*GG;
-                AA(m,m)=1+R(m)/(4*s*Lv(m)+4*Rv(m))*GG+R(m)/(4*s*Lv(m+1)+4*Rv(m+1))*GG;
-                AA(m,m+1)=-R(m)/(4*s*Lv(m+1)+4*Rv(m+1))*GG;
-                BB(m,1)=-R(m)/(4*s*Lv(m)+4*Rv(m))*GG*Js(m-1)/2/s/Cd(m-1)+R(m)/(4*s*Lv(m)+4*Rv(m))*GG*Js(m)/2/s/Cd(m)+R(m)/(4*s*Lv(m+1)+4*Rv(m+1))*GG*Js(m)/2/s/Cd(m)-R(m)/(4*s*Lv(m+1)+4*Rv(m+1))*GG*Js(m+1)/2/s/Cd(m+1);
+                AA(m,m-1)=-R(m)/(4*s*Lv(m)+4*Rv(m))*power_noise.Gr1(rpad(m),0,0,0,lamda(m),acell(m));
+                AA(m,m)=1+R(m)/(4*s*Lv(m)+4*Rv(m))*power_noise.Gr1(rpad(m),0,0,0,lamda(m),acell(m))+R(m)/(4*s*Lv(m+1)+4*Rv(m+1))*power_noise.Gr1(rpad(m),0,0,0,lamda(m),acell(m));
+                AA(m,m+1)=-R(m)/(4*s*Lv(m+1)+4*Rv(m+1))*power_noise.Gr1(rpad(m),0,0,0,lamda(m),acell(m));
+                BB(m,1)=-R(m)/(4*s*Lv(m)+4*Rv(m))*power_noise.Gr1(rpad(m),0,0,0,lamda(m),acell(m))*Js(m-1)/2/s/Cd(m-1)+R(m)/(4*s*Lv(m)+4*Rv(m))*power_noise.Gr1(rpad(m),0,0,0,lamda(m),acell(m))*Js(m)/2/s/Cd(m)+R(m)/(4*s*Lv(m+1)+4*Rv(m+1))*power_noise.Gr1(rpad(m),0,0,0,lamda(m),acell(m))*Js(m)/2/s/Cd(m)-R(m)/(4*s*Lv(m+1)+4*Rv(m+1))*power_noise.Gr1(rpad(m),0,0,0,lamda(m),acell(m))*Js(m+1)/2/s/Cd(m+1);
             end
         end
     end
     Upad=AA^(-1)*BB;
     
-    GG = Gr1_vec(xp,yp,0,0,lamda(layer),acell(layer));
     if Nstrata==1&&layer==1
-        Up(j)=R(layer)*GG*(-Upad(layer,1)+Js(layer)/2/s/Cd(layer))/(4*s*Lv(layer)+4*Rv(layer));
+        Up(j)=R(layer)*power_noise.Gr1(xp,yp,0,0,lamda(layer),acell(layer))*(-Upad(layer,1)+Js(layer)/2/s/Cd(layer))/(4*s*Lv(layer)+4*Rv(layer));
     end
     
     if Nstrata>1
         if layer==1
-            Up(j)=R(layer)*GG*((-Upad(layer,1)+Js(layer)/2/s/Cd(layer))/(4*s*Lv(layer)+4*Rv(layer))-(Upad(layer,1)-Upad(layer+1,1)-Js(layer)/2/s/Cd(layer)+Js(layer+1)/2/s/Cd(layer+1))/(4*s*Lv(layer+1)+4*Rv(layer+1)));
+            Up(j)=R(layer)*power_noise.Gr1(xp,yp,0,0,lamda(layer),acell(layer))*((-Upad(layer,1)+Js(layer)/2/s/Cd(layer))/(4*s*Lv(layer)+4*Rv(layer))-(Upad(layer,1)-Upad(layer+1,1)-Js(layer)/2/s/Cd(layer)+Js(layer+1)/2/s/Cd(layer+1))/(4*s*Lv(layer+1)+4*Rv(layer+1)));
         end
         
         if layer==Nstrata
-            Up(j)=R(layer)*GG*(Upad(layer-1,1)-Upad(layer,1)-Js(layer-1)/2/s/Cd(layer-1)+Js(layer)/2/s/Cd(layer))/(4*s*Lv(layer)+4*Rv(layer));
+            Up(j)=R(layer)*power_noise.Gr1(xp,yp,0,0,lamda(layer),acell(layer))*(Upad(layer-1,1)-Upad(layer,1)-Js(layer-1)/2/s/Cd(layer-1)+Js(layer)/2/s/Cd(layer))/(4*s*Lv(layer)+4*Rv(layer));
         end
         
         if layer>1 && layer<Nstrata
-            Up(j)=R(layer)*GG*((Upad(layer-1,1)-Upad(layer,1)-Js(layer-1)/2/s/Cd(layer-1)+Js(layer)/2/s/Cd(layer))/(4*s*Lv(layer)+4*Rv(layer))-(Upad(layer,1)-Upad(layer+1,1)-Js(layer)/2/s/Cd(layer)+Js(layer+1)/2/s/Cd(layer+1))/(4*s*Lv(layer+1)+4*Rv(layer+1)));
+            Up(j)=R(layer)*power_noise.Gr1(xp,yp,0,0,lamda(layer),acell(layer))*((Upad(layer-1,1)-Upad(layer,1)-Js(layer-1)/2/s/Cd(layer-1)+Js(layer)/2/s/Cd(layer))/(4*s*Lv(layer)+4*Rv(layer))-(Upad(layer,1)-Upad(layer+1,1)-Js(layer)/2/s/Cd(layer)+Js(layer+1)/2/s/Cd(layer+1))/(4*s*Lv(layer+1)+4*Rv(layer+1)));
         end
     end
     

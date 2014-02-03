@@ -79,17 +79,17 @@ pp = sqrt(2*pitch_tsv^2); % [FIX] Not really sure what the point of this is
 
 %% Determine Unit Cell parameters
 
-[lcell,Ppitch,PGpitch,rpad,Rseg,Cd] = Ucell(area,Npad,Ngrid,padsize,rho_m,Tseg,Wseg,decap);
+[lcell,Ppitch,PGpitch,rpad,Rseg,Cd] = power_noise.Ucell(area,Npad,Ngrid,padsize,rho_m,Tseg,Wseg,decap);
 acell = lcell;
 
 %% Determine Package Parameters
 % [FIX] using arbitrary parameters for now
-[RTSV,LTSV] = RL_TSV(h_tsv,w_tsv,rho_m,mu_m,pp,pitch_tsv);
+[RTSV,LTSV] = power_noise.RL_TSV(h_tsv,w_tsv,rho_m,mu_m,pp,pitch_tsv);
 
 %% Determine power supply noise
 
 layer = Nstrata; % Just worry about top die (worst case scenario)
-psn_max = psn_fast(Nstrata,layer,RTSV,LTSV,RPKG,LPKG,Cd,Jch,T,acell,Rseg,rpad);
+psn_max = power_noise.psn_fast(Nstrata,layer,RTSV,LTSV,RPKG,LPKG,Cd,Jch,T,acell,Rseg,rpad);
 
 % Print the inputs to psn_fast for debug purposes -- leave this commented
 % out most of the time
