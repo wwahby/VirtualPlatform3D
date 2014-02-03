@@ -141,7 +141,7 @@ wire.Ln = Ln_vec;
 wire.pn = pn_vec;
 wire.pn_orig = pn_orig_vec;
 wire.wire_area = A_wires;
-wire.via_area = A_vias;
+wire.via_area_wires = A_vias;
 wire.delay_actual = tau;
 wire.delay_max = tau_allowed;
 
