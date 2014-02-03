@@ -54,7 +54,8 @@ Tclk = chip.clock_period;
 Rc = wire.Rc;
 Ro = gate.output_resistance;
 Co = gate.capacitance;
-repeater_fraction = wire.repeater_fraction;
+repeater_fraction = fliplr(wire.repeater_fraction); % flip these around since we start wiring with the top/last metal level in this case
+
 
 %% Repeater constraints
 % Min inverter size (estimate)
