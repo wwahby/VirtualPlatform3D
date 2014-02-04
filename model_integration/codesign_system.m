@@ -148,6 +148,7 @@ psn_iterations = 1;
 
 rho_m = wire.resistivity(1); % use top layer
 mu_m = wire.permeability_rel*mu0;
+
 psn_max = power_noise.calc_psn(psn,power,chip,tsv,rho_m,mu_m,chip.temperature);
 psn.noise = psn_max;
 mismatch_norm = psn.noise/psn.noise_target;

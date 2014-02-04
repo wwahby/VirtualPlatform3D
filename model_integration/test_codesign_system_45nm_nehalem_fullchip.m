@@ -1,5 +1,5 @@
 % Power and signal codesign
-% close all
+close all
 clear all
 
 %% ==================================================
@@ -70,7 +70,7 @@ wire.resistivity = 17.2e-9;     % (Ohm*m) Copper wires
 wire.permeability_rel = 1;      % (-) Relative permeability of wiring material
 wire.dielectric_epsr = 3.0;     % (-) Relative dielectric constant for wiring ILD -- Low-K dielectric
 wire.layers_per_tier = 1;       % (-) Number of metal layers sharing same pitch in each tier
-wire.routing_efficiency = [ 0.1 0.4 ];  % (-) Fraction of available area that the wire routing tool can actually use
+wire.routing_efficiency = [ 0.4 ];  % (-) Fraction of available area that the wire routing tool can actually use
 wire.repeater_fraction = [ 0.5 ]; % (-) fraction of optimal repeaters to insert
 wire.Beta = [0.9];              % (-v) Fraction of total clock period that a single point-to-point interconnect can consume
 wire.Beta_short = 0.25;         % (-) Beta for shortest wiring layers (used for the top down WLARI)
@@ -164,7 +164,6 @@ Ach_mm2 = 62;
 gate_pitch = 1.12e-6; % average gate pitch (sqrt(A_core/Ngates))
 min_pitch = 160e-9; % actual contacted gate pitch
 fmax = 3.33e9;
-w_trans = 65e-9;
 
 chip.num_gates = Ng;            % (-) Number gates in the system
 chip.num_layers = S;            % (-) Number of layers in the 3D stack
@@ -183,6 +182,8 @@ chip.logic_activity_factor = 0.01; % (-) Fraction of gates switching at every cl
 chip.Vdd = 1.3625;        % (V) Supply voltage
 %chip.temperature = 25;  % (deg C) Temperature
 chip.thickness_nominal = 50e-6; % (m) Nominal substrate thickness
+
+wire.routing_efficiency = [ 0.4 ];  % (-) Fraction of available area that the wire routing tool can actually use
 
 tic % begin timing
 [mem.chip mem.power mem.tsv mem.wire mem.repeater mem.psn] = codesign_system(chip,tsv,gate,transistor,wire,heat,psn,simulation);
