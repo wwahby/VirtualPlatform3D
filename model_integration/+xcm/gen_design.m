@@ -133,11 +133,13 @@ if (simulation.topdown_WLARI == 1)
     
     bottom_layer_underfilled = 1;
     min_fill_factor = 0.8; % minimum utilization of available bottom layer area
+    top_fill_factor = wire.routing_efficiency(1);
     wire.routing_efficiency = [wire.routing_efficiency(1) wire.routing_efficiency]; % create a separate entry for first layer
     
     % dead man counter to get out of while loop if something goes wrong
     wla_attempts = 0;
     max_wla_attempts = 20;
+    min_top_fill_factor = 0.1;
     
     % automatically decrease top layer utilization to keep bottom layer
     % reasonably filled. Need to do this since TDWLARI doesn't guarantee
@@ -145,7 +147,7 @@ if (simulation.topdown_WLARI == 1)
     % there isn't really any significant performance overhead, and this
     % lets us do a proper job of wire layer assignment and repeater
     % insertion while accurately considering wire and repeater via blockage
-    while((bottom_layer_underfilled == 1) && (wla_attempts < max_wla_attempts))
+    while((bottom_layer_underfilled == 1) && (wla_attempts < max_wla_attempts) && (top_fill_factor > min_top_fill_factor))
         % Actually run topdown WLA and RI
         [wire_temp repeater_temp] = xcm.wla_topdown_with_repeaters(chip,gate,wire);
         
@@ -154,7 +156,8 @@ if (simulation.topdown_WLARI == 1)
         
         % Figure out whether we need to decrease top layer use, or stop
         if(fill_factor < min_fill_factor)
-            wire.routing_efficiency(1) = 0.9*wire.routing_efficiency(1);
+            top_fill_factor = 0.9*top_fill_factor;
+            wire.routing_efficiency(1) = top_fill_factor;
         else
             bottom_layer_underfilled = 0;
         end

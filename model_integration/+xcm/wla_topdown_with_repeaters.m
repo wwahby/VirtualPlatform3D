@@ -109,9 +109,11 @@ while (Lm >= 0 && n < max_layers)
     
     rho_m_n = xcm.get_nth_or_last(rho_m,n);
     Rc_n = xcm.get_nth_or_last(Rc,n);
+    routing_efficiency = xcm.get_nth_or_last(routing_efficiency_vec,n);
     if( final_layers == 0)
-        routing_efficiency = xcm.get_nth_or_last(routing_efficiency_vec,n);
         Beta_n = xcm.get_nth_or_last(Beta,n);
+    else
+        Beta_n = wire.Beta_short;
     end
     gamma = xcm.get_nth_or_last(repeater_fraction,n);
     
@@ -215,8 +217,6 @@ while (Lm >= 0 && n < max_layers)
     if (Lm > 0)
         Ln_vec(n+1) = Lm;
     else
-        Beta_n = wire.Beta_short;
-        %routing_efficiency = 0.2;
         if(final_layers == 0)
             n = n-1;
             Lm = Lm_old;
@@ -254,6 +254,9 @@ wire.delay_repeaters = tau_rep_vec;
 wire.capacitance_total = Cxc;
 wire.capacitance_per_tier = Cn;
 
+% clear out any NaNs
+repeater_size(isnan(repeater_size)) = 0;
+repeater_num(isnan(repeater_num)) = 0;
 
 repeater.num_per_wire = repeater_num;
 repeater.size = repeater_size;
