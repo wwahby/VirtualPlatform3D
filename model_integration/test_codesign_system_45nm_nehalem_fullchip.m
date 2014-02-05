@@ -10,13 +10,15 @@ clear all
 S = 1;
 
 %% 45nm Nehalem, single core
-%Ng = 48e6/4;
 Ng = 33e6/4;
 Ach_mm2 = 32.15;
 gate_pitch = 2*985e-9; % average gate pitch (sqrt(A_core/Ngates))
 min_pitch = 160e-9; % actual contacted gate pitch
 fmax = 3.07e9;
 w_trans = 45e-9;
+
+% Ng = 38e6/4;
+% gate_pitch = 2*920e-9; % average gate pitch (sqrt(A_core/Ngates))
 
 
 %% constants
@@ -70,7 +72,7 @@ wire.resistivity = 17.2e-9;     % (Ohm*m) Copper wires
 wire.permeability_rel = 1;      % (-) Relative permeability of wiring material
 wire.dielectric_epsr = 3.0;     % (-) Relative dielectric constant for wiring ILD -- Low-K dielectric
 wire.layers_per_tier = 1;       % (-) Number of metal layers sharing same pitch in each tier
-wire.routing_efficiency = [ 0.4 ];  % (-) Fraction of available area that the wire routing tool can actually use
+wire.routing_efficiency = [ 0.4];  % (-) Fraction of available area that the wire routing tool can actually use
 wire.repeater_fraction = [ 0.5 ]; % (-) fraction of optimal repeaters to insert
 wire.Beta = [0.9];              % (-v) Fraction of total clock period that a single point-to-point interconnect can consume
 wire.Beta_short = 0.25;         % (-) Beta for shortest wiring layers (used for the top down WLARI)
@@ -204,7 +206,7 @@ plot(core.wire.pn*1e9,'r')
 xlabel('wiring layer')
 ylabel('wire pitch (nm)')
 grid on
-ylim([ 0 1.1*intel_45nm_pitch(end-1)]);
+ylim([ 0 1.1*max([ intel_45nm_pitch(end-1) core.wire.pn(end)*1e9] )]);
 fixfigs(1,3,14,12)
 title('45nm Nehalem (Lynnfield)')
 

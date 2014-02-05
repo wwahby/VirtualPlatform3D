@@ -70,7 +70,7 @@ wire.resistivity = 17.2e-9;     % (Ohm*m) Copper wires
 wire.permeability_rel = 1;      % (-) Relative permeability of wiring material
 wire.dielectric_epsr = 3.0;     % (-) Relative dielectric constant for wiring ILD -- Low-K dielectric
 wire.layers_per_tier = 1;       % (-) Number of metal layers sharing same pitch in each tier
-wire.routing_efficiency = [ 0.1 0.4 ];  % (-) Fraction of available area that the wire routing tool can actually use
+wire.routing_efficiency = [0.38 ];  % (-) Fraction of available area that the wire routing tool can actually use
 wire.repeater_fraction = [ 0.5 ]; % (-) fraction of optimal repeaters to insert
 wire.Beta = [0.9];              % (-v) Fraction of total clock period that a single point-to-point interconnect can consume
 wire.Beta_short = 0.25;         % (-) Beta for shortest wiring layers (used for the top down WLARI)
@@ -155,7 +155,7 @@ tic % begin timing
 toc % finish timing
 
 
-%% 45nm Nehalem, SRAM
+%% 32nm Nehalem, SRAM
 
 sram_MB = 4;
 Ach_mm2 = 20.8;
@@ -187,9 +187,38 @@ tic % begin timing
 [mem.chip mem.power mem.tsv mem.wire mem.repeater mem.psn] = codesign_system(chip,tsv,gate,transistor,wire,heat,psn,simulation);
 toc % finish timing
 
+
+%% 32nm Nehalem -- 45nm GPU in MCP
+
+Ng = 114e6/4;
+Ach_mm2 = 114;
+gate_pitch = 0.802e-6*2; % average gate pitch (sqrt(A_core/Ngates))
+
+chip.num_gates = Ng;            % (-) Number gates in the system
+chip.num_layers = S;            % (-) Number of layers in the 3D stack
+chip.area_total = Ach_mm2*1e-6; % (m2) Total chip area
+chip.min_pitch = min_pitch;     % (m) Minimum printable pitch (generally contacted gate pitch)
+chip.gate_pitch = gate_pitch;   % (m) Actual average gate pitch
+
+chip.fanout = 4;        % average fanout
+chip.alpha = chip.fanout/(chip.fanout+1); % input terminal fraction
+chip.rent_p = 0.4;      % rent exponent
+chip.rent_k = 3/chip.alpha;  % rent constant
+chip.chi = 2/3;         % (-) Conversion factor for point-to-point interconnect length and total net length
+
+chip.clock_period = 1/fmax; % (s) Clock period
+chip.logic_activity_factor = 0.1; % (-) Fraction of gates switching at every clock cycle
+chip.Vdd = 1.40;        % (V) Supply voltage
+%chip.temperature = 25;  % (deg C) Temperature
+chip.thickness_nominal = 50e-6; % (m) Nominal substrate thickness
+
+tic % begin timing
+[gpu.chip gpu.power gpu.tsv gpu.wire gpu.repeater gpu.psn] = codesign_system(chip,tsv,gate,transistor,wire,heat,psn,simulation);
+
+
 %%
 num_cores = 2;
-chip_power_total = num_cores*core.power.total + mem.power.total
+chip_power_total = num_cores*core.power.total + mem.power.total + gpu.power.total
 
 %% WLA Validation
 
@@ -204,7 +233,7 @@ plot(core.wire.pn*1e9,'r')
 xlabel('wiring layer')
 ylabel('wire pitch (nm)')
 grid on
-ylim([ 0 1.1*intel_pitch(end-1)]);
+ylim([ 0 1.1*max([ intel_pitch(end-1) core.wire.pn(end)*1e9] )]);
 fixfigs(1,3,14,12)
 title('32nm Nehalem (Clarkdale)')
 
