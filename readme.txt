@@ -6,6 +6,13 @@ which work together to give an estimate of the wiring
 properties, system power, system temperature, and power
 supply noise for a system implemented in 2D or 3D
 
+The main function is codesign_system.m, which can be found in the
+model_integration folder. Several test scripts are available
+to illustrate the use of the codesign_system wrapper function.
+
+This function is implemented in MATLAB and makes significant use of
+vectorization for functional speedup. Matlab 2012a or better is
+recommended.
 
 =========
 Modules
