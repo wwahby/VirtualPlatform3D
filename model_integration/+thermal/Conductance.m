@@ -1,6 +1,6 @@
 function [A, Pa] = Conductance(chip, pack, hc, Cdt_L, Cdt_V, Layer, ...
                              row, column, value, var)
-    tic
+    %tic
     chip_xmesh = chip.Xmesh;
     chip_ymesh = chip.Ymesh;
     pack_xmesh = pack.Xmesh;
@@ -20,7 +20,7 @@ function [A, Pa] = Conductance(chip, pack, hc, Cdt_L, Cdt_V, Layer, ...
     Ta = hc.Ta;
     
     layer_id = 1;
-    disp(['analyze: layer' num2str(layer_id)]);    
+    %disp(['analyze: layer' num2str(layer_id)]);    
     
     P = zeros(var,1); 
     
@@ -308,11 +308,11 @@ function [A, Pa] = Conductance(chip, pack, hc, Cdt_L, Cdt_V, Layer, ...
             end        
         end
     end
-    disp(['finish: layer' num2str(layer_id)]);
-    toc;
+    %disp(['finish: layer' num2str(layer_id)]);
+    %toc;
     for layer_id = 2:1:Layer.N-1
-        disp(['analyze: layer' num2str(layer_id)]);
-        tic;
+        %disp(['analyze: layer' num2str(layer_id)]);
+        %tic;
         for i = 1:1:gridNx_chip
             for j = 1:1:gridNy_chip
                 lz_u = Thick_layer(layer_id-1);       
@@ -652,13 +652,13 @@ function [A, Pa] = Conductance(chip, pack, hc, Cdt_L, Cdt_V, Layer, ...
                 end
             end
         end
-        disp(['finish: layer' num2str(layer_id)]);
-        toc;
+        %disp(['finish: layer' num2str(layer_id)]);
+        %toc;
     end
     %top of board layer
-    tic;
+    %tic;
     layer_id = Layer.N;
-    disp(['analyze: layer' num2str(layer_id)]);   
+    %disp(['analyze: layer' num2str(layer_id)]);   
     for i = 1:1:gridNx_pack
         for j=1:1:gridNy_pack
             lz_u = Thick_layer(layer_id-1);
@@ -1291,12 +1291,12 @@ function [A, Pa] = Conductance(chip, pack, hc, Cdt_L, Cdt_V, Layer, ...
             end       
         end
     end
-    disp(['finish: layer' num2str(layer_id)]);
-    toc;
+    %disp(['finish: layer' num2str(layer_id)]);
+    %toc;
     %bottom of the board
-    tic;
+    %tic;
     for layer_id = Layer.N+1
-        disp(['analyze: layer' num2str(layer_id)]);
+        %disp(['analyze: layer' num2str(layer_id)]);
         for i = 1:1:gridNx_pack
             for j = 1:1:gridNy_pack
                 if(layer_id < Layer.N)
@@ -1579,9 +1579,9 @@ function [A, Pa] = Conductance(chip, pack, hc, Cdt_L, Cdt_V, Layer, ...
                 end
             end
         end
-        disp(['finish: layer' num2str(layer_id)]);   
+        %disp(['finish: layer' num2str(layer_id)]);   
     end
-    toc;
+    %toc;
     row = row(1:pointer-1,1);
     column = column(1:pointer-1,1);
     value = value(1:pointer-1,1);

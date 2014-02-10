@@ -1,4 +1,4 @@
-function draw_map( chip, die, pack, Layer, h, x, granularity )
+function draw_map( chip, die, pack, Layer, h, x, granularity)
     %%%%%%%%%%variable conversion%%%%%%%%%%%%%%%%%%
     Ta = h.Ta;
     drawT_die = zeros(chip.Ny, chip.Nx, die.N);
@@ -13,7 +13,7 @@ function draw_map( chip, die, pack, Layer, h, x, granularity )
             end
         end
     end
-    const = chip.Nx*chip.Ny*(Layer.N-1)+pack.Nx*pack.Ny;
+    const = chip.Nx*chip.Ny*(Layer.N-1);
     for i = 1:1:pack.Nx
         for j=1:1:pack.Ny
             id = i+(j-1)*pack.Nx+const;

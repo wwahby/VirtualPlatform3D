@@ -1,8 +1,9 @@
 function T = ThermSim( die, thick, chip, pack, ...
-                   tsv, bump, portion, power, ...
-                   granularity, draw, h, displayT)
+                   tsv, bump, portion, power,  ...
+                   map, blk_num, granularity, ...
+                   draw, draw_P, h, displayT)
     disp(['start time: ', num2str(fix(clock))]);
-    start = tic;
+    %start = tic;
 %%%%%%%%%%%%%%%%%%%%material information for the chip%%%%%%%%%%%%%%%%%%%%%%
 %thermal conductivity
     K_Material = [3  %TIM 1
@@ -22,11 +23,11 @@ function T = ThermSim( die, thick, chip, pack, ...
 %%%%%%%%%%%%%%%%%%%%finish material information for%%%%%%%%%%%%%%%%%%%%%%%%
     
 %%%%%%%%%%%%%%%%%%%%%%%start meshing%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    disp('starting meshing the package');
+    %disp('starting meshing the package');
     tic;
     [ chip.Xmesh chip.Ymesh, pack.Xmesh, pack.Ymesh, ...
       chip.Nx, chip.Ny, pack.Nx, pack.Ny ] = thermal.mesh(chip, pack);
-    disp('finish meshing the package');
+    %disp('finish meshing the package');
     toc;   
 %%%%%%%%%%%%%%%%%%%%%%%%%finish meshing%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -49,14 +50,15 @@ function T = ThermSim( die, thick, chip, pack, ...
 %%%%%%%%%%%%%%%%%%%%finish thermal conductance materix A%%%%%%%%%%%%%%%%%%%
 
 %%%%%%%%%%%%%%%%%%%%add heat matrix%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    P = thermal.add_heat(power, P, chip, die, var);
+    P= thermal.add_heat(power, map, blk_num, P, chip, die, var, draw_P);
 %%%%%%%%%%%%%%%%%%%%finish adding heat%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%solve%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    disp('calculate temperature');
-    tic;
+    %disp('calculate temperature');
+    %pause;
+    %tic;
     x = A\P;
-    toc;
+    %toc;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%finish solving%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%draw map%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -73,7 +75,7 @@ function T = ThermSim( die, thick, chip, pack, ...
     end
 %%%%%%%%%%%%%%%%%temperature returned%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    disp(['total run time:', num2str(toc(start))]);
+    %disp(['total run time:', num2str(toc(start))]);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%end here%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 end
 

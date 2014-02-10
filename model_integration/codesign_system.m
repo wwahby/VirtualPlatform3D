@@ -102,6 +102,7 @@ power.density = power.total/chip.area_total;
     % thermal map, number of color used
     
     draw = simulation.draw_thermal_map;
+    drawP = simulation.draw_thermal_map;
     % whether to draw the thermal map; 1 yes; 0 no
     
     displayT = simulation.print_thermal_data;
@@ -128,10 +129,27 @@ power.density = power.total/chip.area_total;
 %     h.Ta = 298;
     %the ambient temperature
 %%%%%%%%%%%%%%%%%%%%%%%%%finish boundary condition%%%%%%%%%%%%%%%%%%%%%%%%%
+
+    chip_side = sqrt(chip.area_total/chip.num_layers);
+    power_per_layer = power.total/chip.num_layers;
     
+
+    %power blocks by each die
+    %format: bottom left point bl_x, bl_y, width, height, power
+    %list blocks in die1 and then die2, die3 ....
+    map_row = [0     0     chip_side    chip_side     power_per_layer];
+    map = zeros(chip.num_layers,5);
+    blk_num = zeros(chip.num_layers,1);
+    for i =1:chip.num_layers
+        map(i,:) = map_row;
+        blk_num(i,1) = 1;
+    end
+    %blk_num is for splitting the power maps of each die
+
     chip.temperature_vec = thermal.ThermSim( die, thick, chip_therm, pack, ...
               tsv_therm, bump, portion, power_therm_vec, ...
-              granularity, draw, heat, displayT);
+              map, blk_num, granularity, draw, drawP, heat, displayT);
+          
     chip.temperature = max(chip.temperature_vec);
 
 
