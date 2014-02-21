@@ -84,8 +84,8 @@ chip_height = mem_height + core_height;
     map = [0     0     mem_width    mem_height     mem.power.total;
            0     mem_height  core_width    core_height     core.power.total;
            core_width     mem_height  core_width    core_height     core.power.total;
-           2*core_width     mem_height  core_width    core_height     core.power.total;
-           3*core_width     mem_height  core_width    core_height     core.power.total];
+           mem_width - 2*core_width     mem_height  core_width    core_height     core.power.total;
+           mem_width - core_width     mem_height  core_width    core_height     core.power.total];
     %blk_num is for splitting the power maps of each die
     blk_num = [5];
     
