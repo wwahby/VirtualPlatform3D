@@ -21,3 +21,4 @@ function [Cl, Cv] = Bump_insertion(Cdt_L, Cdt_V, chip, bump, die, K_Material)
     Cv = Cdt_V;
 end
 
+
