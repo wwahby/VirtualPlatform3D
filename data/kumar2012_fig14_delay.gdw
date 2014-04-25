@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<GetDataWorkspace>
+  <version>2.26.0.20</version>
+  <WSversion>10</WSversion>
+  <File>
+    <Name>C:\Users\wsw\Desktop\kumar2012_fig14_delay.jpg</Name>
+    <Width>750</Width>
+    <Height>552</Height>
+  </File>
+  <Line>
+    <Caption>Line #1</Caption>
+    <LineColor>4,4,4</LineColor>
+    <BkColor>254,254,254</BkColor>
+    <PtColor>220,70,220</PtColor>
+    <LineType>0</LineType>
+    <Points MF="9">1615,3568,2146,3181,2686,2920,3226,2749,3757,2605,4297,2488,4828,2389,5368,2299,5899,2218,6439,2146</Points>
+  </Line>
+  <Line>
+    <Caption>Line #2</Caption>
+    <LineColor>4,4,4</LineColor>
+    <BkColor>254,254,254</BkColor>
+    <PtColor>230,220,20</PtColor>
+    <LineType>0</LineType>
+    <Points MF="9">1615,3568,2146,3181,2686,2911,3217,2722,3757,2569,4297,2443,4828,2335,5368,2245,5908,2164,6439,2083</Points>
+  </Line>
+  <Line>
+    <Caption>SCP02</Caption>
+    <LineColor>4,4,4</LineColor>
+    <BkColor>254,254,254</BkColor>
+    <PtColor>255,20,160</PtColor>
+    <LineType>0</LineType>
+    <Points MF="9">1615,3352,2146,2902,2686,2614,3217,2398,3757,2227,4297,2074,4828,1939,5368,1822,5908,1723,6439,1624</Points>
+  </Line>
+  <Line>
+    <Caption>TCP2</Caption>
+    <LineColor>4,4,4</LineColor>
+    <BkColor>254,254,254</BkColor>
+    <PtColor>128,220,255</PtColor>
+    <LineType>0</LineType>
+    <Points MF="9">1606,3199,2146,2731,2686,2443,3226,2236,3757,2065,4297,1939,4837,1813,5368,1714,5908,1624,6439,1543</Points>
+  </Line>
+  <Line>
+    <Caption>Cu</Caption>
+    <LineColor>4,4,4</LineColor>
+    <BkColor>254,254,254</BkColor>
+    <PtColor>128,245,128</PtColor>
+    <LineType>0</LineType>
+    <Points MF="9">1606,3244,2146,2848,2686,2605,3226,2434,3766,2281,4297,2164,4837,2056,5377,1966,5908,1885,6439,1804</Points>
+  </Line>
+  <CurrentLine>4</CurrentLine>
+  <Xmin MF="9">1075,4189,0.000000e+000</Xmin>
+  <Xmax MF="9">6439,4189,1.000000e+002</Xmax>
+  <Ymin MF="9">1075,4189,1.000000e+000</Ymin>
+  <Ymax MF="9">1084,283,1.000000e+003</Ymax>
+  <XScale>linear</XScale>
+  <YScale>logarithmic</YScale>
+  <Position>413,223</Position>
+  <Zoom>
+    <Scale>100.0</Scale>
+  </Zoom>
+  <Digitize>
+    <IgnorePixels>1</IgnorePixels>
+    <LineIDMethod>2</LineIDMethod>
+  </Digitize>
+  <AutoTrace>
+    <TraceDistance>8</TraceDistance>
+    <SmoothLines>1</SmoothLines>
+  </AutoTrace>
+  <DigitizeArea>
+    <LineOrArea>0</LineOrArea>
+    <AreaType>1</AreaType>
+    <GridType>0</GridType>
+    <deltaX>1.00000000000000e+000</deltaX>
+    <deltaXUnits>1</deltaXUnits>
+    <GoThroughX>0.00000000000000e+000</GoThroughX>
+    <ShiftX>1</ShiftX>
+    <RotateAngle>0.000000</RotateAngle>
+    <dx>8.000000</dx>
+  </DigitizeArea>
+  <GridSettings>
+    <ShowGrid>0</ShowGrid>
+    <AreaType>0</AreaType>
+    <dx>15.000000</dx>
+    <dy>15.000000</dy>
+  </GridSettings>
+</GetDataWorkspace>
