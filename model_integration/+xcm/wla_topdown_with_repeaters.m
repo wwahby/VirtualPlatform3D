@@ -156,6 +156,9 @@ while (Lm >= 0 && n < max_layers)
     else
         pn_vec(n) = pn_no_rep;
     end
+    
+    %% Compare to graphene wire pitch
+    [pitch_gnr R_gnr C_gnr gnr_delay ] = xcm.calc_gnr_xc_delay(wire_length,pitch_cu);
 
     %% Now we need to figure out the smallest wire we can route on this tier
     % This is a straightforward application of several factors
