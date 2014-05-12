@@ -272,3 +272,14 @@ hold on
 semilogy(wire.via_area_wires./wire.layer_area,'b')
 semilogy(wire.via_area_repeaters./wire.layer_area,'r')
 fixfigs(2,3,14,12)
+
+figure(3)
+clf
+semilogy(wire.delay_rc*1e12,'b')
+hold on
+semilogy(wire.delay_repeaters*1e12,'g')
+semilogy(wire.delay_rc_gnr*1e12,'r')
+xlabel('Metal layer')
+ylabel('Delay (ps)')
+title('Wiring delays')
+fixfigs(3,3,14,12)
