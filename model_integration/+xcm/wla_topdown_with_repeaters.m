@@ -132,16 +132,20 @@ while (Lm >= 0 && n < max_layers)
     Arep_via_max = repeater_via_area_fraction*A_max_n; % [FIX] Need a better way to find available area
     
     Ln_m = @(Ln) gate_pitch*Ln;
-    R_int = @(pn,Ln) 4*rho_m_n*Ln_m(Ln)/pn^2 + Rc_n;
+    %R_int = @(pn,Ln) 4*rho_m_n*Ln_m(Ln)/pn^2 + Rc_n; % [FIX] This should involve the width fraction and aspect ratio, curretnly assumes wf = 0.5 and ar = 1
+    R_int = @(pn,Ln) rho_m_n*Ln_m(Ln)/ (wire.aspect_ratio * wire.width_fraction^2 * pn^2) + Rc_n; % includes impact of differently-sized wires
     C_int = @(Ln) cap_const*eps_d*Ln_m(Ln);
     
     % Fit function to determine delay when using sub-optimal repeater
     % fraction (from Joyner) (gamma)
     alpha_rep = @(gamma) (1.44 + 0.53*(gamma + 1/gamma) );
     
-    pn_rc_min = @(Ln,gamma) sqrt(1.1*cap_const*4*rho_m_n*eps_d/(Beta_n*Tclk - 1.1*cap_const*Rc_n*eps_d*Ln_m(Ln))) * Ln_m(Ln);
+    %pn_rc_min = @(Ln,gamma) sqrt(1.1*cap_const*4*rho_m_n*eps_d/(Beta_n*Tclk - 1.1*cap_const*Rc_n*eps_d*Ln_m(Ln))) * Ln_m(Ln);
+    %pn_rep = @(Ln,gamma) max( min_pitch, sqrt(1.1*cap_const*4*rho_m*eps_d / ( (Beta_n*Tclk)^2/(alpha_rep(gamma)^2*Ro*Co) - 1.1*cap_const*Rc*eps_d*Ln_m(Ln) )) * Ln_m(Ln) );
+    
+    pn_rc_min = @(Ln,gamma) sqrt(1.1*cap_const*rho_m_n*eps_d/(wire.aspect_ratio*wire.width_fraction^2)/(Beta_n*Tclk - 1.1*cap_const*Rc_n*eps_d*Ln_m(Ln))) * Ln_m(Ln);
     pn_rc = @(Ln,gamma) max(min_pitch, pn_rc_min(Ln,gamma) );
-    pn_rep = @(Ln,gamma) max( min_pitch, sqrt(1.1*cap_const*4*rho_m*eps_d / ( (Beta_n*Tclk)^2/(alpha_rep(gamma)^2*Ro*Co) - 1.1*cap_const*Rc*eps_d*Ln_m(Ln) )) * Ln_m(Ln) );
+    pn_rep = @(Ln,gamma) max( min_pitch, sqrt(1.1*cap_const*4*rho_m*eps_d/(wire.aspect_ratio*wire.width_fraction^2) / ( (Beta_n*Tclk)^2/(alpha_rep(gamma)^2*Ro*Co) - 1.1*cap_const*Rc*eps_d*Ln_m(Ln) )) * Ln_m(Ln) );
     
     % First, figure out what the pitch would be with and without repeaters
     pn_no_rep = pn_rc(Ln,gamma);
