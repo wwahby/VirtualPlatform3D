@@ -1,5 +1,8 @@
-function [C_gnr C_gnr_raw cap_const Cqe Calpha] = calc_gnr_wire_capacitance(num_layers,Ef,temp_K,widths,gnr_length,thickness,height_dielectric,epsrd,prob_backscattering,mfp_defect)
-% width: (m) Width of GNR. Pitch is 2*width
+function [C_gnr C_gnr_raw cap_const Cqe Calpha] = calc_gnr_wire_capacitance(num_layers,Ef,temp_K,widths,spaces,gnr_length,thickness,height_dielectric,epsrd,prob_backscattering,mfp_defect)
+% width: (m) Width of GNR. pitch is width + space
+% spaces: (m) Space between adjacent GNRs
+
+%% Constants
 eps0 = 8.854e-12; % (F/m) Vacuum permittivity
 eps = eps0*epsrd; % Premittivity of interlayer dielectric
 h0 = 6.626e-34; % (J*s) Planck constant
@@ -19,7 +22,7 @@ for wind = 1:length(widths)
     W_nm = widths(wind)*1e9;
     [ Nch_w,Rsheet_w,leff_w] = xcm.sheetres_single_mGNR_ld1u_mod( Ef,W_nm,prob_backscattering,temp_K,mfp_defect*1e9);
     
-    [cc cg cm] = xcm.calc_capacitance_constant_full(widths(wind),widths(wind),thickness,height_dielectric);
+    [cc cg cm] = xcm.calc_capacitance_constant_full(widths(wind),spaces(wind),thickness,height_dielectric);
     
     cap_const(wind) = cc;
     cg(wind) = cg;

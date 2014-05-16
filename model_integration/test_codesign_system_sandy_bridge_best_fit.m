@@ -177,6 +177,7 @@ wire.repeater_fraction = [ 1]; % (-) fraction of optimal repeaters to insert
 wire.Beta = [0.9];              % (-v) Fraction of total clock period that a single point-to-point interconnect can consume
 wire.Beta_short = 0.25;         % (-) Beta for shortest wiring layers (used for the top down WLARI)
 wire.Rc = 0;                    % (-v) Contact resistance between tiers (can be a vector)
+wire.use_graphene = 1;
 
 %% Power supply noise model parameters
 
@@ -257,12 +258,18 @@ tic % begin timing
 toc % finish timing
 
 %% WLA Validation
+
+wire_pitch_sb_nm = [ 112.5	112.5	112.5	168.8	225	337.6	450.1	566.5	19400 ];
+
 figure(1)
 clf
-plot(wire.pn*1e9)
+plot(wire_pitch_sb_nm,'k')
+hold on
+plot(wire.pn*1e9,'r')
 xlabel('wiring layer')
 ylabel('wire pitch (nm)')
 grid on
+ylim([0 1.2*max(wire.pn*1e9)])
 fixfigs(1,3,14,12)
 
 figure(2)

@@ -1,4 +1,4 @@
-function [delay_top_vec delay_side_vec R_top_vec R_top_alt_vec R_side_vec L_vec C_gnr_vec C_gnr_raw_vec Nch_vec mfp_eff_vec ] = calc_gnr_params_combined_multiple_widths(num_layers,gnr_widths,gnr_length,Temp_K,mfp_defect,rho_interlayer,prob_backscattering,Ef,contact_resistance,epsrd,height_dielectric)
+function [delay_top_vec delay_side_vec R_top_vec R_top_alt_vec R_side_vec L_vec C_gnr_vec C_gnr_raw_vec Nch_vec mfp_eff_vec ] = calc_gnr_params_combined_multiple_widths(num_layers,gnr_widths,gnr_spaces,gnr_length,Temp_K,mfp_defect,rho_interlayer,prob_backscattering,Ef,contact_resistance,epsrd,height_dielectric)
 % Calculates the effective resistance of a graphene nanoribbon interconnect
 % GNR Model - Nishad 2014
 % INPUTS
@@ -64,6 +64,7 @@ delay_side_vec = zeros(1,num_widths);
 
 for wind = 1:num_widths
     gnr_width = gnr_widths(wind);
+    gnr_space = gnr_spaces(wind);
     gnr_width_nm = gnr_width*1e9;
     mfp_defect_nm = mfp_defect * 1e9;
 
@@ -126,7 +127,7 @@ for wind = 1:num_widths
 %     c_pul = (Cq^-1 + Ce^-1)^-1;
     
     thickness = 0.5e-9*num_layers;
-    [C_gnr C_gnr_raw cap_const Cqe Calpha] = xcm.calc_gnr_wire_capacitance(num_layers,Ef,Temp_K,gnr_width,gnr_length,thickness,height_dielectric,epsrd,prob_backscattering,mfp_defect);
+    [C_gnr C_gnr_raw cap_const Cqe Calpha] = xcm.calc_gnr_wire_capacitance(num_layers,Ef,Temp_K,gnr_width,gnr_space,gnr_length,thickness,height_dielectric,epsrd,prob_backscattering,mfp_defect);
     
 %     C_gnr_vec(wind) = C_gnr;
     C_gnr_vec(wind) = C_gnr_raw;

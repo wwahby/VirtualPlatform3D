@@ -171,7 +171,10 @@ while (Lm >= 0 && n < max_layers)
     tau_rep = alpha_rep(gamma)*sqrt(Ro*Co*R_int(pn_vec(n),Ln)*C_int(Ln)); % interconnect delay with repeaters
     
     %% Can we do better with graphene?
-   
+% If we can, try using GNRs for lower metal levels
+try_using_gnrs = wire.use_graphene;
+
+if (try_using_gnrs)
     width_fraction = wire.width_fraction;
     width_cu = pn_vec(n)*width_fraction; % width of actual Cu wires
     % Max allowable delay
@@ -200,10 +203,12 @@ while (Lm >= 0 && n < max_layers)
     % Only consider graphene wires that are smaller than cu wires for now
     % [FIX] Need a better way of picking potential gnr widths
     gnr_widths = [ (4:2:20)*1e-9 (25e-9:10e-9:width_cu) ];
+    gnr_pitches = gnr_widths/wire.width_fraction;
+    gnr_spaces = gnr_pitches - gnr_widths;
     
     [delay_top_vec delay_side_vec R_top_vec R_top_alt_vec R_side_vec L_vec C_gnr_vec C_gnr_raw_vec Nch_vec mfp_eff_vec ] = ...
         xcm.calc_gnr_params_combined_multiple_widths( ...
-        num_layers, gnr_widths, gnr_length, temp_K, mfp_defect, rho_interlayer, prob_backscattering, ...
+        num_layers, gnr_widths, gnr_spaces, gnr_length, temp_K, mfp_defect, rho_interlayer, prob_backscattering, ...
         Ef, contact_resistance, epsrd, height_dielectric );
     
     % find smallest graphene pitch that beats copper
@@ -211,8 +216,9 @@ while (Lm >= 0 && n < max_layers)
     if (~isempty(last_valid_gnr_ind))
         width_gnr = gnr_widths(last_valid_gnr_ind);
         delay_gnr = delay_top_vec(last_valid_gnr_ind);
+        pitch_gnr = gnr_pitches(last_valid_gnr_ind);
 
-        pn_vec(n) = 2*width_gnr; % assuming GNR width fraction is 0.5 for now
+        pn_vec(n) = pitch_gnr; % assuming GNR width fraction is 0.5 for now
         tau_rc_gnr_vec(n) = delay_gnr;
 
         % Use graphene, no repeaters yet
@@ -223,7 +229,7 @@ while (Lm >= 0 && n < max_layers)
         material_vec(n) = 1; % Cu
         tau_rc_gnr_vec(n) = delay_top_vec(end);
     end
-
+end
     
 
     %% Now we need to figure out the smallest wire we can route on this tier
