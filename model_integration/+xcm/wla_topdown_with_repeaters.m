@@ -202,33 +202,54 @@ if (try_using_gnrs)
     
     % Only consider graphene wires that are smaller than cu wires for now
     % [FIX] Need a better way of picking potential gnr widths
-    gnr_widths = [ (4:2:20)*1e-9 (25e-9:10e-9:width_cu) ];
-    gnr_pitches = gnr_widths/wire.width_fraction;
-    gnr_spaces = gnr_pitches - gnr_widths;
-    
-    [delay_top_vec delay_side_vec R_top_vec R_top_alt_vec R_side_vec L_vec C_gnr_vec C_gnr_raw_vec Nch_vec mfp_eff_vec ] = ...
-        xcm.calc_gnr_params_combined_multiple_widths( ...
-        num_layers, gnr_widths, gnr_spaces, gnr_length, temp_K, mfp_defect, rho_interlayer, prob_backscattering, ...
-        Ef, contact_resistance, epsrd, height_dielectric );
-    
-    % find smallest graphene pitch that beats copper
-    last_valid_gnr_ind = find( (delay_top_vec < delay_cu), 1, 'first');
-    if (~isempty(last_valid_gnr_ind))
-        width_gnr = gnr_widths(last_valid_gnr_ind);
-        delay_gnr = delay_top_vec(last_valid_gnr_ind);
-        pitch_gnr = gnr_pitches(last_valid_gnr_ind);
+%     gnr_widths = [ (4:2:20)*1e-9 (25e-9:10e-9:width_cu) ];
+%     gnr_pitches = gnr_widths/wire.width_fraction;
+%     gnr_spaces = gnr_pitches - gnr_widths;
+%     
+%     [delay_top_vec delay_side_vec R_top_vec R_top_alt_vec R_side_vec L_vec C_gnr_vec C_gnr_raw_vec Nch_vec mfp_eff_vec ] = ...
+%         xcm.calc_gnr_params_combined_multiple_widths( ...
+%         num_layers, gnr_widths, gnr_spaces, gnr_length, temp_K, mfp_defect, rho_interlayer, prob_backscattering, ...
+%         Ef, contact_resistance, epsrd, height_dielectric );
 
-        pn_vec(n) = pitch_gnr; % assuming GNR width fraction is 0.5 for now
-        tau_rc_gnr_vec(n) = delay_gnr;
-
-        % Use graphene, no repeaters yet
+    pitch_orig = pn_vec(n);
+    
+    disp(sprintf('Wiring layer %d attempting GNR insertion...',n));
+    [use_gnr gnr_width gnr_pitch gnr_delay] = xcm.find_best_gnr_interconnect( ...
+        num_layers, gnr_length, delay_cu, width_fraction, pitch_orig, ...
+        temp_K, mfp_defect, rho_interlayer, prob_backscattering, Ef, ...
+        contact_resistance, epsrd, height_dielectric );
+    disp(sprintf('   ...use_gnrs: %d',use_gnr));
+    
+    if(use_gnr == 1)
         material_vec(n) = 2; % GNR
         use_repeaters = 0;
-        %tau_rc_gnr =  % Need to update the delay for the wire
+        pn_vec(n) = gnr_pitch;
+        tau_rc_gnr_vec(n) = gnr_delay;
     else
         material_vec(n) = 1; % Cu
-        tau_rc_gnr_vec(n) = delay_top_vec(end);
+        tau_rc_gnr_vec(n) = 0;
     end
+        
+
+    
+%     % find smallest graphene pitch that beats copper
+%     last_valid_gnr_ind = find( (delay_top_vec < delay_cu), 1, 'first');
+%     if (~isempty(last_valid_gnr_ind))
+%         width_gnr = gnr_widths(last_valid_gnr_ind);
+%         delay_gnr = delay_top_vec(last_valid_gnr_ind);
+%         pitch_gnr = gnr_pitches(last_valid_gnr_ind);
+% 
+%         pn_vec(n) = pitch_gnr; % assuming GNR width fraction is 0.5 for now
+%         tau_rc_gnr_vec(n) = delay_gnr;
+% 
+%         % Use graphene, no repeaters yet
+%         material_vec(n) = 2; % GNR
+%         use_repeaters = 0;
+%         %tau_rc_gnr =  % Need to update the delay for the wire
+%     else
+%         material_vec(n) = 1; % Cu
+%         tau_rc_gnr_vec(n) = delay_top_vec(end);
+%     end
 end
     
 
