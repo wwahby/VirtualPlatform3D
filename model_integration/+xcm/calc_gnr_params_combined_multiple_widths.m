@@ -130,7 +130,7 @@ for wind = 1:num_widths
     [C_gnr C_gnr_raw cap_const Cqe Calpha] = xcm.calc_gnr_wire_capacitance(num_layers,Ef,Temp_K,gnr_width,gnr_space,gnr_length,thickness,height_dielectric,epsrd,prob_backscattering,mfp_defect);
     
 %     C_gnr_vec(wind) = C_gnr;
-    C_gnr_vec(wind) = C_gnr_raw;
+    C_gnr_vec(wind) = C_gnr;
     C_gnr_raw_vec(wind) = C_gnr_raw;
     gnr_cap_const(wind) = cap_const;
     Cqe_vec(wind) = Cqe;
@@ -161,6 +161,8 @@ for wind = 1:num_widths
 
     delay_top = delay_top_kumar;
     delay_side = delay_side_kumar;
+    
+    delay_top = (Rq + rtc_pul*gnr_length).*(c_pul*gnr_length); % RC
     
     delay_top_vec(wind) = delay_top;
     delay_side_vec(wind) = delay_side;
