@@ -41,7 +41,7 @@ Cqe = 4*q^2/h0/vf * num_layers * Nch; % (F/m) Quantum capacitance;
 %are the same
 Ctop = eps*widths/2 / height_dielectric;
 
-Cside = eps*thickness./widths; % We're assuming that the width is the same as the pitch
+Cside = eps*thickness./spaces;
 
 Calpha = Ctop + Cside;
 %Cbeta = Cbot + Cside; % ctop and cbot are the same, so calpha and cbeta
