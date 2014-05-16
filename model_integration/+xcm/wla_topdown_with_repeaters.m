@@ -192,9 +192,9 @@ if (try_using_gnrs)
     num_layers = 5;
     gnr_length = Ln_m(Ln); % (m)
     temp_K = chip.temperature+273; % (K) %[FIX] temp not known at this point...
-    mfp_defect = 1000e-9; % (m)
-    rho_interlayer = 3e-3; % (Ohm cm)
-    prob_backscattering = 0; % (-)
+    mfp_defect = 300e-9; % (m)
+    rho_interlayer = 3e-1; % (Ohm cm)
+    prob_backscattering = 0.0; % (-)
     Ef = 0.2; % (eV)
     contact_resistance = 0;
     epsrd = epsr_d;
