@@ -1,4 +1,6 @@
 function [chip power tsv wire repeater psn] = codesign_system(chip,tsv,gate,transistor,wire,heat,psn,simulation)
+
+time_start = cputime;
 % Power and signal codesign
 %% constants
 eps0 = 8.854e-12; % (F/m) vacuum permittivity
@@ -189,6 +191,9 @@ while ( (abs(mismatch_norm-1) > psn_mismatch_tolerance) && (psn_iterations < psn
 end
 
 %% Final report
+
+time_stop = cputime;
+time_elapsed = time_stop - time_start;
 disp(' ')
 disp('Final system parameters:')
 repstr = sprintf('\tNg_nom %d \t Ng_act: %d \t Atsv_nom: %.3g \t Atsv_act: %.3g \n\tN_tsvs: %d \t Npads_pow %d \t psn_nom %.4g \t psn_act %.4g', ...
@@ -196,4 +201,6 @@ repstr = sprintf('\tNg_nom %d \t Ng_act: %d \t Atsv_nom: %.3g \t Atsv_act: %.3g 
 disp(repstr)
 repstr = sprintf('\th_tsv_um: %.4g \t w_tsv_um: %.4g',h_tsv_m/1e-6,w_tsv_m/1e-6);
 disp(repstr);
+
+disp(sprintf('Total time elapsed for system design: %d',time_elapsed))
 

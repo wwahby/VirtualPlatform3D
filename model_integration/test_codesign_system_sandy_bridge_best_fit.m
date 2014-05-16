@@ -253,9 +253,7 @@ simulation.print_thermal_data = 0; % Output max temp in each layer to console
 
 
 %% Codesign system
-tic % begin timing
 [chip power tsv wire repeater psn] = codesign_system(chip,tsv,gate,transistor,wire,heat,psn,simulation);
-toc % finish timing
 
 %% WLA Validation
 
