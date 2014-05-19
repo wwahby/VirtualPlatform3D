@@ -8,6 +8,8 @@ specularity_coeff = 0.55;
 reflection_coeff = 0.43;
 
 rho_cu_vec = zeros(1,length(wire_thicknesses));
+delta_rho_fs_vec = zeros(1,length(wire_thicknesses));
+delta_rho_ms_vec = zeros(1,length(wire_thicknesses));
 
 
 for thind = 1:length(wire_thicknesses)
