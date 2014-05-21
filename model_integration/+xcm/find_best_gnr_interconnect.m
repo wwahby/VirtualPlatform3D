@@ -27,62 +27,79 @@ if (delay_top > delay_max) % GNR no better than Cu -- don't bother trying to shr
     best_delay = delay_top;
 else
     use_gnr = 1;
-
-    last_valid_width = gnr_width;
-    num_gens = 1; % binary search generation counter
     
-    best_R = R_top;
-    best_C = C_gnr_vec;
-    best_C_pul = C_gnr_vec/gnr_length;
-    best_delay = delay_top;
+    % if min pitch works, just end here and move along
+    [delay_top delay_side R_top R_top_alt R_side L_vec C_gnr_vec C_gnr_raw_vec Nch_vec mfp_eff_vec ] = ...
+    xcm.calc_gnr_params_combined_multiple_widths( ...
+        num_layers, min_width, gnr_space, gnr_length, temp_K, mfp_defect, rho_interlayer, prob_backscattering, ...
+        Ef, contact_resistance, epsrd, height_dielectric );
+    delay_gnr = delay_top;
+    pass = (delay_gnr <= delay_max);
     
-    lbnd = min_width;
-    rbnd = gnr_width;
-    mid = 0.5*(rbnd+lbnd);
+    if(pass)
+        last_valid_width = min_width;
 
-    while ((rel_err >= rel_err_tol) && (num_gens <= max_gens))
+        best_R = R_top;
+        best_C = C_gnr_vec;
+        best_C_pul = C_gnr_vec/gnr_length;
+        best_delay = delay_gnr;
+    else % check the rest of the widths
 
-        gnr_width = mid;
-        gnr_pitch = gnr_width/width_fraction;
-        gnr_space = gnr_pitch - gnr_width;
+        last_valid_width = gnr_width;
+        num_gens = 1; % binary search generation counter
 
-        [delay_top delay_side R_top R_top_alt R_side L_vec C_gnr_vec C_gnr_raw_vec Nch_vec mfp_eff_vec ] = ...
-        xcm.calc_gnr_params_combined_multiple_widths( ...
-            num_layers, gnr_width, gnr_space, gnr_length, temp_K, mfp_defect, rho_interlayer, prob_backscattering, ...
-            Ef, contact_resistance, epsrd, height_dielectric );
+        best_R = R_top;
+        best_C = C_gnr_vec;
+        best_C_pul = C_gnr_vec/gnr_length;
+        best_delay = delay_top;
+
+        lbnd = min_width;
+        rbnd = gnr_width;
+        mid = 0.5*(rbnd+lbnd);
+
+        while ((rel_err >= rel_err_tol) && (num_gens <= max_gens))
+
+            gnr_width = mid;
+            gnr_pitch = gnr_width/width_fraction;
+            gnr_space = gnr_pitch - gnr_width;
+
+            [delay_top delay_side R_top R_top_alt R_side L_vec C_gnr_vec C_gnr_raw_vec Nch_vec mfp_eff_vec ] = ...
+            xcm.calc_gnr_params_combined_multiple_widths( ...
+                num_layers, gnr_width, gnr_space, gnr_length, temp_K, mfp_defect, rho_interlayer, prob_backscattering, ...
+                Ef, contact_resistance, epsrd, height_dielectric );
 
 
-        delay_gnr = delay_top;
-        pass = (delay_gnr <= delay_max);
+            delay_gnr = delay_top;
+            pass = (delay_gnr <= delay_max);
 
-        if(pass)
-            last_valid_width = mid; % save current value
-            rbnd = mid; % decrease wire width and continue searching
-            
-            best_R = R_top;
-            best_C = C_gnr_vec;
-            best_C_pul = C_gnr_vec/gnr_length;
-            best_delay = delay_gnr;
+            if(pass)
+                last_valid_width = mid; % save current value
+                rbnd = mid; % decrease wire width and continue searching
 
-            % Only update the error when we have a passing solution, so we
-            % don't accidentally accept a failing solution
-            err = delay_max - delay_gnr;
-            rel_err = abs(err)/delay_max;
+                best_R = R_top;
+                best_C = C_gnr_vec;
+                best_C_pul = C_gnr_vec/gnr_length;
+                best_delay = delay_gnr;
 
-        else % fail
-            if (last_valid_width == -1)
-                % We've never found a valid width - need to expand search to higher regimes (rbnd not guaranteed to pass)
-                lbnd = mid;
-                rbnd = 2*rbnd;
-            else % just home in on the line between passing and failing (rbnd gauranteed to pass)
-                lbnd = mid;
+                % Only update the error when we have a passing solution, so we
+                % don't accidentally accept a failing solution
+                err = delay_max - delay_gnr;
+                rel_err = abs(err)/delay_max;
+
+            else % fail
+                if (last_valid_width == -1)
+                    % We've never found a valid width - need to expand search to higher regimes (rbnd not guaranteed to pass)
+                    lbnd = mid;
+                    rbnd = 2*rbnd;
+                else % just home in on the line between passing and failing (rbnd gauranteed to pass)
+                    lbnd = mid;
+                end
             end
-        end
 
-        mid = 0.5*(lbnd+rbnd); % reset midpoint and keep on testing
-        num_gens = num_gens + 1;
-        
-        disp(sprintf('lbnd: %.4g \t mid: %.4g \t rbnd: %.4g',lbnd,mid,rbnd))
+            mid = 0.5*(lbnd+rbnd); % reset midpoint and keep on testing
+            num_gens = num_gens + 1;
+
+        end
     end
 end
 
@@ -92,6 +109,10 @@ gnr_delay = best_delay;
 R = best_R;
 C = best_C;
 C_pul = best_C_pul;
+
+if(gnr_pitch >= pitch_orig)
+    use_gnr = 0;
+end
 
 
 

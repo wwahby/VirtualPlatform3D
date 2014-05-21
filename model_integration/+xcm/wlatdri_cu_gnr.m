@@ -209,7 +209,9 @@ while (Lm >= 0 && n < max_layers)
     
     %% Can we do better with graphene?
 % If we can, try using GNRs for lower metal levels
-try_using_gnrs = wire.use_graphene;
+% Don't bother checking GNR params if we're already at the minimum
+% allowable pitch
+try_using_gnrs = (wire.use_graphene && (pn_vec(n) > min_pitch));
 
 if (try_using_gnrs)
     width_fraction = wire.width_fraction;
