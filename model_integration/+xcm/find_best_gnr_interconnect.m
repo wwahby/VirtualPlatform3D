@@ -8,6 +8,8 @@ rel_err_tol = 1e-2;
 gnr_width = pitch_orig*width_fraction;
 gnr_space = pitch_orig - gnr_width;
 
+min_width = width_fraction*min_pitch;
+
 last_valid_width = -1; % start with invalid width
 
 % First check that the GNR delay is better than Cu at copper dimensions
@@ -16,7 +18,7 @@ last_valid_width = -1; % start with invalid width
         num_layers, gnr_width, gnr_space, gnr_length, temp_K, mfp_defect, rho_interlayer, prob_backscattering, ...
         Ef, contact_resistance, epsrd, height_dielectric );
 
-    
+
 if (delay_top > delay_max) % GNR no better than Cu -- don't bother trying to shrink the wires
     use_gnr = 0;
     best_R = R_top;
@@ -34,7 +36,7 @@ else
     best_C_pul = C_gnr_vec/gnr_length;
     best_delay = delay_top;
     
-    lbnd = min_pitch;
+    lbnd = min_width;
     rbnd = gnr_width;
     mid = 0.5*(rbnd+lbnd);
 
@@ -79,6 +81,8 @@ else
 
         mid = 0.5*(lbnd+rbnd); % reset midpoint and keep on testing
         num_gens = num_gens + 1;
+        
+        disp(sprintf('lbnd: %.4g \t mid: %.4g \t rbnd: %.4g',lbnd,mid,rbnd))
     end
 end
 
@@ -172,6 +176,10 @@ C_pul = best_C_pul;
 %     gnr_delay = 0;
 %     gnr_pitch = 0;
 % end
+% 
+% R = R_top;
+% C = C_gnr_vec;
+% C_pul = C_gnr_vec/gnr_length;
 
             
         
