@@ -288,3 +288,17 @@ xlabel('Metal layer')
 ylabel('Delay (ps)')
 title('Wiring delays')
 fixfigs(3,3,14,12)
+
+% pitch with and without repeaters
+figure(4)
+clf
+plot(wire_pitch_sb_nm,'k')
+hold on
+plot(wire.pn*1e9,'r')
+plot(wire.pn_orig*1e9,'b')
+xlabel('wiring layer')
+ylabel('wire pitch (nm)')
+grid on
+ylim([0 1.2*max(wire.pn_orig*1e9)])
+fixfigs(4,3,14,12)
+
