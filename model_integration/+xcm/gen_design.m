@@ -149,7 +149,8 @@ if (simulation.topdown_WLARI == 1)
     % insertion while accurately considering wire and repeater via blockage
     while((bottom_layer_underfilled == 1) && (wla_attempts < max_wla_attempts) && (top_fill_factor > min_top_fill_factor))
         % Actually run topdown WLA and RI
-        [wire_temp repeater_temp] = xcm.wla_topdown_with_repeaters(chip,gate,wire);
+        %[wire_temp repeater_temp] = xcm.wla_topdown_with_repeaters(chip,gate,wire);
+        [wire_temp repeater_temp] = xcm.wlatdri_cu_gnr(chip,gate,wire);
         
         % Figure out what the bottom-layer utilization is
         fill_factor = wire_temp.wire_area(1)/(wire_temp.layer_area*wire.routing_efficiency(end));
