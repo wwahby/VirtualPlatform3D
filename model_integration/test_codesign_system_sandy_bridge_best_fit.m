@@ -302,3 +302,11 @@ grid on
 ylim([0 1.2*max(wire.pn_orig*1e9)])
 fixfigs(4,3,14,12)
 
+
+%% Cu wire resistivity
+figure(5)
+clf
+plot(wire.rho_vec/wire.resistivity,'b')
+xlabel('Metal level')
+ylabel('\rho_{cu}/\rho_o')
+fixfigs(5,3,14,12)
