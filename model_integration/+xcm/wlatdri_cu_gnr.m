@@ -289,6 +289,8 @@ if (try_using_gnrs)
 %         material_vec(n) = 1; % Cu
 %         tau_rc_gnr_vec(n) = delay_top_vec(end);
 %     end
+else
+    material_vec(n) = 1;
 end
     
 
