@@ -1,6 +1,6 @@
 % Power and signal codesign
 % close all
-clear all
+ clear all
 
 %% ==================================================
 %  ================== BEGIN INPUTS ==================
@@ -80,6 +80,14 @@ gate_pitch = 465e-9*2;
 min_pitch = 112.5e-9;
 fmax = 3.6e9;
 w_trans = 32e-9;
+
+%% Hypothetical 6.4nm Sandy Bridge i7, one core
+% Ng = 85e6/4;
+% Ach_mm2 = 18.5/25;
+% gate_pitch = 465e-9*2/5;
+% min_pitch = 32e-9/5;
+% fmax = 3.6e9;
+% w_trans = 32e-9/5;
 
 %% 22nm Ivy Bridge EP10, entire chip
 % Ng = 2.86e9/4;
@@ -172,7 +180,7 @@ wire.resistivity = 17.2e-9;     % (Ohm*m) Copper wires
 wire.permeability_rel = 1;      % (-) Relative permeability of wiring material
 wire.dielectric_epsr = 3.0;     % (-) Relative dielectric constant for wiring ILD -- Low-K dielectric
 wire.layers_per_tier = 1;       % (-) Number of metal layers sharing same pitch in each tier
-wire.routing_efficiency = [ 0.20 0.6 ];  % (-) Fraction of available area that the wire routing tool can actually use
+wire.routing_efficiency = [ 0.2 0.6];  % (-) Fraction of available area that the wire routing tool can actually use
 wire.repeater_fraction = [ 1]; % (-) fraction of optimal repeaters to insert
 wire.Beta = [0.9];              % (-v) Fraction of total clock period that a single point-to-point interconnect can consume
 wire.Beta_short = 0.25;         % (-) Beta for shortest wiring layers (used for the top down WLARI)
@@ -310,3 +318,4 @@ plot(wire.rho_vec/wire.resistivity,'b')
 xlabel('Metal level')
 ylabel('\rho_{cu}/\rho_o')
 fixfigs(5,3,14,12)
+
