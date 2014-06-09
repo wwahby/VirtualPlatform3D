@@ -1,3 +1,6 @@
+close all
+clear all
+
 %% Simulation parameters
 simulation.use_joyner = 0;
 simulation.redo_wiring_after_repeaters = 0;
