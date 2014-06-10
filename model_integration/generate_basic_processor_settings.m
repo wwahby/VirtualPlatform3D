@@ -29,13 +29,13 @@ chip.thickness_nominal = 50e-6; % (m) Nominal substrate thickness
 %% Transistor and gate parameters
 transistor.gate_length = w_trans;
 transistor.oxide_rel_permittivity = 25; % HfO2
-transistor.oxide_thickness = 1.5e-9;
+transistor.oxide_thickness = 1e-9;
 transistor.leakage_current_per_micron = 10e-9; %(A/um)
 transistor.capacitance = transistor.oxide_rel_permittivity*eps0*transistor.gate_length^2/transistor.oxide_thickness;
 transistor.subthreshold_swing = .060; % (V/decade at 300K)
 transistor.Vt = 0.25; % (V) - Threhsold voltage
 
-gate.output_resistance = 5e3;   % (Ohm) Output resistance of a minimum-sized 2in NAND gate
+gate.output_resistance = 8e3;   % (Ohm) Output resistance of a minimum-sized 2in NAND gate
 gate.num_transistors = 4;       % (-) number of transistors per average logic gate
 gate.capacitance = gate.num_transistors*transistor.capacitance;
 
@@ -56,7 +56,7 @@ wire.repeater_fraction = [ 0.5 ]; % (-) fraction of optimal repeaters to insert
 wire.Beta = [0.9];              % (-v) Fraction of total clock period that a single point-to-point interconnect can consume
 wire.Beta_short = 0.25;         % (-) Beta for shortest wiring layers (used for the top down WLARI)
 wire.Rc = 0;                    % (-v) Contact resistance between tiers (can be a vector)
-wire.use_graphene = 1;          % (-) (1) Allow GNR wires, (0) Don't allow GNRs
+wire.use_graphene = 1;          % (-) Allow or disallow graphene use
 
 %% Power supply noise model parameters
 
