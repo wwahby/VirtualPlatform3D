@@ -51,7 +51,7 @@ epsr_d = wire.dielectric_epsr;
 % interconnects get long enough we can start considering combined tiers
 % Will need to deal with how vias traverse each layer in each case.
 
-if(simulation.seperate_wiring_tiers == 1)
+if(simulation.separate_wiring_tiers == 1)
     wire.layer_area = chip.area_total; % Determine metal pitch for EACH logic tier
 else
     wire.layer_area = Ach_m2/S; % Determine metal pitch for entire wiring stack
