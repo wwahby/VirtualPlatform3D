@@ -5,6 +5,8 @@ simulation.topdown_WLARI = 1; % Use topdown simultaneous WLA and RI (0 = use sta
 simulation.skip_psn_loops = 1; % Skip PSN TSV homing for faster debug
 simulation.draw_thermal_map = 0; % Plot thermal profile of each chip
 simulation.print_thermal_data = 0; % Output max temp in each layer to console
+simulation.seperate_wiring_tiers = 1; % 1 = Each logic plane will have its own wiring tiers between it and the next logic plane
+                                      % 0 = All metal layers for entire device will be routed on top of entire 3D stack
 
 %% Logic core parameters
 
