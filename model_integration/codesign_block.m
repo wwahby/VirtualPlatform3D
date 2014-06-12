@@ -194,12 +194,12 @@ end
 time_stop = cputime;
 time_elapsed = time_stop - time_start;
 disp(' ')
-disp('Final system parameters:')
+disp('Final block parameters:')
 repstr = sprintf('\tNg_nom %d \t Ng_act: %d \t Atsv_nom: %.3g \t Atsv_act: %.3g \n\tN_tsvs: %d \t Npads_pow %d \t psn_nom %.4g \t psn_act %.4g', ...
                   chip.num_gates, chip.Ng_actual, tsv.max_area_fraction, tsv.actual_area_fraction, tsv.num, psn.Npads, psn.noise_target, psn_max);
 disp(repstr)
 repstr = sprintf('\th_tsv_um: %.4g \t w_tsv_um: %.4g',h_tsv_m/1e-6,w_tsv_m/1e-6);
 disp(repstr);
 
-disp(sprintf('Total time elapsed for system design: %d',time_elapsed))
+disp(sprintf('Total time elapsed for block design: %d',time_elapsed))
 
