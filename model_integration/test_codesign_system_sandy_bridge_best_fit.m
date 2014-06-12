@@ -180,12 +180,12 @@ wire.resistivity = 17.2e-9;     % (Ohm*m) Copper wires
 wire.permeability_rel = 1;      % (-) Relative permeability of wiring material
 wire.dielectric_epsr = 3.0;     % (-) Relative dielectric constant for wiring ILD -- Low-K dielectric
 wire.layers_per_tier = 1;       % (-) Number of metal layers sharing same pitch in each tier
-wire.routing_efficiency = [ 0.2 0.6];  % (-) Fraction of available area that the wire routing tool can actually use
-wire.repeater_fraction = [ 1]; % (-) fraction of optimal repeaters to insert
+wire.routing_efficiency = [ 0.5];  % (-) Fraction of available area that the wire routing tool can actually use
+wire.repeater_fraction = [ 0.5]; % (-) fraction of optimal repeaters to insert
 wire.Beta = [0.9];              % (-v) Fraction of total clock period that a single point-to-point interconnect can consume
 wire.Beta_short = 0.25;         % (-) Beta for shortest wiring layers (used for the top down WLARI)
 wire.Rc = 0;                    % (-v) Contact resistance between tiers (can be a vector)
-wire.use_graphene = 1;
+wire.use_graphene = 0;
 
 %% Power supply noise model parameters
 
@@ -257,6 +257,7 @@ simulation.topdown_WLARI = 1; % Use topdown simultaneous WLA and RI (0 = use sta
 simulation.skip_psn_loops = 1; % Skip PSN TSV homing for faster debug
 simulation.draw_thermal_map = 0; % Plot thermal profile of each chip
 simulation.print_thermal_data = 0; % Output max temp in each layer to console
+simulation.separate_wiring_tiers = 1;
 
 
 

@@ -1,3 +1,5 @@
+close all
+
 %% Simulation parameters
 simulation.use_joyner = 0;
 simulation.redo_wiring_after_repeaters = 0;
@@ -41,7 +43,7 @@ Ng_gpu = 2.05e8/4;
 Ach_mm2_gpu = 44.5;
 gate_pitch_gpu = 0.931e-6; % average gate pitch (sqrt(A_core/Ngates))
 min_pitch_gpu = 112.5e-9; % actual contacted gate pitch
-fmax_gpu = 3.5e9;
+fmax_gpu = 1.35e9;
 Vdd_gpu = 1.25;
 
 %% Thermal parameters
@@ -82,14 +84,17 @@ rent_exp_gpu = 0.55;
 [gpu.chip gpu.transistor gpu.gate gpu.tsv gpu.wire gpu.psn] = generate_basic_processor_settings(rent_exp_gpu,num_layers_per_block,Ng_gpu,Ach_mm2_gpu,gate_pitch_gpu,min_pitch_gpu,Vdd_gpu,fmax_gpu,w_trans);
 
 %% Tweak wiring parameters
-core.wire.repeater_fraction = [1]; % 1 is default from gen_basic_proc_settings
-core.wire.routing_efficiency = [0.2 0.6]; % 0.4 is default from gen_basic_proc_settings
+core.wire.repeater_fraction = [0.4]; % 1 is default from gen_basic_proc_settings
+core.wire.routing_efficiency = [0.5]; % 0.4 is default from gen_basic_proc_settings
+core.wire.use_graphene = 0;
 
 gpu.wire.repeater_fraction = core.wire.repeater_fraction;
 gpu.wire.routing_efficiency = core.wire.routing_efficiency;
+gpu.wire.use_graphene = core.wire.use_graphene;
 
 mem.wire.repeater_fraction = core.wire.repeater_fraction;
 mem.wire.routing_efficiency = core.wire.routing_efficiency;
+mem.wire.use_graphene = core.wire.use_graphene;
 
 %% calculate block parameters
 [core.chip core.power core.tsv core.wire core.repeater core.psn] = codesign_block(core.chip,core.tsv,core.gate,core.transistor,core.wire,heat,core.psn,simulation);
@@ -245,7 +250,13 @@ simulation.print_thermal_data = 1; % Output max temp in each layer to console
           
     chip.temperature = max(chip.temperature_vec);
 
-    
+%% Report
+
+fprintf('Total system power consumption:\n %.4g W\n\n',chip_power)
+disp('Max temperature in each tier: ')
+disp(chip.temperature_vec)
+
+
 %% Wire pitch
 
 wire_pitch_sb_nm = [ 112.5	112.5	112.5	168.8	225	 337.6	450.1	566.5	19400 ];
