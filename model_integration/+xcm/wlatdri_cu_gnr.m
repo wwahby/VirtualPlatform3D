@@ -55,7 +55,7 @@ Rc = wire.Rc;
 Ro = gate.output_resistance;
 Co = gate.capacitance;
 repeater_fraction = fliplr(wire.repeater_fraction); % flip these around since we start wiring with the top/last metal level in this case
-
+wire.wla_attempts = wire.wla_attempts + 1;
 
 %% Repeater constraints
 % Min inverter size (estimate)
@@ -262,7 +262,7 @@ if (try_using_gnrs)
 
     pitch_orig = pn_vec(n);
     
-    disp(sprintf('Wiring layer %d attempting GNR insertion...',n));
+    fprintf('WLA Attempt %d: Layer %d attempting GNR insertion...\n',wire.wla_attempts,n);
     [use_gnr gnr_width gnr_pitch gnr_delay R_gnr C_gnr C_pul_gnr] = xcm.find_best_gnr_interconnect( ...
         num_layers, gnr_length, delay_max, min_pitch, width_fraction, pitch_orig, ...
         temp_K, mfp_defect, rho_interlayer, prob_backscattering, Ef, ...
@@ -273,13 +273,15 @@ if (try_using_gnrs)
         width_fraction, pitch_orig, temp_K, mfp_defect, rho_interlayer, prob_backscattering, ...
         Ef, contact_resistance, epsrd, height_dielectric );
 
-    disp(sprintf('   ...use_gnrs: %d',use_gnr));
+    fprintf('   ...use_gnrs: %d\n',(use_gnr || use_gnr_rep));
     
     R_gnr_vec(n) = R_gnr;
     
     tau_gnr = R_gnr * C_gnr;
     gnr_wires_benefit_from_repeaters = (tau_gnr > 7*Ro*Co);
-    use_gnr_rep = use_gnr_rep && gnr_wires_benefit_from_repeaters && repeater_area_ok && repeater_via_area_ok && (gnr_pitch_rep < gnr_pitch);
+    gnr_rep_pitch_better = (gnr_pitch_rep < gnr_pitch);
+    use_gnr_rep = use_gnr_rep && gnr_wires_benefit_from_repeaters && repeater_area_ok && repeater_via_area_ok && gnr_rep_pitch_better;
+    %fprintf('use_gnr_rep: %d \t gnrs_need_reps: %d \t rep_A_ok: %d \t rep_vias_ok: %d \t gnr_rep_pitch_better: %d\n',use_gnr_rep,gnr_wires_benefit_from_repeaters,repeater_area_ok,repeater_via_area_ok,gnr_rep_pitch_better);
     
     if(use_gnr_rep == 1)
         material_vec(n) = 2; % GNR
