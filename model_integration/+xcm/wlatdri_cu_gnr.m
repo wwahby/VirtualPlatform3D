@@ -60,7 +60,7 @@ repeater_fraction = fliplr(wire.repeater_fraction); % flip these around since we
 %% Repeater constraints
 % Min inverter size (estimate)
 Ainv_min = gate_pitch^2/4;
-repeater_area_fraction = 0.05;
+repeater_area_fraction = 0.10;
 repeater_via_area_fraction = 0.01;
 
 %%
@@ -91,8 +91,11 @@ tau_rc_gnr_vec = zeros(1,max_layers);
 tau_rep_vec = zeros(1,max_layers);
 material_vec = zeros(1,max_layers);
 R_int_vec = zeros(1,max_layers);
+R_cu_vec = zeros(1,max_layers);
+R_gnr_vec = zeros(1,max_layers);
 rho_vec = zeros(1,max_layers);
 C_pul_vec = zeros(1,max_layers);
+tau_rep_gnr_vec = zeros(1,max_layers);
 
 n = 1; % start with top wiring tier
 Ln = lmax; % length of longest wire routed in this tier (GP)
@@ -127,13 +130,15 @@ while (Lm >= 0 && n < max_layers)
     delay_max = Beta_n * Tclk;
     
     % Determine layer area available
-    A_max_n = layers_per_tier * routing_efficiency * layer_area;
+    A_max_n = layers_per_tier * routing_efficiency * layer_area; % maximum wiring area available on tier n
     A_layer(n) = A_max_n;
     
-    % Repeater area constraint
-    Arep_max = repeater_area_fraction*A_max_n; % [FIX] Need a better way to find available area
+    % Repeater area constraint: repeaters cannot take up more than X% of
+    % the available active die area
+    Arep_max = repeater_area_fraction*layer_area; % [FIX] Need a better way to find available area
 
-    % Repeater via constraint
+    % Repeater via constraint: repeater vias cannot take up more than X% of
+    % the avialable wiring area on any particular metal layer
     Arep_via_max = repeater_via_area_fraction*A_max_n; % [FIX] Need a better way to find available area
     
     Ln_m = @(Ln) gate_pitch*Ln;
@@ -183,11 +188,16 @@ while (Lm >= 0 && n < max_layers)
     % be. We'll compare this to the min driver delay to determine whether
     % inserting repeaters would be a good idea
     tau_rc = R_cu * C_cu;
+    R_cu_vec(n) = R_cu;
+    
     
     % If the RC delay constant is long enough, we'll use repeaters (and use
     % the pitch derived from the repeater delay)
     % Otherwise we'll just use the RC delay to determine the pitch
-    use_repeaters = ((tau_rc > 7*Ro*Co) & (A_vr_n < Arep_via_max) & (repeater_area_used < Arep_max) & (pitch_cu_rep < pitch_cu) );
+    repeater_area_ok = (repeater_area_used < Arep_max);
+    repeater_via_area_ok = (A_vr_n < Arep_via_max);
+    cu_wires_benefit_from_repeaters = (tau_rc > 7*Ro*Co);
+    use_repeaters = (cu_wires_benefit_from_repeaters && repeater_area_ok && repeater_via_area_ok && (pitch_cu_rep < pitch_cu) );
     
     if(use_repeaters )
         pn_vec(n) = pitch_cu_rep;
@@ -253,20 +263,51 @@ if (try_using_gnrs)
     pitch_orig = pn_vec(n);
     
     disp(sprintf('Wiring layer %d attempting GNR insertion...',n));
-    [use_gnr gnr_width gnr_pitch gnr_delay] = xcm.find_best_gnr_interconnect( ...
+    [use_gnr gnr_width gnr_pitch gnr_delay R_gnr C_gnr C_pul_gnr] = xcm.find_best_gnr_interconnect( ...
         num_layers, gnr_length, delay_max, min_pitch, width_fraction, pitch_orig, ...
         temp_K, mfp_defect, rho_interlayer, prob_backscattering, Ef, ...
         contact_resistance, epsrd, height_dielectric );
+    
+    [use_gnr_rep gnr_width_rep gnr_pitch_rep gnr_delay_rep R_gnr_rep C_gnr_rep C_pul_gnr_rep] = xcm.find_best_gnr_interconnect_with_repeaters( ...
+        num_layers, gnr_length, delay_max, repeater_fraction, Ro, Co, min_pitch, ...
+        width_fraction, pitch_orig, temp_K, mfp_defect, rho_interlayer, prob_backscattering, ...
+        Ef, contact_resistance, epsrd, height_dielectric );
+
     disp(sprintf('   ...use_gnrs: %d',use_gnr));
     
-    if(use_gnr == 1)
+    R_gnr_vec(n) = R_gnr;
+    
+    tau_gnr = R_gnr * C_gnr;
+    gnr_wires_benefit_from_repeaters = (tau_gnr > 7*Ro*Co);
+    use_gnr_rep = use_gnr_rep && gnr_wires_benefit_from_repeaters && repeater_area_ok && repeater_via_area_ok && (gnr_pitch_rep < gnr_pitch);
+    
+    if(use_gnr_rep == 1)
+        material_vec(n) = 2; % GNR
+        use_repeaters = 1;
+        pn_vec(n) = gnr_pitch_rep;
+        tau_rc_gnr_vec(n) = R_gnr * C_gnr;
+        tau_rep_gnr_vec(n) = R_gnr_rep * C_gnr_rep;
+        R_int_vec(n) = R_gnr;
+        C_pul_vec(n) = C_gnr_rep/gnr_length;
+        
+        % Update R_int, C_int so we can figure out how many repeaters we
+        % need per wire as a function of length
+        % For now just assume that resistance scales linearly with length
+        % (not quite true)
+        R_int = @(pn,Ln) R_gnr_rep/gnr_length*Ln_m(Ln); % Yes, no dependence on pn
+        C_int = @(Ln) C_gnr_rep/gnr_length*Ln_m(Ln);
+        
+    elseif(use_gnr == 1)
         material_vec(n) = 2; % GNR
         use_repeaters = 0;
         pn_vec(n) = gnr_pitch;
-        tau_rc_gnr_vec(n) = gnr_delay;
+        tau_rc_gnr_vec(n) = tau_gnr;
+        R_int_vec(n) = R_gnr;
+        C_pul_vec(n) = C_gnr/gnr_length;
     else
         material_vec(n) = 1; % Cu
-        tau_rc_gnr_vec(n) = 0;
+        tau_rc_gnr_vec(n) = tau_gnr;
+        R_int_vec(n) = R_cu;
     end
         
 
@@ -349,7 +390,7 @@ end
     end
     tau_rc_vec(n) = tau_rc;
     
-    repeater_area_used = 2*Ainv_min*repeater_size(Lm_ind:end).*repeater_num(Lm_ind:end).*Iidf(Lm_ind:end);
+    repeater_area_used = 2*Ainv_min*sum(repeater_size(Lm_ind:end).*repeater_num(Lm_ind:end).*Iidf(Lm_ind:end));
     
     if (Lm > 0)
         Ln_vec(n+1) = Lm;
@@ -378,8 +419,11 @@ tau_rc_gnr_vec = fliplr(tau_rc_gnr_vec(Ln_vec > 0));
 tau_rep_vec = fliplr(tau_rep_vec(Ln_vec > 0));
 material_vec = fliplr(material_vec(Ln_vec > 0));
 R_int_vec = fliplr(R_int_vec(Ln_vec > 0));
+R_cu_vec = fliplr(R_cu_vec(Ln_vec > 0));
+R_gnr_vec = fliplr(R_gnr_vec(Ln_vec > 0));
 rho_vec = fliplr(rho_vec(Ln_vec > 0));
 C_pul_vec = fliplr(C_pul_vec(Ln_vec > 0));
+tau_rep_gnr_vec = fliplr(tau_rep_gnr_vec(Ln_vec > 0));
 
 %% Pack outputs
 wire.Ln = Ln_vec;
@@ -392,9 +436,12 @@ wire.via_area_repeaters = A_vias_repeaters;
 wire.area_per_layer = A_layer;
 wire.delay_rc = tau_rc_vec;
 wire.delay_rc_gnr = tau_rc_gnr_vec;
+wire.delay_rep_gnr = tau_rep_gnr_vec;
 wire.delay_repeaters = tau_rep_vec;
 wire.material_vec = material_vec;
-wire.resistance_cu = R_int_vec;
+wire.R_cu = R_cu_vec;
+wire.R_gnr = R_gnr_vec;
+wire.R_int = R_int_vec;
 wire.rho_vec = rho_vec;
 wire.C_pul_vec = C_pul_vec;
 
