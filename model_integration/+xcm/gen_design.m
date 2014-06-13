@@ -144,7 +144,12 @@ if (simulation.topdown_WLARI == 1)
     % dead man counter to get out of while loop if something goes wrong
     wla_attempts = 0;
     max_wla_attempts = 20;
-    min_top_fill_factor = 0.1;
+    min_top_fill_factor = 0.10;
+    
+    % Keep track of the best solutions so far
+    best_bot_fill_factor = 0;
+    best_top_fill_factor = top_fill_factor;
+    best_num_wiring_tiers = 9e12; % Absurdly large number so we immediately overwrite this;
     
     % automatically decrease top layer utilization to keep bottom layer
     % reasonably filled. Need to do this since TDWLARI doesn't guarantee
@@ -158,18 +163,34 @@ if (simulation.topdown_WLARI == 1)
         [wire_temp repeater_temp] = xcm.wlatdri_cu_gnr(chip,gate,wire);
         
         % Figure out what the bottom-layer utilization is
-        fill_factor = wire_temp.wire_area(1)/(wire_temp.layer_area*wire.routing_efficiency(end));
+        bot_fill_factor = wire_temp.wire_area(1)/(wire_temp.layer_area*wire.routing_efficiency(end));
         
         % Figure out whether we need to decrease top layer use, or stop
-        if(fill_factor < min_fill_factor)
-            top_fill_factor = 0.9*top_fill_factor;
+        if(bot_fill_factor < min_fill_factor)
+            top_fill_factor = 0.90*top_fill_factor;
             wire.routing_efficiency(1) = top_fill_factor;
         else
             bottom_layer_underfilled = 0;
         end
         
+        % If we have a better fill factor on the bottom and a smaller
+        % number of wiring tiers, this is the best solution
+        if( (bot_fill_factor >= best_bot_fill_factor) && (length(wire_temp.pn) <= best_num_wiring_tiers) )
+            best_bot_fill_factor = bot_fill_factor;
+            best_top_fill_factor = top_fill_factor;
+            best_num_wiring_tiers = length(wire_temp.pn);
+        end
+
+        fprintf('WLA: M0 Underfilled: %d \t Top fill factor: %.3g \t Bottom fill factor: %.3g \t Num tiers: %d\n\n',bottom_layer_underfilled,top_fill_factor,bot_fill_factor, length(wire_temp.pn));
         wla_attempts = wla_attempts + 1;
     end
+    
+    % If we still haven't met our target, switch to the best one we found
+    if(bottom_layer_underfilled == 1)
+        fprintf('WLA Warning: Poor M0 fill factor could not be fixed. Reverting to best settings...\n\n')
+    end
+    wire.routing_efficiency(1) = best_top_fill_factor; % Revert to best fill factor we found previously
+    [wire_temp repeater_temp] = xcm.wlatdri_cu_gnr(chip,gate,wire);
     
     wire = wire_temp;
     repeater = repeater_temp;
