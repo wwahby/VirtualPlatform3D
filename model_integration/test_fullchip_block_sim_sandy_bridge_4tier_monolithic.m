@@ -82,8 +82,8 @@ rent_exp_gpu = 0.55;
 [gpu.chip gpu.transistor gpu.gate gpu.tsv gpu.wire gpu.psn] = generate_basic_processor_settings(rent_exp_gpu,num_layers_per_block,Ng_gpu,Ach_mm2_gpu,gate_pitch_gpu,min_pitch_gpu,Vdd_gpu,fmax_gpu,w_trans);
 
 %% Tweak wiring parameters
-core.wire.repeater_fraction = [0.4]; % 1 is default from gen_basic_proc_settings
-core.wire.routing_efficiency = [0.5]; % 0.4 is default from gen_basic_proc_settings
+core.wire.repeater_fraction = [0.3]; % 1 is default from gen_basic_proc_settings
+core.wire.routing_efficiency = [0.6]; % 0.4 is default from gen_basic_proc_settings
 core.wire.use_graphene = 0;
 
 gpu.wire.repeater_fraction = core.wire.repeater_fraction;
