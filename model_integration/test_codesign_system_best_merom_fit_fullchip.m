@@ -1,5 +1,5 @@
 % Power and signal codesign
-% close all
+close all
 clear all
 
 %% ==================================================
@@ -9,21 +9,6 @@ clear all
 %% Stack parameters
 S = 1;
 
-%% 65nm Merom, entire chip
-% Ng = 291e6/4;
-% Ach_mm2 = 143;
-% gate_pitch = 700e-9; % average gate pitch (sqrt(A_core/Ngates))
-% min_pitch = 220e-9; % actual contacted gate pitch
-% fmax = 3.0e9;
-% w_trans = 65e-9;
-
-%% 65nm Merom, single core, wrong area
-% Ng = 10e6;
-% Ach_mm2 = 16;
-% gate_pitch = 630e-9; % average gate pitch (sqrt(A_core/Ngates))
-% min_pitch = 220e-9; % actual contacted gate pitch
-% fmax = 3.0e9;
-% w_trans = 65e-9;
 
 %% 65nm Merom, single core
 Ng = 10e6;
@@ -32,94 +17,6 @@ gate_pitch = 2*820e-9; % average gate pitch (sqrt(A_core/Ngates))
 min_pitch = 220e-9; % actual contacted gate pitch
 fmax = 3.0e9;
 w_trans = 65e-9;
-
-%% 45nm Penryn, entire chip
-% Ng = 410e6/4;
-% Ach_mm2 = 107;
-% gate_pitch = 2*510e-9; % average gate pitch (sqrt(A_core/Ngates))
-% min_pitch = 160e-9; % actual contacted gate pitch
-% fmax = 3.0e9;
-% w_trans = 45e-9;
-
-%% 45nm Penryn, single core
-% Ng = 83e6/4;
-% Ach_mm2 = 21.6;
-% gate_pitch = 2*510e-9; % average gate pitch (sqrt(A_core/Ngates))
-% min_pitch = 160e-9; % actual contacted gate pitch
-% fmax = 3.0e9;
-% w_trans = 45e-9;
-
-%% 32nm Sandy Bridge, entire chip
-% Ng = 2.27e9/4;
-% Ach_mm2 = 435;
-% gate_pitch = 435e-9*2;
-% min_pitch = 112.5e-9;
-% fmax = 3.6e9;
-% w_trans = 32e-9;
-
-%% 32nm Sandy Bridge, one core
-% Ng = 107e6/4;
-% Ach_mm2 = 20;
-% gate_pitch = 435e-9*2;
-% min_pitch = 112.5e-9;
-% fmax = 3.6e9;
-% w_trans = 32e-9;
-
-%% 32nm Sandy Bridge i7, entire chip
-% Ng = 995e6/4;
-% Ach_mm2 = 216;
-% gate_pitch = 465e-9*2;
-% min_pitch = 112.5e-9;
-% fmax = 3.6e9;
-% w_trans = 32e-9;
-
-%% 32nm Sandy Bridge i7, one core
-% Ng = 85e6/4;
-% Ach_mm2 = 18.5;
-% gate_pitch = 465e-9*2;
-% min_pitch = 112.5e-9;
-% fmax = 3.6e9;
-% w_trans = 32e-9;
-
-%% 22nm Ivy Bridge EP10, entire chip
-% Ng = 2.86e9/4;
-% Ach_mm2 = 346.5;
-% gate_pitch = 348e-9*2;
-% min_pitch = 90e-9;
-% fmax = 3.0e9;
-% w_trans = 80e-9;
-
-%% 22nm Ivy Bridge EP 10, one core
-% Ng = 95e6/4;
-% Ach_mm2 = 11.5;
-% gate_pitch = 348e-9*2;
-% min_pitch = 90e-9;
-% fmax = 3.0e9;
-% w_trans = 80e-9;
-
-%% 22nm Ivy Bridge i7, entire chip
-% Ng = 1.4e9/4;
-% Ach_mm2 = 160;
-% gate_pitch = 338e-9*2;
-% min_pitch = 90e-9;
-% fmax = 3.5e9;
-% w_trans = 80e-9;
-
-%% 22nm Ivy Bridge i7, one core
-% Ng = 105e6/4;
-% Ach_mm2 = 11.95;
-% gate_pitch = 338e-9*2;
-% min_pitch = 90e-9;
-% fmax = 3.5e9;
-% w_trans = 80e-9;
-
-%% Arbitrarily huge test case
-% Ng = 1e9;
-% Ach_mm2 = 100;
-% gate_pitch = 100e-9;
-% min_pitch = 100e-9;
-% fmax = 3.0e9;
-% w_trans = 25e-9;
 
 %% constants
 eps0 = 8.854e-12; % (F/m) vacuum permittivity
@@ -173,10 +70,11 @@ wire.permeability_rel = 1;      % (-) Relative permeability of wiring material
 wire.dielectric_epsr = 3.0;     % (-) Relative dielectric constant for wiring ILD -- Low-K dielectric
 wire.layers_per_tier = 1;       % (-) Number of metal layers sharing same pitch in each tier
 wire.routing_efficiency = 0.50;  % (-) Fraction of available area that the wire routing tool can actually use
-wire.repeater_fraction = [0.5 0.5 1]; % (-) fraction of optimal repeaters to insert
+wire.repeater_fraction = [0.5]; % (-) fraction of optimal repeaters to insert
 wire.Beta = [0.9];              % (-v) Fraction of total clock period that a single point-to-point interconnect can consume
 wire.Beta_short = 0.25;         % (-) Beta for shortest wiring layers (used for the top down WLARI)
 wire.Rc = 0;                    % (-v) Contact resistance between tiers (can be a vector)
+wire.use_graphene = 0;
 
 %% Power supply noise model parameters
 
@@ -248,6 +146,7 @@ simulation.topdown_WLARI = 1; % Use topdown simultaneous WLA and RI (0 = use sta
 simulation.skip_psn_loops = 1; % Skip PSN TSV homing for faster debug
 simulation.draw_thermal_map = 0; % Plot thermal profile of each chip
 simulation.print_thermal_data = 0; % Output max temp in each layer to console
+simulation.separate_wiring_tiers = 0;
 
 
 
@@ -286,15 +185,74 @@ tic % begin timing
 [mem.chip mem.power mem.tsv mem.wire mem.repeater mem.psn] = codesign_system(chip,tsv,gate,transistor,wire,heat,psn,simulation);
 toc % finish timing
 
-%%
+
+%% Define block dimensions (m)
+core_width = 6.03e-3;
+core_height = 3.74e-3;
+
+mem_width = 6.16e-3;
+mem_height = 9.15e-3;
+
+chip_width = 13.67e-3;
+chip_height = 10.46e-3;
+
+core1_heights = [4.97 4.56 4.25 3.43 3.06 2.78]*1e-3;
+core1_widths = [1.58 1.94 1.41 0.63 0.97 0.57]*1e-3;
+core1_areas = core1_heights .* core1_widths;
+core1_area = sum(core1_areas);
+core1_rel_areas = core1_areas/core1_area;
+core1_rel_powers = core.power.total * core1_rel_areas;
+
+core1_rel_x_coords = [cumsum(fliplr( core1_widths(2:end) ))];
+core1_left_x_coords = mem_width + [fliplr(core1_rel_x_coords) 0]
+%core1_left_x_coords = mem_width + [cumsum(fliplr( core1_widths(2:end) ))];
+rel_y_coords = [0 0 (core1_heights(2)-core1_heights(3)) (core1_heights(2)-core1_heights(4)) (core1_heights(2)-core1_heights(4)) (core1_heights(2)-core1_heights(4)) ];
+core1_bot_y_coords = chip_height/2 + rel_y_coords;
+
+core2_widths = core1_widths;
+core2_heights = core1_heights;
+core2_left_x_coords = core1_left_x_coords;
+core2_top_y_coords = chip_height/2 - rel_y_coords;
+core2_bot_y_coords = core2_top_y_coords - core2_heights;
+core2_rel_powers = core1_rel_powers;
+
+mem_left_x = 0;
+mem_bot_y = (chip_height - mem_height)/2;
+
+
+%% Set up block map
+    %power blocks by each die
+    %format: bottom left point bl_x, bl_y, width, height, power
+    %list blocks in die1 and then die2, die3 ....
+    
+    map_x_vec = [mem_left_x core1_left_x_coords core2_left_x_coords]';
+    map_y_vec = [mem_bot_y core1_bot_y_coords core2_bot_y_coords]';
+    map_width = [mem_width core1_widths core2_widths]';
+    map_height = [mem_height core1_heights core2_heights]';
+    map_power = [mem.power.total core1_rel_powers core2_rel_powers]';
+    
+    map = [map_x_vec map_y_vec map_width map_height map_power];
+    %blk_num is for splitting the power maps of each die
+    blk_num = [length(map_x_vec)];
+
+
+simulation.draw_thermal_map = 1; % Plot thermal profile of each chip
+simulation.print_thermal_data = 1; % Output max temp in each layer to console
+
+%% Thermal module -- Find actual system temperature
 chip_power_total = 2*core.power.total + mem.power.total
+
+package_width = 37.5e-3;
+package_height = 37.5e-3;
+power_therm_vec = chip_power_total;
+[max_temp temp_vec] = get_stack_temperature(core.chip.num_layers,core.chip.thickness,core.wire,core.tsv,chip_width,chip_height,package_width,package_height,heat,simulation,map,blk_num,power_therm_vec)
 
 %% WLA Validation
 
 intel_merom_pitch = [ 210 210 220 280 330 480 720 1080 ]; % Actual intel data
 deepak_merom_pitch = [ 220 220 283 283 283 283 880 880 ];
 intel_power_total = 65; 
-figure(1)
+figure(11)
 clf
 plot(intel_merom_pitch,'k')
 hold on
@@ -304,16 +262,13 @@ xlabel('wiring layer')
 ylabel('wire pitch (nm)')
 title('65nm Conroe')
 grid on
-fixfigs(1,3,14,12)
+fixfigs(11,3,14,12)
 
-figure(2)
+figure(12)
 clf
 semilogy(core.wire.wire_area./core.wire.layer_area,'k')
 hold on
 semilogy(core.wire.via_area_wires./core.wire.layer_area,'b')
 semilogy(core.wire.via_area_repeaters./core.wire.layer_area,'r')
-fixfigs(2,3,14,12)
+fixfigs(12,3,14,12)
 
-figure(3)
-clf
-bar([chip_power_total intel_power_total])
