@@ -56,7 +56,7 @@ wire.repeater_fraction = [ 0.5 ]; % (-) fraction of optimal repeaters to insert
 wire.Beta = [0.9];              % (-v) Fraction of total clock period that a single point-to-point interconnect can consume
 wire.Beta_short = 0.25;         % (-) Beta for shortest wiring layers (used for the top down WLARI)
 wire.Rc = 0;                    % (-v) Contact resistance between tiers (can be a vector)
-wire.use_graphene = 1;          % (-) Allow or disallow graphene use
+wire.use_graphene = 0;          % (-) Allow or disallow graphene use
 
 %% Power supply noise model parameters
 
