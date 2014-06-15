@@ -53,7 +53,7 @@ transistor.capacitance = transistor.oxide_rel_permittivity*eps0*transistor.gate_
 transistor.subthreshold_swing = .060; % (V/decade at 300K)
 transistor.Vt = 0.25; % (V) - Threhsold voltage
 
-gate.output_resistance = 5e3;   % (Ohm) Output resistance of a minimum-sized 2in NAND gate
+gate.output_resistance = 8e3;   % (Ohm) Output resistance of a minimum-sized 2in NAND gate
 gate.num_transistors = 4;       % (-) number of transistors per average logic gate
 gate.capacitance = gate.num_transistors*transistor.capacitance;
 

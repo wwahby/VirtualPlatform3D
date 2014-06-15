@@ -64,18 +64,36 @@ heat.side = 5;
 
 heat.Ta = 298; % ambient temperature
 
+% Alternate settings
+% q_cm2 = 50; % (W/cm2) Top heat sink max heat flux
+% q = q_cm2*1e4; % (W/m2) Top heat sink max heat flux
+% dT = 70; % (deg C) Temp difference between chip surface and coolant (air)
+% heat.up = q/dT;
+% heat.down = 5;
+% heat.d = 5;
+% heat.side = 5;
 %% 
 num_layers_per_block = 1;
 
 rent_exp_logic = 0.6;
 rent_exp_mem = 0.4;
-rent_exp_gpu = 0.55;
+rent_exp_gpu = 0.50;
 
 %% define parameters
 
 [core.chip core.transistor core.gate core.tsv core.wire core.psn] = generate_basic_processor_settings(rent_exp_logic,num_layers_per_block,Ng_core,Ach_mm2_core,gate_pitch_core,min_pitch_core,Vdd_core,fmax_core,w_trans);
 [mem.chip mem.transistor mem.gate mem.tsv mem.wire mem.psn] = generate_basic_processor_settings(rent_exp_mem,num_layers_per_block,Ng_mem,Ach_mm2_mem,gate_pitch_mem,min_pitch_mem,Vdd_mem,fmax_mem,w_trans);
 
+
+%% Tweak wiring parameters
+core.wire.repeater_fraction = [0.4]; % 1 is default from gen_basic_proc_settings
+core.wire.routing_efficiency = [0.4]; % 0.4 is default from gen_basic_proc_settings
+core.gate.output_resistance = 8e3; % Ohm
+
+mem.wire.repeater_fraction = core.wire.repeater_fraction;
+mem.wire.routing_efficiency = core.wire.routing_efficiency;
+mem.wire.use_graphene = core.wire.use_graphene;
+mem.gate.output_resistance = 5e3;
 
 %% calculate block parameters
 [core.chip core.power core.tsv core.wire core.repeater core.psn] = codesign_block(core.chip,core.tsv,core.gate,core.transistor,core.wire,heat,core.psn,simulation);

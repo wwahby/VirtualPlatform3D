@@ -69,7 +69,7 @@ transistor.capacitance = transistor.oxide_rel_permittivity*eps0*transistor.gate_
 transistor.subthreshold_swing = .060; % (V/decade at 300K)
 transistor.Vt = 0.25; % (V) - Threhsold voltage
 
-gate.output_resistance = 5e3;   % (Ohm) Output resistance of a minimum-sized 2in NAND gate
+gate.output_resistance = 8e3;   % (Ohm) Output resistance of a minimum-sized 2in NAND gate
 gate.num_transistors = 4;       % (-) number of transistors per average logic gate
 gate.capacitance = gate.num_transistors*transistor.capacitance;
 
@@ -85,7 +85,7 @@ wire.resistivity = 17.2e-9;     % (Ohm*m) Copper wires
 wire.permeability_rel = 1;      % (-) Relative permeability of wiring material
 wire.dielectric_epsr = 3.0;     % (-) Relative dielectric constant for wiring ILD -- Low-K dielectric
 wire.layers_per_tier = 1;       % (-) Number of metal layers sharing same pitch in each tier
-wire.routing_efficiency = [ 0.4 ];  % (-) Fraction of available area that the wire routing tool can actually use
+wire.routing_efficiency = [ 0.45 ];  % (-) Fraction of available area that the wire routing tool can actually use
 wire.repeater_fraction = [ 0.4 ]; % (-) fraction of optimal repeaters to insert
 wire.Beta = [0.9];              % (-v) Fraction of total clock period that a single point-to-point interconnect can consume
 wire.Beta_short = 0.25;         % (-) Beta for shortest wiring layers (used for the top down WLARI)

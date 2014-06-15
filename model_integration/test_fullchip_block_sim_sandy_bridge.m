@@ -42,7 +42,8 @@ Ng_gpu = 2.05e8/4;
 Ach_mm2_gpu = 44.5;
 gate_pitch_gpu = 0.931e-6; % average gate pitch (sqrt(A_core/Ngates))
 min_pitch_gpu = 112.5e-9; % actual contacted gate pitch
-fmax_gpu = 1.35e9;
+fmax_gpu = 1.35e9; % max clock
+%fmax_gpu = 850e6; % base clock 
 Vdd_gpu = 1.25;
 
 %% Thermal parameters
@@ -69,12 +70,21 @@ heat.side = 5;
 
 heat.Ta = 298; % ambient temperature
 
+% Alternative settings
+% q_cm2 = 50; % (W/cm2) Top heat sink max heat flux
+% q = q_cm2*1e4; % (W/m2) Top heat sink max heat flux
+% dT = 70; % (deg C) Temp difference between chip surface and coolant (air)
+% heat.up = q/dT;
+% heat.down = 5;
+% heat.d = 5;
+% heat.side = 5;
+
 %% 
 num_layers_per_block = 1;
 
 rent_exp_logic = 0.6;
 rent_exp_mem = 0.4;
-rent_exp_gpu = 0.55;
+rent_exp_gpu = 0.50;
 
 %% define parameters
 
@@ -85,15 +95,15 @@ rent_exp_gpu = 0.55;
 %% Tweak wiring parameters
 core.wire.repeater_fraction = [0.3]; % 1 is default from gen_basic_proc_settings
 core.wire.routing_efficiency = [0.6]; % 0.4 is default from gen_basic_proc_settings
-core.wire.use_graphene = 0;
+core.gate.output_resistance = 8e3; % Ohm
 
 gpu.wire.repeater_fraction = core.wire.repeater_fraction;
 gpu.wire.routing_efficiency = core.wire.routing_efficiency;
-gpu.wire.use_graphene = core.wire.use_graphene;
+core.gate.output_resistance = 8e3; % Ohm
 
 mem.wire.repeater_fraction = core.wire.repeater_fraction;
 mem.wire.routing_efficiency = core.wire.routing_efficiency;
-mem.wire.use_graphene = core.wire.use_graphene;
+core.gate.output_resistance = 8e3; % Ohm
 
 %% calculate block parameters
 [core.chip core.power core.tsv core.wire core.repeater core.psn] = codesign_block(core.chip,core.tsv,core.gate,core.transistor,core.wire,heat,core.psn,simulation);
