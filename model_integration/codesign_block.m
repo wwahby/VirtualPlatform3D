@@ -29,6 +29,8 @@ tsv.width_m = w_tsv_m;
 tsv.height_m = h_tsv_m;
 tsv.width_gp = w_tsv_gp;
 tsv.height_gp = h_tsv_gp;
+tsv.per_layer = nt_tot;
+tsv.max_tsvs_per_layer = nt_max;
 
 if(tsv.height_m > 0)
     chip.thickness = tsv.height_m;
