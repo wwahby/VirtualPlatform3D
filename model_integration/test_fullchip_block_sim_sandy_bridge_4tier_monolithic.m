@@ -106,30 +106,60 @@ chip_height = 10.25e-3;
 
 core_width = 3.302e-3;
 core_height = 5.65e-3;
+
+gpu_width = 4.89e-3;
+gpu_height = 9.12e-3;
+
+mem_width = 13.24e-3;
+mem_height = 3.48e-3;
+
+mem_io_width = 13.49e-3;
+mem_io_height = 1.16e-3;
+
+sys_agent_width = 3.01e-3;
+sys_agent_height = 9.11e-3;
+
+
+%% Shrink all blocks for monolithic stack
+chip_width = chip_width/2;
+chip_height = chip_height/2;
+
+core_width = core_width/2;
+core_height = core_height/2;
+
+gpu_width = gpu_width/2;
+gpu_height = gpu_height/2;
+
+mem_width = mem_width/2;
+mem_height = mem_height/2;
+
+mem_io_width = mem_io_width/2;
+mem_io_height = mem_io_height/2;
+
+sys_agent_width = sys_agent_width/2;
+sys_agent_height = sys_agent_height/2;
+
+%% set up dimensions
 core_area = core_width*core_height;
 core_width = sqrt(core_area);
 core_height = core_width;
 
-gpu_width = 4.89e-3;
-gpu_height = 9.12e-3;
+
 gpu_area = gpu_width * gpu_height;
 gpu_height = 2*core_height;
 gpu_width = gpu_area/gpu_height;
 
-mem_width = 13.24e-3;
-mem_height = 3.48e-3;
+
 mem_area = mem_width * mem_height;
 mem_width = 2*core_width + gpu_width;
 mem_height = mem_area/mem_width;
 
-mem_io_width = 13.49e-3;
-mem_io_height = 1.16e-3;
+
 mem_io_area = mem_io_width * mem_io_height;
 mem_io_width = mem_width;
 mem_io_height = mem_io_area/mem_io_width;
 
-sys_agent_width = 3.01e-3;
-sys_agent_height = 9.11e-3;
+
 sys_agent_area = sys_agent_width * sys_agent_height;
 sys_agent_width = mem_width;
 sys_agent_height = sys_agent_area/sys_agent_width;
@@ -158,31 +188,76 @@ sys_agent_bot_y = mem_io_height + mem_height;
     %power blocks by each die
     %format: bottom left point bl_x, bl_y, width, height, power
     %list blocks in die1 and then die2, die3 ....
-    map =  [gpu_left_x      gpu_bot_y       gpu_width      gpu_height      gpu.power.total; % GPU
-           core1_left_x     core_bot_y_12     core_width     core_height     core.power.total;
-           core2_left_x     core_bot_y_12     core_width     core_height     core.power.total;
-           core3_left_x     core_bot_y_34     core_width     core_height     core.power.total;
-           core4_left_x     core_bot_y_34     core_width     core_height     core.power.total;
-           mem_io_left_x   mem_io_bot_y    mem_io_width   mem_io_height     0; % memory IO
+    
+    map_logic = [gpu_left_x      gpu_bot_y       gpu_width      gpu_height      gpu.power.total; % GPU
+                core1_left_x     core_bot_y_12     core_width     core_height     core.power.total;
+                core2_left_x     core_bot_y_12     core_width     core_height     core.power.total;
+                core3_left_x     core_bot_y_34     core_width     core_height     core.power.total;
+                 core4_left_x     core_bot_y_34     core_width     core_height     core.power.total];
+            
+
+    
+    map_mem = [mem_io_left_x   mem_io_bot_y    mem_io_width   mem_io_height     0; % memory IO
            sys_agent_left_x   sys_agent_bot_y    sys_agent_width   sys_agent_height     0; % system agent + memory controller
            mem_left_x     mem_io_height    mem_width      mem_height      mem.power.total ];
-    %blk_num is for splitting the power maps of each die
-    blk_num = [5 3];
+       
+       
+       
+%     map_logic = [map_logic ; map_logic ; map_logic ; map_logic]; % stack 4x 
+%     map_logic(:,end) = map_logic(:,end)/4; % each layer only uses 1/4th the power
+%     map_mem = [map_mem ; map_mem ; map_mem ; map_mem]; % stack 4x 
+%     map_mem(:,end) = map_mem(:,end)/4; % each layer only uses 1/4th the power
+
+% map = [map_logic ; map_mem];
+%     blk_num = [5 5 3 3];
     
+    map = [];
+    blk_num = [];
+    power_therm_vec = [];
+    num_logic_blocks = length(map_logic(:,1));
+    num_mem_blocks = length(map_mem(:,1));
+    for lind = 1:num_layers_per_block
+        map = [map ; map_logic];
+        blk_num = [blk_num num_logic_blocks];
+        power_therm_vec = [ power_therm_vec sum(map_logic(:,end))];
+    end
+    for lind = 1:num_layers_per_block
+        map = [map ; map_mem];
+        blk_num = [blk_num num_mem_blocks];
+        power_therm_vec = [ power_therm_vec sum(map_mem(:,end))];
+    end
+    
+    map(:,end) = map(:,end)/num_layers_per_block;
+    power_therm_vec = power_therm_vec/num_layers_per_block;
+    
+    
+    
+                 
+                 
+%     map =  [gpu_left_x      gpu_bot_y       gpu_width      gpu_height      gpu.power.total; % GPU
+%            core1_left_x     core_bot_y_12     core_width     core_height     core.power.total;
+%            core2_left_x     core_bot_y_12     core_width     core_height     core.power.total;
+%            core3_left_x     core_bot_y_34     core_width     core_height     core.power.total;
+%            core4_left_x     core_bot_y_34     core_width     core_height     core.power.total;
+%            mem_io_left_x   mem_io_bot_y    mem_io_width   mem_io_height     0; % memory IO
+%            sys_agent_left_x   sys_agent_bot_y    sys_agent_width   sys_agent_height     0; % system agent + memory controller
+%            mem_left_x     mem_io_height    mem_width      mem_height      mem.power.total ];
+%     %blk_num is for splitting the power maps of each die
+%     blk_num = [5 3];
+%     %power_therm_vec = [(4*core.power.total + gpu.power.total) mem.power.total];  %power dissipation of each die
     
 %%
 
 chip_power = 4*core.power.total + mem.power.total + gpu.power.total;
-power_therm_vec = [(4*core.power.total + gpu.power.total) mem.power.total];  %power dissipation of each die
 
-
-simulation.draw_thermal_map = 1; % Plot thermal profile of each chip
-simulation.print_thermal_data = 1; % Output max temp in each layer to console
+% logic_power = (4*core.power.total + gpu.power.total)/4;
+% mem_power = mem.power.total/4;
+% power_therm_vec = [logic_power*ones(1,4) mem_power*ones(1,4)];
 
 %% Thermal module -- Find actual system temperature
 
 %%%%%%%%%%%%%%%%%%%%%%%geometry information of the chip%%%%%%%%%%%%%%%%%%%
-    die.N = 2;
+    die.N = num_layers_per_block*2;
     die.model = 3; % for each die, how many layers we model
     
     % flip chip package; order:
@@ -193,6 +268,13 @@ simulation.print_thermal_data = 1; % Output max temp in each layer to console
     thick.under = 5e-6; %underfill bonding thickness; between two dies
     thick.inter = 200e-6; %interposer thickness
     thick.die = core.chip.thickness; %die thickness
+    thick.ild = sum(core.wire.pn); %metal layer thickness
+    
+    thick.bump = 1e-6;  %micro-bump thickness; between second die and interposer
+    thick.tim = 1e-6; %tim thickness; between the chip and heatsink
+    thick.under = 1e-6; %underfill bonding thickness; between two dies
+    thick.inter = 200e-6; %interposer thickness
+    thick.die = 1e-6;%core.chip.thickness; %die thickness
     thick.ild = sum(core.wire.pn); %metal layer thickness
 
     grid_factor = 50;
