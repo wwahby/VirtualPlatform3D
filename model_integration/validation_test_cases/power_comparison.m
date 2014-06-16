@@ -29,6 +29,10 @@ intel_tmax_core = [100 105 100 105 105];
 sim_temp = [74.31 81.94 113.5 68.85 90];
 %sim_temp = [74.31 81.94 60.57 68.85 90];
 
+intel_metal_levels = [ 8 9 9 9 9];
+intel_metal_levels_non_global = [8 8 8 8 8];
+sim_metal_levels =   [ 8 8 7 8 8];
+
 figure(2)
 clf
 plot(intel_node_plot,intel_tdp,'k')
@@ -49,3 +53,16 @@ set(gca,'xtick',[1 2 3 4 5])
 set(gca,'xticklabel',[65 45 45 32 32])
 set(gca,'xticklabel',{ '65nm Core' '45nm Core' '45nm Nehalem' '32nm Nehalem' '32nm SB'})
 fixfigs(3,3,14,12)
+
+figure(4)
+clf
+plot(intel_node_plot,intel_metal_levels,'k')
+hold on
+plot(intel_node_plot,intel_metal_levels_non_global,'b')
+plot(intel_node_plot,sim_metal_levels,'r')
+set(gca,'xtick',[1 2 3 4 5])
+set(gca,'xticklabel',[65 45 45 32 32])
+set(gca,'xticklabel',{ '65nm Core' '45nm Core' '45nm Nehalem' '32nm Nehalem' '32nm SB'})
+fixfigs(4,3,14,12)
+
+
