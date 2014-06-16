@@ -85,7 +85,7 @@ while( (bottom_layer_underfilled) && (bin_gen <= max_wla_attempts) )
     bottom_layer_underfilled = (max_ff < min_fill_factor);
     
     if(bottom_layer_underfilled)
-        fprintf('WLA: M0 underfilled! Adjusting top layer fill factor and rerunning...')
+        fprintf('WLA: M0 underfilled! Adjusting top layer fill factor and rerunning...\n')
     end
         
     
