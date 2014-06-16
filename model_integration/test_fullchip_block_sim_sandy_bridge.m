@@ -261,4 +261,5 @@ xlabel('wiring layer')
 ylabel('wire pitch (nm)')
 grid on
 ylim([0 700])
+legend('Actual','Simulated','location','nw')
 fixfigs(4,3,14,12)

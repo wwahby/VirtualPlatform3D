@@ -257,7 +257,7 @@ clf
 plot(intel_merom_pitch,'k')
 hold on
 plot(core.wire.pn*1e9,'r')
-plot(deepak_merom_pitch,'g')
+%plot(deepak_merom_pitch,'g')
 xlabel('wiring layer')
 ylabel('wire pitch (nm)')
 title('65nm Conroe')
