@@ -4,7 +4,7 @@
 num_layers = 5;
 Ef = 0.2;
 temp_K = 300;
-widths = (1:100)*1e-9;
+widths = (5:100)*1e-9;
 gnr_length = 10e-6;
 thickness = 0.5e-9*num_layers;
 height_dielectric = 300e-9;
@@ -46,8 +46,8 @@ hold on
 plot(widths_nm,C_gnr*1e15,'b--')
 plot(widths_nm,C_cu_fixed*1e15,'r')
 plot(widths_nm,C_cu_fixed_venk*1e15,'r--')
-xlabel('GNR width (nm)')
-ylabel('GNR capacitance (fF)')
+xlabel('Wire width (nm)')
+ylabel('Capacitance (fF)')
 set(gca,'yscale','log')
 fixfigs(1,3,14,12)
 
