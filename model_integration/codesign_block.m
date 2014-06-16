@@ -22,6 +22,10 @@ disp('Estimating TSV requirements...')
 disp('Sizing TSVs...')
 [w_tsv_m h_tsv_m] = xcm.size_tsvs(chip.area_total/chip.num_layers, tsv.max_area_fraction, nt_max, tsv.aspect_ratio );
 %h_tsv_gp = round(h_tsv_gp);
+
+if (simulation.force_thickness == 1)
+    h_tsv_m = chip.thickness_nominal;
+end
 h_tsv_gp = ceil(h_tsv_m/chip.gate_pitch);
 w_tsv_gp = ceil(w_tsv_m/chip.gate_pitch);
 
