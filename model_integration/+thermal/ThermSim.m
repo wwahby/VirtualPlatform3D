@@ -17,6 +17,19 @@ function T = ThermSim( die, thick, chip, pack, ...
                   400*portion+1.38*(1-portion) %ILD vertical 9
                   1/(portion/400+(1-portion)/1.38) %ILD lateral 10
                   ]; 
+              
+ % Replace a bunch of materials with silicon for a monolithic stack     
+%     K_Material = [149  %TIM 1
+%                   149 %CHIP 2
+%                   149 %UNDER 3
+%                   400 %COPPER 4
+%                   1.38 %SIO2 5
+%                   149 %UBUMP 6
+%                   149 %SILICON INTERPOSER 7
+%                   0.024 %Air 8
+%                   400*portion+1.38*(1-portion) %ILD vertical 9
+%                   1/(portion/400+(1-portion)/1.38) %ILD lateral 10
+%                   ]; 
     
     Layer = thermal.stack_build(die, thick);
     %Layer.material, Layer.thick, Layer.N
