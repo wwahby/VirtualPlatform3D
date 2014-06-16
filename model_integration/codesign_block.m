@@ -171,7 +171,7 @@ psn.pitch_tsv = tsv.pitch_m*10; % [FIX] Power TSVs aren't going to be on the sam
 psn_mismatch_tolerance = psn.mismatch_tolerance; % 5% mismatch is OK
 psn_iterations = 1;
 
-rho_m = wire.resistivity(1); % use top layer
+rho_m = wire.rho_vec(end); % use top layer
 mu_m = wire.permeability_rel*mu0;
 
 psn_max = power_noise.calc_psn(psn,power,chip,tsv,rho_m,mu_m,chip.temperature);
@@ -183,16 +183,28 @@ disp(dispstr)
 
 
 %% Home in on the best number of power TSVs to use to meet the target
-psn_iterations_max = 20;
-while ( (abs(mismatch_norm-1) > psn_mismatch_tolerance) && (psn_iterations < psn_iterations_max) && (simulation.skip_psn_loops == 0))
+psn_iterations_max = 10;
+psn_stuck = 0;
+while ( (abs(mismatch_norm-1) > psn_mismatch_tolerance) && (psn_iterations < psn_iterations_max) && (simulation.skip_psn_loops == 0) && (psn_stuck == 0))
     % more pads -> less noise, and vice versa
-    psn.Npads_1d = round(sqrt(psn.Npads*mismatch_norm));
+    new_pads_1d = round(sqrt(psn.Npads*mismatch_norm));
+    if(new_pads_1d == psn.Npads_1d)
+        if(mismatch_norm > 1)
+            psn_stuck = 1;
+        else
+            new_pads_1d  = new_pads_1d -sign(1 - mismatch_norm);
+            psn_stuck = 0;
+        end
+    end
+    
+    psn.Npads_1d = new_pads_1d;
     psn.Npads = psn.Npads_1d^2;
     psn_max = power_noise.calc_psn(psn,power,chip,tsv,rho_m,mu_m,chip.temperature);
     psn.noise = psn_max;
     mismatch_norm = psn.noise/psn.noise_target;
     dispstr = sprintf('\tpsn_runs: %d\tNpads: %d\tpsn_target: %d\tpsn_max: %d\tmismatch_norm: %.3g',psn_iterations,psn.Npads, psn.noise_target, psn_max,mismatch_norm);
 	disp(dispstr)
+    psn_iterations = psn_iterations + 1;
 end
 
 %% Final report
