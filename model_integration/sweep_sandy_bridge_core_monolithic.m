@@ -97,5 +97,5 @@ figure(3)
 clf
 plot(2:max_layers,thickness(2:end)*1e6)
 xlabel('Number of tiers')
-ylabel('Thickness (um)')
+ylabel('Maximum die thickness (um)')
 fixfigs(3,3,14,12)
