@@ -98,7 +98,7 @@ plot(gnr_core.wire.pn_cu*1e9,'b--')
 xlabel('wiring layer')
 ylabel('wire pitch (nm)')
 grid on
-ylim([0 200])
+ylim([0 150])
 fixfigs(4,3,14,12)
 
 figure(5)
