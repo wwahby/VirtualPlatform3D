@@ -96,6 +96,7 @@ R_gnr_vec = zeros(1,max_layers);
 rho_vec = zeros(1,max_layers);
 C_pul_vec = zeros(1,max_layers);
 tau_rep_gnr_vec = zeros(1,max_layers);
+pn_cu_vec = zeros(1,max_layers);
 
 n = 1; % start with top wiring tier
 Ln = lmax; % length of longest wire routed in this tier (GP)
@@ -201,6 +202,7 @@ while (Lm >= 0 && n < max_layers)
     
     if(use_repeaters )
         pn_vec(n) = pitch_cu_rep;
+        pn_cu_vec(n) = pitch_cu_rep;
         pn_orig_vec(n) = pitch_cu;
         rho_vec(n) = rho_cu_rep;
         C_pul_vec(n) = C_pul_cu_rep;
@@ -208,10 +210,11 @@ while (Lm >= 0 && n < max_layers)
     else % use normal wire parameters
         pn_orig_vec(n) = pitch_cu;
         pn_vec(n) = pitch_cu;
+        pn_cu_vec(n) = pitch_cu;
         rho_vec(n) = rho_cu;
         C_pul_vec(n) = C_pul_cu;
     end
-    
+
     R_int = @(pn,Ln) rho_vec(n)*Ln_m(Ln)/ (wire.aspect_ratio * wire.width_fraction^2 * pn^2) + Rc_n; % includes impact of differently-sized wires
     C_int = @(Ln) C_pul_vec(n)*Ln_m(Ln);
     
@@ -426,11 +429,13 @@ R_gnr_vec = fliplr(R_gnr_vec(Ln_vec > 0));
 rho_vec = fliplr(rho_vec(Ln_vec > 0));
 C_pul_vec = fliplr(C_pul_vec(Ln_vec > 0));
 tau_rep_gnr_vec = fliplr(tau_rep_gnr_vec(Ln_vec > 0));
+pn_cu_vec = fliplr(pn_cu_vec(Ln_vec > 0));
 
 %% Pack outputs
 wire.Ln = Ln_vec;
 wire.pn = pn_vec;
 wire.pn_orig = pn_orig_vec;
+wire.pn_cu = pn_cu_vec;
 wire.wire_area = A_wires;
 wire.via_area = A_vias_wiring + A_vias_repeaters;
 wire.via_area_wires = A_vias_wiring;
