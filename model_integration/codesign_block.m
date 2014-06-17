@@ -48,7 +48,8 @@ disp('Generating system...')
 [chip power wire repeater tsv] = xcm.gen_design(chip,tsv,gate,transistor,wire,simulation);
 
 %Pdens = power.total/chip.area_per_layer_m2;
-power.density = power.total/chip.area_total;
+%power.density = power.total/chip.area_total;
+power.density = power.total/chip.area_per_layer_m2;
 
 %% Thermal module -- Find actual system temperature
 
@@ -174,39 +175,114 @@ psn_iterations = 1;
 rho_m = wire.rho_vec(end); % use top layer
 mu_m = wire.permeability_rel*mu0;
 
+%% Run twice to jump close to where we need to be
 psn_max = power_noise.calc_psn(psn,power,chip,tsv,rho_m,mu_m,chip.temperature);
 psn.noise = psn_max;
 mismatch_norm = psn.noise/psn.noise_target;
 
-dispstr = sprintf('\tpsn_runs: %d\tNpads: %d\tpsn_target: %d\tpsn_max: %d\tmismatch_norm: %.3g',psn_iterations,psn.Npads, psn.noise_target, psn_max,mismatch_norm);	
+psn_target = psn.noise_target;
+rel_err = (psn_max - psn_target)/psn_target;
+dispstr = sprintf('\tpsn_runs: %d\tNpads: %d\tpsn_target: %d\tpsn_max: %d\trel_err: %.3g',0,psn.Npads, psn.noise_target, psn_max,rel_err);	
 disp(dispstr)
 
 
-%% Home in on the best number of power TSVs to use to meet the target
-psn_iterations_max = 10;
-psn_stuck = 0;
-while ( (abs(mismatch_norm-1) > psn_mismatch_tolerance) && (psn_iterations < psn_iterations_max) && (simulation.skip_psn_loops == 0) && (psn_stuck == 0))
-    % more pads -> less noise, and vice versa
-    new_pads_1d = round(sqrt(psn.Npads*mismatch_norm));
-    if(new_pads_1d == psn.Npads_1d)
-        if(mismatch_norm > 1)
-            psn_stuck = 1;
-        else
-            new_pads_1d  = new_pads_1d -sign(1 - mismatch_norm);
-            psn_stuck = 0;
-        end
+new_pads_1d = round(sqrt(psn.Npads*mismatch_norm));
+psn.Npads_1d = new_pads_1d;
+psn.Npads = psn.Npads_1d^2;
+psn_max = power_noise.calc_psn(psn,power,chip,tsv,rho_m,mu_m,chip.temperature);
+rel_err = (psn_max - psn_target)/psn_target;
+
+dispstr = sprintf('\tpsn_runs: %d\tNpads: %d\tpsn_target: %d\tpsn_max: %d\trel_err: %.3g',0,psn.Npads, psn.noise_target, psn_max,rel_err);	
+disp(dispstr)
+
+
+% %% Home in on the best number of power TSVs to use to meet the target
+% psn_iterations_max = 10;
+% psn_stuck = 0;
+% 
+% while ( (abs(mismatch_norm-1) > psn_mismatch_tolerance) && (psn_iterations < psn_iterations_max) && (simulation.skip_psn_loops == 0) && (psn_stuck == 0))
+%     % more pads -> less noise, and vice versa
+%     new_pads_1d = round(sqrt(psn.Npads*mismatch_norm));
+%     if(new_pads_1d == psn.Npads_1d)
+%         if(mismatch_norm > 1)
+%             psn_stuck = 1;
+%         else
+%             new_pads_1d  = new_pads_1d -sign(1 - mismatch_norm);
+%             psn_stuck = 0;
+%         end
+%     end
+%     
+%     psn.Npads_1d = new_pads_1d;
+%     psn.Npads = psn.Npads_1d^2;
+%     psn_max = power_noise.calc_psn(psn,power,chip,tsv,rho_m,mu_m,chip.temperature);
+%     psn.noise = psn_max;
+%     mismatch_norm = psn.noise/psn.noise_target;
+%     dispstr = sprintf('\tpsn_runs: %d\tNpads: %d\tpsn_target: %d\tpsn_max: %d\tmismatch_norm: %.3g',psn_iterations,psn.Npads, psn.noise_target, psn_max,mismatch_norm);
+% 	disp(dispstr)
+%     psn_iterations = psn_iterations + 1;
+% end
+
+%% Find bounds for binary search
+psn_target = psn.noise_target;
+npads_1d = psn.Npads_1d;
+if (psn_max < psn_target)
+    while(psn_max < psn_target)
+        npads_1d_old = npads_1d;
+        npads_1d = round(1/2*npads_1d);
+        psn.Npads_1d = npads_1d;
+        psn.Npads = psn.Npads_1d^2;
+        psn_max = power_noise.calc_psn(psn,power,chip,tsv,rho_m,mu_m,chip.temperature);
+        fprintf('\tpsn_runs: %d\tNpads_1d: %d\tpsn_target: %d\tpsn_max: %d\trel_err: %.3g\n',0,psn.Npads_1d, psn.noise_target, psn_max,rel_err);
     end
     
-    psn.Npads_1d = new_pads_1d;
+    lbnd = npads_1d;
+    rbnd = npads_1d_old;
+elseif(psn_max > psn_target)
+    while(psn_max > psn_target)
+        npads_1d_old = npads_1d;
+        npads_1d = 2*npads_1d;
+        psn.Npads_1d = npads_1d;
+        psn.Npads = psn.Npads_1d^2;
+        psn_max = power_noise.calc_psn(psn,power,chip,tsv,rho_m,mu_m,chip.temperature);
+        fprintf('\tpsn_runs: %d\tNpads_1d: %d\tpsn_target: %d\tpsn_max: %d\trel_err: %.3g\n',0,psn.Npads_1d, psn.noise_target, psn_max,rel_err);
+    end
+    lbnd = npads_1d_old;
+    rbnd = npads_1d;
+end
+
+%% Binary search
+
+gen_ind = 1;
+max_gens = 10;
+tol = psn_mismatch_tolerance;
+rel_err = (psn_max - psn_target)/psn_target;
+norm_err = abs(rel_err);
+while ((norm_err > tol) && (gen_ind < max_gens) && (rbnd > lbnd+1))
+    
+    mid = round((lbnd+rbnd)/2);
+    psn.Npads_1d = mid;
     psn.Npads = psn.Npads_1d^2;
     psn_max = power_noise.calc_psn(psn,power,chip,tsv,rho_m,mu_m,chip.temperature);
     psn.noise = psn_max;
-    mismatch_norm = psn.noise/psn.noise_target;
-    dispstr = sprintf('\tpsn_runs: %d\tNpads: %d\tpsn_target: %d\tpsn_max: %d\tmismatch_norm: %.3g',psn_iterations,psn.Npads, psn.noise_target, psn_max,mismatch_norm);
-	disp(dispstr)
-    psn_iterations = psn_iterations + 1;
+    
+    if (psn_max > psn_target) % need more tsvs
+        lbnd = mid;
+    else % psn_max < psn_target, can get away with less tsvs
+        rbnd = mid;
+    end
+    
+    rel_err = (psn_max - psn_target)/psn_target ;
+    norm_err = abs(rel_err);
+    
+    fprintf('\tpsn_runs: %d\tNpads_1d: %d\tpsn_target: %d\tpsn_max: %d\trel_err: %.3g\n',gen_ind,psn.Npads_1d, psn.noise_target, psn_max,rel_err);
+    gen_ind = gen_ind + 1;
 end
 
+
+    
+    
+    
+    
 %% Final report
 
 time_stop = cputime;
