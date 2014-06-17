@@ -7,6 +7,8 @@ simulation.draw_thermal_map = 0; % Plot thermal profile of each chip
 simulation.print_thermal_data = 0; % Output max temp in each layer to console
 simulation.separate_wiring_tiers = 0; % 1 = Each logic plane will have its own wiring tiers between it and the next logic plane
                                       % 0 = All metal layers for entire device will be routed on top of entire 3D stack
+                                      
+simulation.run_thermal_as_monolithic = 1;
 
 %% Logic core parameters
 
@@ -50,22 +52,24 @@ Vdd_gpu = 1.25;
 % the cooling capability of the top heatsink; 20000, 1cm*1cm, means:
 % 0.5 W/K
 % h = q/dT - q = heat flux (W/m^2)
-heat.up = 20000;
+% heat.up = 20000;        % above chip
+% heat.down = 5;     % directly beneath chip
+% heat.d = 5;        % package, not under chip
+% heat.side = 5;          % side
+% heat.Ta = 298; % ambient temperature
 
-% Bottom surface heat transfer coefficient
-% This parameter controls the area directly BELOW the bottom chip
-% If the interposer is larger than the bottom chip, heat.d controls the
-% rest of the area
-% Microfluidic heat sinks are assumed to be as large as the chip in the interposer
-heat.down = 5;  
+r_air = 1/1.825; %K/W for a 1cm^2 HS
+r_water = 1/4.63; %K/W for a 1cm^2 HS
+A_hs = (1e-2)^2; % 1 cm^2
 
-% Heat transfer coefficient for the interposer area NOT directly underneath
-% the chip(s)
-heat.d = 5;
+h_air = 1/(r_air*A_hs);
+h_water = 1/(r_water*A_hs);
+h_package = 5; % it sucks
 
-% Side surface heat coefficient, usually near adiabatic
-heat.side = 5;
-
+heat.up = h_water;        % above chip
+heat.down = h_water;     % directly beneath chip
+heat.d = h_water;        % package, not under chip
+heat.side = h_package;          % side
 heat.Ta = 298; % ambient temperature
 
 %% 
@@ -73,7 +77,7 @@ num_layers_per_block = 4;
 
 rent_exp_logic = 0.6;
 rent_exp_mem = 0.4;
-rent_exp_gpu = 0.55;
+rent_exp_gpu = 0.50;
 
 %% define parameters
 
@@ -216,11 +220,15 @@ sys_agent_bot_y = mem_io_height + mem_height;
     power_therm_vec = [];
     num_logic_blocks = length(map_logic(:,1));
     num_mem_blocks = length(map_mem(:,1));
+    
+    
+    
     for lind = 1:num_layers_per_block
         map = [map ; map_logic];
         blk_num = [blk_num num_logic_blocks];
         power_therm_vec = [ power_therm_vec sum(map_logic(:,end))];
     end
+    
     for lind = 1:num_layers_per_block
         map = [map ; map_mem];
         blk_num = [blk_num num_mem_blocks];
