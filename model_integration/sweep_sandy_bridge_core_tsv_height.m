@@ -47,14 +47,21 @@ rent_exp_mem = 0.4;
 rent_exp_gpu = 0.55;
 
 %% 
-num_layers = [2 4 8];
-layer_length = length(num_layers);
+num_layers = [1 2 4 8];
+%thicknesses = 1e-6:25e-6:301e-6;
+thicknesses = logspace(-6,-4,21);
+thicknesses = [thicknesses 200e-6 300e-6];
 
-thicknesses = 1e-6:10e-6:301e-6;
+% num_layers = 8;
+% thicknesses = 300e-6;
+
+layer_length = length(num_layers);
 num_thicknesses = length(thicknesses);
+
 
 power = zeros(layer_length,num_thicknesses);
 wire_power = zeros(layer_length,num_thicknesses);
+rep_power = zeros(layer_length,num_thicknesses);
 temp = zeros(layer_length,num_thicknesses);
 thickness = zeros(layer_length,num_thicknesses);
 npads = zeros(layer_length,num_thicknesses);
@@ -87,6 +94,7 @@ for nind = 1:length(num_layers)
 
         power(nind,thind) = core.power.total;
         wire_power(nind,thind) = core.power.wiring;
+        rep_power(nind,thind) = core.power.repeater;
         temp(nind,thind) = core.chip.temperature;
         thickness(nind,thind) = core.chip.thickness;
         npads(nind,thind) = core.psn.Npads;
@@ -124,7 +132,8 @@ fixfigs(2,3,14,12)
 
 figure(3)
 clf
-set(gcf,'DefaultAxesColorOrder',[1 0 0; 0 0 1 ; 0 1 0])
+%set(gcf,'DefaultAxesColorOrder',[1 0 0; 0 0 1 ; 0 1 0])
+set(gcf,'DefaultAxesColorOrder',[0 0 0; 1 0 0; 0 0 1 ; 0 1 0])
 hold all
 for nind = 1:layer_length
     plot(thicknesses*1e6,npads(nind,:)*2)
