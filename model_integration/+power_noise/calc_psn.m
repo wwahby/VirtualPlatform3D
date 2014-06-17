@@ -63,7 +63,7 @@ Vdd = chip.Vdd;
 Pdens = power.density;
 decap = psn.decap_area_fraction;
 h_tsv = tsv.height_m;
-w_tsv = tsv.width_m;
+w_tsv = tsv.width_m; %tsv.width_m;
 pitch_tsv = psn.pitch_tsv;
 RPKG = psn.package_resistance;
 LPKG = psn.package_inductance;
@@ -75,7 +75,7 @@ Wseg = psn.segment_width;
 
 %% Calculate useful quantities
 Jch = Pdens/Vdd; % (A/m^2) Current density
-pp = sqrt(2*pitch_tsv^2); % [FIX] Not really sure what the point of this is
+%pp = sqrt(2*pitch_tsv^2); % [FIX] Not really sure what the point of this is
 
 %% Determine Unit Cell parameters
 
@@ -84,7 +84,8 @@ acell = lcell;
 
 %% Determine Package Parameters
 % [FIX] using arbitrary parameters for now
-[RTSV,LTSV] = power_noise.RL_TSV(h_tsv,w_tsv,rho_m,mu_m,pp,pitch_tsv);
+%[RTSV,LTSV] = power_noise.RL_TSV(h_tsv,w_tsv,rho_m,mu_m,pp,pitch_tsv);
+[RTSV,LTSV] = power_noise.RL_TSV(h_tsv,w_tsv,rho_m,mu_m,PGpitch,Ppitch);
 
 %% Determine power supply noise
 
