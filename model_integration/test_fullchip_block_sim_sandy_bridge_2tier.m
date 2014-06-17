@@ -75,7 +75,7 @@ num_layers_per_block = 1;
 
 rent_exp_logic = 0.6;
 rent_exp_mem = 0.4;
-rent_exp_gpu = 0.55;
+rent_exp_gpu = 0.50;
 
 %% define parameters
 
