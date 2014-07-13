@@ -8,6 +8,7 @@ simulation.skip_psn_loops = 1; % Skip PSN TSV homing for faster debug
 simulation.draw_thermal_map = 0; % Plot thermal profile of each chip
 simulation.print_thermal_data = 0; % Output max temp in each layer to console
 simulation.separate_wiring_tiers = 1; % 1 = calculate wire pitch for wiring tiers between EACH logic plane
+simulation.force_thickness = 0;
 
 %% Logic core parameters
 
@@ -97,13 +98,15 @@ core.wire.repeater_fraction = [0.3]; % 1 is default from gen_basic_proc_settings
 core.wire.routing_efficiency = [0.6]; % 0.4 is default from gen_basic_proc_settings
 core.gate.output_resistance = 8e3; % Ohm
 
+
 gpu.wire.repeater_fraction = core.wire.repeater_fraction;
 gpu.wire.routing_efficiency = core.wire.routing_efficiency;
-core.gate.output_resistance = 8e3; % Ohm
+gpu.gate.output_resistance = 8e3; % Ohm
+
 
 mem.wire.repeater_fraction = core.wire.repeater_fraction;
 mem.wire.routing_efficiency = core.wire.routing_efficiency;
-core.gate.output_resistance = 8e3; % Ohm
+mem.gate.output_resistance = 8e3; % Ohm
 
 %% calculate block parameters
 [core.chip core.power core.tsv core.wire core.repeater core.psn] = codesign_block(core.chip,core.tsv,core.gate,core.transistor,core.wire,heat,core.psn,simulation);
