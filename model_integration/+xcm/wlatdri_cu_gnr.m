@@ -47,6 +47,7 @@ layers_per_tier = wire.layers_per_tier;
 routing_efficiency_vec = wire.routing_efficiency;
 layer_area = wire.layer_area;
 rho_m = wire.resistivity;
+rho_m_alt_em = wire.alt_resistivity_em;
 epsr_d = wire.dielectric_epsr;
 cap_const = wire.capacitance_constant;
 Beta = wire.Beta;
@@ -97,6 +98,7 @@ rho_vec = zeros(1,max_layers);
 C_pul_vec = zeros(1,max_layers);
 tau_rep_gnr_vec = zeros(1,max_layers);
 pn_cu_vec = zeros(1,max_layers);
+wire_width_vec = zeros(1,max_layers);
 
 n = 1; % start with top wiring tier
 Ln = lmax; % length of longest wire routed in this tier (GP)
@@ -175,15 +177,56 @@ while (Lm >= 0 && n < max_layers)
     reflection_coeff = 0.43;
     epsr_dielectric = epsr_d;
     
+    
+    
     [width_cu pitch_cu delay_cu R_cu C_cu C_pul_cu rho_cu] = xcm.find_best_cu_wire( ...
         delay_max, width_guess, min_pitch, resistivity_bulk, wire_length, width_fraction, ...
         aspect_ratio, electron_mfp, specularity_coeff, reflection_coeff, epsr_dielectric );
     
+    material_norep = 1; % Cu
+
     % Calculate repeatered wire parameters
     [width_cu_rep pitch_cu_rep delay_cu_rep R_cu_rep C_cu_rep C_pul_cu_rep rho_cu_rep] = xcm.find_best_cu_wire_with_repeaters( ...
         delay_max, repeater_fraction_n, Ro, Co, width_guess, min_pitch, resistivity_bulk, ...
         wire_length, width_fraction, aspect_ratio, electron_mfp, specularity_coeff, ...
         reflection_coeff, epsr_dielectric );
+    
+    material_rep = 1; % Cu
+    
+    % Check that we don't violate electromigration limits
+    % If min width of wires is violated, use alternate electromigration
+    % resistant metal.
+    % [FIX] For now we are just using the same MS+FS model for alternate
+    % metal resistivity -- we're just substituting the new bulk resistivity
+    % in and assuming the resistivity trend is identical. We are doing this
+    % for now because detailed information on size effects in alternate
+    % materials is hard to come by, but alternate specularity and
+    % reflectivity parameters can be used if data is available for fitting
+    if(wire.use_em_resistant_metal == 1) % Only do this if we've enabled automatic use of EM-hard metals 
+        if(width_cu < wire.min_non_em_width)
+            
+            resistivity_bulk = rho_m_alt_em;
+            
+        	[width_cu pitch_cu delay_cu R_cu C_cu C_pul_cu rho_cu] = xcm.find_best_cu_wire( ...
+                delay_max, width_guess, min_pitch, resistivity_bulk, wire_length, width_fraction, ...
+                aspect_ratio, electron_mfp, specularity_coeff, reflection_coeff, epsr_dielectric );
+            
+            material_norep = 3; % EM-resistant metal
+        end
+        
+        if(width_cu_rep < wire.min_non_em_width)
+            
+            resistivity_bulk = rho_m_alt_em;
+            
+            [width_cu_rep pitch_cu_rep delay_cu_rep R_cu_rep C_cu_rep C_pul_cu_rep rho_cu_rep] = xcm.find_best_cu_wire_with_repeaters( ...
+                delay_max, repeater_fraction_n, Ro, Co, width_guess, min_pitch, resistivity_bulk, ...
+                wire_length, width_fraction, aspect_ratio, electron_mfp, specularity_coeff, ...
+                 reflection_coeff, epsr_dielectric );
+            
+            material_rep = 3; % EM-resistant metal
+        end
+    end
+         
     
     % Now figure out what the actual RC time constant of these wires would
     % be. We'll compare this to the min driver delay to determine whether
@@ -201,15 +244,19 @@ while (Lm >= 0 && n < max_layers)
     use_repeaters = (cu_wires_benefit_from_repeaters && repeater_area_ok && repeater_via_area_ok && (pitch_cu_rep < pitch_cu) );
     
     if(use_repeaters )
+        material_metal = material_rep;
         pn_vec(n) = pitch_cu_rep;
+        wire_width_vec(n) = width_cu_rep;
         pn_cu_vec(n) = pitch_cu_rep;
         pn_orig_vec(n) = pitch_cu;
         rho_vec(n) = rho_cu_rep;
         C_pul_vec(n) = C_pul_cu_rep;
         
     else % use normal wire parameters
+        material_metal = material_norep;
         pn_orig_vec(n) = pitch_cu;
         pn_vec(n) = pitch_cu;
+        wire_width_vec(n) = width_cu;
         pn_cu_vec(n) = pitch_cu;
         rho_vec(n) = rho_cu;
         C_pul_vec(n) = C_pul_cu;
@@ -219,6 +266,7 @@ while (Lm >= 0 && n < max_layers)
     C_int = @(Ln) C_pul_vec(n)*Ln_m(Ln);
     
     tau_rep = delay_cu_rep; % interconnect delay with repeaters
+
     
     %% Can we do better with graphene?
 % If we can, try using GNRs for lower metal levels
@@ -310,7 +358,7 @@ if (try_using_gnrs)
         R_int_vec(n) = R_gnr;
         C_pul_vec(n) = C_gnr/gnr_length;
     else
-        material_vec(n) = 1; % Cu
+        material_vec(n) = material_metal; % Cu
         tau_rc_gnr_vec(n) = tau_gnr;
         R_int_vec(n) = R_cu;
     end
@@ -336,7 +384,7 @@ if (try_using_gnrs)
 %         tau_rc_gnr_vec(n) = delay_top_vec(end);
 %     end
 else
-    material_vec(n) = 1;
+    material_vec(n) = material_metal;
 end
     
 
@@ -430,6 +478,7 @@ rho_vec = fliplr(rho_vec(Ln_vec > 0));
 C_pul_vec = fliplr(C_pul_vec(Ln_vec > 0));
 tau_rep_gnr_vec = fliplr(tau_rep_gnr_vec(Ln_vec > 0));
 pn_cu_vec = fliplr(pn_cu_vec(Ln_vec > 0));
+wire_width_vec = fliplr(wire_width_vec(Ln_vec > 0));
 
 %% Pack outputs
 wire.Ln = Ln_vec;
@@ -451,6 +500,7 @@ wire.R_gnr = R_gnr_vec;
 wire.R_int = R_int_vec;
 wire.rho_vec = rho_vec;
 wire.C_pul_vec = C_pul_vec;
+wire.width = wire_width_vec;
 
 [Cxc Cn] = xcm.calc_wiring_capacitance_from_area(wire);
 wire.capacitance_total = Cxc;
