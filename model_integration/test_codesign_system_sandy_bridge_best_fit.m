@@ -186,6 +186,9 @@ wire.Beta = [0.9];              % (-v) Fraction of total clock period that a sin
 wire.Beta_short = 0.25;         % (-) Beta for shortest wiring layers (used for the top down WLARI)
 wire.Rc = 0;                    % (-v) Contact resistance between tiers (can be a vector)
 wire.use_graphene = 0;
+wire.use_em_resistant_metal = 0;   % (-) Allow or disallow use of electromigration-resistant metals below a specified minimum pitch
+wire.min_non_em_width = 50e-9; % (m) If use_em_resistant_metal is set to 1, Cu resistivity will be replaced with wire.alt_resistivity_em below this pitch
+wire.alt_resistivity_em = 30e-9;    %(Ohm*m) Resistivity of alternate EM-resistant metal
 
 %% Power supply noise model parameters
 
