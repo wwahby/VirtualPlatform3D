@@ -18,27 +18,42 @@ w_trans = 32e-9;
 Vdd_core = 1.25;
 
 %% Thermal parameters
-%the heat transfer coefficient
-% r = 1/(hA); A is the size of top surface area
-% the cooling capability of the top heatsink; 20000, 1cm*1cm, means:
-% 0.5 W/K
-% h = q/dT - q = heat flux (W/m^2)
-heat.up = 20000;
+% %the heat transfer coefficient
+% % r = 1/(hA); A is the size of top surface area
+% % the cooling capability of the top heatsink; 20000, 1cm*1cm, means:
+% % 0.5 W/K
+% % h = q/dT - q = heat flux (W/m^2)
+% heat.up = 20000;
+% 
+% % Bottom surface heat transfer coefficient
+% % This parameter controls the area directly BELOW the bottom chip
+% % If the interposer is larger than the bottom chip, heat.d controls the
+% % rest of the area
+% % Microfluidic heat sinks are assumed to be as large as the chip in the interposer
+% heat.down = 5;  
+% 
+% % Heat transfer coefficient for the interposer area NOT directly underneath
+% % the chip(s)
+% heat.d = 5;
+% 
+% % Side surface heat coefficient, usually near adiabatic
+% heat.side = 5;
+% 
+% heat.Ta = 298; % ambient temperature
 
-% Bottom surface heat transfer coefficient
-% This parameter controls the area directly BELOW the bottom chip
-% If the interposer is larger than the bottom chip, heat.d controls the
-% rest of the area
-% Microfluidic heat sinks are assumed to be as large as the chip in the interposer
-heat.down = 5;  
 
-% Heat transfer coefficient for the interposer area NOT directly underneath
-% the chip(s)
-heat.d = 5;
+r_air = 1/1.825; %K/W for a 1cm^2 HS
+r_water = 1/4.63; %K/W for a 1cm^2 HS
+A_hs = (1e-2)^2; % 1 cm^2
 
-% Side surface heat coefficient, usually near adiabatic
-heat.side = 5;
+h_air = 1/(r_air*A_hs);
+h_water = 1/(r_water*A_hs);
+h_package = 5; % it sucks
 
+heat.up = h_water;        % above chip
+heat.down = h_water;     % directly beneath chip
+heat.d = h_water;        % package, not under chip
+heat.side = h_package;          % side
 heat.Ta = 298; % ambient temperature
 
 %%
@@ -144,3 +159,29 @@ set(gca,'xscale','log')
 set(gca,'yscale','log')
 xlim([1 300])
 fixfigs(3,3,14,12)
+
+figure(4)
+clf
+set(gcf,'DefaultAxesColorOrder',[0 0 0; 1 0 0; 0 0 1 ; 0 1 0])
+hold all
+for nind = 1:layer_length
+    plot(thicknesses*1e6,wire_power(nind,:) + rep_power(nind,:))
+end
+xlabel('Layer thickness (microns)')
+ylabel('On-chip communication power (W)')
+set(gca,'xscale','log')
+xlim([1 300])
+fixfigs(4,3,14,12)
+
+figure(5)
+clf
+set(gcf,'DefaultAxesColorOrder',[0 0 0; 1 0 0; 0 0 1 ; 0 1 0])
+hold all
+for nind = 1:layer_length
+    plot(thicknesses*1e6,temp(nind,:))
+end
+xlabel('Layer thickness (microns)')
+ylabel('Maximum temperature (C)')
+set(gca,'xscale','log')
+xlim([1 300])
+fixfigs(5,3,14,12)
