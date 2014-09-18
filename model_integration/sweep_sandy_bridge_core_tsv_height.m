@@ -50,9 +50,9 @@ h_air = 1/(r_air*A_hs);
 h_water = 1/(r_water*A_hs);
 h_package = 5; % it sucks
 
-heat.up = h_water;        % above chip
-heat.down = h_water;     % directly beneath chip
-heat.d = h_water;        % package, not under chip
+heat.up = h_air;        % above chip
+heat.down = h_package;     % directly beneath chip
+heat.d = h_package;        % package, not under chip
 heat.side = h_package;          % side
 heat.Ta = 298; % ambient temperature
 
@@ -63,9 +63,11 @@ rent_exp_gpu = 0.55;
 
 %% 
 num_layers = [1 2 4 8];
-%thicknesses = 1e-6:25e-6:301e-6;
+
 thicknesses = logspace(-6,-4,21);
 thicknesses = [thicknesses 200e-6 300e-6];
+
+%thicknesses = [1e-6];% 10e-6 50e-6 100e-6 200e-6 300e-6];
 
 % num_layers = 8;
 % thicknesses = 300e-6;
@@ -80,7 +82,7 @@ rep_power = zeros(layer_length,num_thicknesses);
 temp = zeros(layer_length,num_thicknesses);
 thickness = zeros(layer_length,num_thicknesses);
 npads = zeros(layer_length,num_thicknesses);
-
+ild_mat = cell(layer_length,num_thicknesses);
 
 
 for nind = 1:length(num_layers)
@@ -113,6 +115,7 @@ for nind = 1:length(num_layers)
         temp(nind,thind) = core.chip.temperature;
         thickness(nind,thind) = core.chip.thickness;
         npads(nind,thind) = core.psn.Npads;
+        ild_mat{nind,thind} = core.chip.iidf;
     end
 
 end
@@ -185,3 +188,34 @@ ylabel('Maximum temperature (C)')
 set(gca,'xscale','log')
 xlim([1 300])
 fixfigs(5,3,14,12)
+%%
+
+figure(6)
+clf
+set(gcf,'DefaultAxesColorOrder',[ 1 0 0; 1 0 1; 0 1 0 ; 0 0 1])
+hold all
+nind = layer_length;
+
+for thind = fliplr([1 3 4 5])
+    plot(ild_mat{nind,thind})
+end
+plot(ild_mat{1,1},'k')
+set(gca,'yscale','log')
+ylim([1e-1 1e3])
+xlabel('Wire length (GP)')
+ylabel('Expected number of on-chip wires')
+fixfigs(6,5,18,16)
+
+
+%% 
+figure(7)
+clf
+set(gcf,'DefaultAxesColorOrder',[0 0 0; 1 0 0; 0 0 1 ; 0 1 0])
+hold all
+%for nind = 1:layer_length
+    plot(num_layers,power(:,1))
+    plot(num_layers,wire_power(:,1))
+%end
+xlabel('Number of tiers')
+ylabel('Power (W)')
+fixfigs(7,3,14,12)
