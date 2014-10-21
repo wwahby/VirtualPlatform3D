@@ -80,7 +80,7 @@ psn.package_resistance = 0.006;     % (Ohm) Resistance per pad on the package
 psn.package_inductance = 0.5e-9;    % (H) Inductance per package pad
 
 % Power TSV determination
-psn.mismatch_tolerance = 0.05;      % (-) Allowable normalized deviation from noise target
+psn.mismatch_tolerance = 0.01;      % (-) Allowable normalized deviation from noise target
 
 %% General simulation parameters
 simulation.force_thickness = 0;
