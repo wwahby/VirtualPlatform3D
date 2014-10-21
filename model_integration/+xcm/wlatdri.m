@@ -8,7 +8,7 @@ if(length(wire.routing_efficiency) == 1) % if we only have one entry for routing
 end
 
 % dead man counter to get out of while loop if something goes wrong
-max_wla_attempts = 50;
+max_wla_attempts = 100;
 min_top_fill_factor = 0.01;
 
 lbnd = min_top_fill_factor;
@@ -104,3 +104,8 @@ while( (bottom_layer_underfilled) && (bin_gen <= max_wla_attempts) )
     bin_gen = bin_gen + 1;
     
 end
+
+wire.best_bot_fill_factor = max_ff;
+wire.best_top_fill_factor = best_top_ff;
+
+fprintf('WLA Done! Final Fill Factors:: Bot: %.3g \t Top: %.3g\n',max_ff,best_top_ff);
