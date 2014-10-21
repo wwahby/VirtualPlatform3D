@@ -1,4 +1,4 @@
-function [psn_max] = calc_psn(psn,power,chip,tsv,rho_m,mu_m,T)
+function [psn_max RTSV LTSV cap_density unit_cell_length] = calc_psn(psn,power,chip,tsv,rho_m,mu_m,T)
 % === INPUTS ===
 % area      (m^2)   chip area
 % Npad      (-)     Number of power pads -- does not include ground pads!
@@ -75,12 +75,15 @@ Wseg = psn.segment_width;
 
 %% Calculate useful quantities
 Jch = Pdens/Vdd; % (A/m^2) Current density
+%Jch_cm2 = Jch/1e4;
 %pp = sqrt(2*pitch_tsv^2); % [FIX] Not really sure what the point of this is
 
 %% Determine Unit Cell parameters
 
 [lcell,Ppitch,PGpitch,rpad,Rseg,Cd] = power_noise.Ucell(area,Npad,Ngrid,padsize,rho_m,Tseg,Wseg,decap);
 acell = lcell;
+unit_cell_length = lcell;
+cap_density = Cd;
 
 %% Determine Package Parameters
 % [FIX] using arbitrary parameters for now
