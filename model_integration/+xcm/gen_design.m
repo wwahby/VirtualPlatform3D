@@ -201,5 +201,6 @@ power.leakage = Plk;
 power.wiring = Pw;
 power.repeater = Prep;
 power.total = Pdyn + Plk + Pw + Prep;
+power.density = power.total/chip.area_per_layer_m2;
 
 
