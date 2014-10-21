@@ -139,12 +139,14 @@ Deg0=-180;
 f0=0;
 
 %%%%% Inverse FFT%%%%%%
-Npts=1024;
+%Bumped Npts up from 1024 to 1024*10 due to resolution issues noticed in 3D Sandy Bridge test case when sweeping decap from 0-0.2. WWAHBY 2014-10-06
+% Default is 2^10, seems like Npts should be a power of 2
+Npts=1024*10; %[FIX] May need a dynamic way to determine FFT resolution. WWAHBY 2014.10.06
 tstop=1000e-9;
 tstep=tstop/Npts;
 %PWL piecewise linear function
-v=zeros(1,tstop/tstep);
-for k=1:1:tstop/tstep
+v=zeros(1,Npts);
+for k=1:1:Npts
     if k<=100e-9/tstep
         v(k)=0;
     end
