@@ -65,6 +65,7 @@ rent_exp_gpu = 0.55;
 num_layers = [1 2 4 8];
 
 frequencies = logspace(8,10,21);
+frequencies = [frequencies 20e9 30e9];
 
 %thicknesses = [1e-6];% 10e-6 50e-6 100e-6 200e-6 300e-6];
 
@@ -86,14 +87,14 @@ ild_mat = cell(layer_length,num_freqs);
 
 die_thickness = 1e-6; % (m)
 for nind = 1:length(num_layers)
-    for find = 1:num_freqs
+    for freqind = 1:num_freqs
 
-        fmax_core = frequencies(find);
+        fmax_core = frequencies(freqind);
         num_layers_per_block = num_layers(nind);
 
         fprintf('========================\n')
         fprintf('==== Tiers: %d =========\n',num_layers(nind));
-        fprintf('=Frequency: %d GHz =====\n',frequencies(find)/1e9);
+        fprintf('=Frequency: %d GHz =====\n',frequencies(freqind)/1e9);
         fprintf('========================\n')
 
         %% define parameters
@@ -110,19 +111,36 @@ for nind = 1:length(num_layers)
         %% calculate block parameters
         [core.chip core.power core.tsv core.wire core.repeater core.psn] = codesign_block(core.chip,core.tsv,core.gate,core.transistor,core.wire,heat,core.psn,simulation);
 
-        power(nind,find) = core.power.total;
-        wire_power(nind,find) = core.power.wiring;
-        rep_power(nind,find) = core.power.repeater;
-        temp(nind,find) = core.chip.temperature;
-        thickness(nind,find) = core.chip.thickness;
-        npads(nind,find) = core.psn.Npads;
-        ild_mat{nind,find} = core.chip.iidf;
+        power(nind,freqind) = core.power.total;
+        wire_power(nind,freqind) = core.power.wiring;
+        rep_power(nind,freqind) = core.power.repeater;
+        temp(nind,freqind) = core.chip.temperature;
+        thickness(nind,freqind) = core.chip.thickness;
+        npads(nind,freqind) = core.psn.Npads;
+        ild_mat{nind,freqind} = core.chip.iidf;
 
     end
 
 end
 
-    
+%% gather all the results in case we want to save them for later use
+results.power = power;
+results.wire_power = wire_power;
+results.rep_power = rep_power;
+results.temp = temp;
+results.thickness = thickness;
+results.npads = npads;
+results.ild_mat = ild_mat;
+results.frequencies = frequencies;
+
+%% Find the maximum frequency that the device can run to stay below 90C
+Tmax = 90;
+fmax_temp_limited = zeros(1,layer_length);
+
+for nind =  1:layer_length
+    Tind = find( (temp(nind,:) <= Tmax), 1, 'last');
+    fmax_temp_limited(nind) = frequencies(Tind);
+end
 
 %% Plots
 
@@ -225,8 +243,8 @@ set(gcf,'DefaultAxesColorOrder',[ 1 0 0; 1 0 1; 0 1 0 ; 0 0 1])
 hold all
 nind = layer_length;
 
-for find = fliplr([1 3 4 5])
-    plot(ild_mat{nind,find})
+for freqind = fliplr([1 3 4 5])
+    plot(ild_mat{nind,freqind})
 end
 plot(ild_mat{1,1},'k')
 set(gca,'yscale','log')
