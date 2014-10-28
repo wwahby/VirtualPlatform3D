@@ -53,112 +53,33 @@ disp('Generating system...')
 
 %% Thermal module -- Find actual system temperature
 
-%%%%%%%%%%%%%%%%%%%%%%%geometry information of the chip%%%%%%%%%%%%%%%%%%%
-    die.N = chip.num_layers;
-    die.model = 3; % for each die, how many layers we model
-    
-    % flip chip package; order:
-    %heatsink->TIM->CHIP_BULK1->METAL->BONDING->CHIP_BULK2-> ...
-    %               CHIP_BULKN->METAL->MICRO-BUMPS->INTERPOSER    
-    thick.bump = 40e-6;  %micro-bump thickness; between second die and interposer
-    thick.tim = 5e-6; %tim thickness; between the chip and heatsink
-    thick.under = 5e-6; %underfill bonding thickness; between two dies
-    thick.inter = 200e-6; %interposer thickness
-    thick.die = chip.thickness; %die thickness
-    thick.ild = sum(wire.pn); %metal layer thickness
-    
-    layer_area = chip.area_per_layer_m2;
-    side_length = sqrt(layer_area);
-    grid_factor = 50;
-    chip_therm.Xsize = side_length; %x dimension of chip
-    chip_therm.Ysize = side_length; %y dimension of chip
-    chip_therm.Xgrid = chip_therm.Xsize/grid_factor; %x grid size of chip
-    chip_therm.Ygrid = chip_therm.Ysize/grid_factor; %y grid size of chip
-    
-    %for the interposer dimension
-    pack.Xsize = 3.5*side_length;
-    pack.Ysize = 3.5*side_length;
-    pack.Xgrid = pack.Xsize/grid_factor;
-    pack.Ygrid = pack.Ysize/grid_factor;
-    
-    %assumed TSV starting from top metal layer of a top die
-    %            to the first metal layer of a bottom die
-    %Thus the TSV passes through bonding layer & bulk of a botom die
-    %TSV geometry 
-    tsv_therm.d = tsv.width_m; % tsv diameter including the liner thickness
-    tsv_therm.liner = tsv.width_m/10; %liner thickness
-    tsv_therm.px = tsv.pitch_m; %x direction pitch
-    tsv_therm.py = tsv.pitch_m; %y direction pitch
-    tsv_therm.Nx = round(sqrt(tsv.num)); %x direction number
-    tsv_therm.Ny = round(sqrt(tsv.num)); %y direction number
+power_per_layer = power.total/chip.num_layers;
+power_therm_vec = ones(1,chip.num_layers)*power_per_layer;  %power dissipation of each die
+layer_area = chip.area_per_layer_m2;
+side_length = sqrt(layer_area);
+chip_width = side_length;
+chip_height = side_length;
 
-    %Bump geometry
-    bump.d = 20e-6;
-    bump.px = 100e-6;
-    bump.py = 100e-6;
-    bump.Nx = 40;
-    bump.Ny = 40;
-    
-    portion = 0.5; %the metal portion in the ILD layers
-    %This is used for equivalent thermal resistance calculation of metal
-    %layer
-    
-    power_therm_vec = ones(1,chip.num_layers)*power.total/chip.num_layers;  %power dissipation of each die
-    % from top to bottom; unit: watt
-    
-    granularity = 20;
-    % thermal map, number of color used
-    
-    draw = simulation.draw_thermal_map;
-    drawP = simulation.draw_thermal_map;
-    % whether to draw the thermal map; 1 yes; 0 no
-    
-    displayT = simulation.print_thermal_data;
-    % print the temperature information
-%%%%%%%%%%%%%%%%%%%%%%%%finish geometry information%%%%%%%%%%%%%%%%%%%%%%%%
+package_width = 3.5*chip_width;
+package_height = 3.5*chip_height;
 
-%%%%%%%%%%%%%%boundary condition%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    %the heat transfer coefficient
-    % r = 1/(hA); A is the size of top surface area
-    % the cooling capability of the top heatsink; 20000, 1cm*1cm, means:
-    % 0.5 W/K
-%     h.up = 20000;
-%     
-%     h.down = 5; % the cooling of bottom surface; 
-%     %(only the area with the same size of chip;)
-%     %microfluidic is assumed to be as large as chip in the interposer
-%     
-%     h.side = 5;
-%     % side surface cooling, usually near adiabatic
-%     
-%     h.d = 5;
-%     %the cooling of the bottom surface except for the MFHS area
-%     
-%     h.Ta = 298;
-    %the ambient temperature
-%%%%%%%%%%%%%%%%%%%%%%%%%finish boundary condition%%%%%%%%%%%%%%%%%%%%%%%%%
+%power blocks by each die
+%format: bottom left point bl_x, bl_y, width, height, power
+%list blocks in die1 and then die2, die3 ....
+map_row = [0     0     side_length    side_length     power_per_layer];
+map = zeros(chip.num_layers,5);
+blk_num = zeros(chip.num_layers,1);
+for i =1:chip.num_layers
+    map(i,:) = map_row;
+    blk_num(i,1) = 1;
+end
+%blk_num is for splitting the power maps of each die
 
-    chip_side = sqrt(chip.area_total/chip.num_layers);
-    power_per_layer = power.total/chip.num_layers;
-    
 
-    %power blocks by each die
-    %format: bottom left point bl_x, bl_y, width, height, power
-    %list blocks in die1 and then die2, die3 ....
-    map_row = [0     0     chip_side    chip_side     power_per_layer];
-    map = zeros(chip.num_layers,5);
-    blk_num = zeros(chip.num_layers,1);
-    for i =1:chip.num_layers
-        map(i,:) = map_row;
-        blk_num(i,1) = 1;
-    end
-    %blk_num is for splitting the power maps of each die
+[max_temp temp_vec] = get_stack_temperature(chip.num_layers,chip.thickness,wire,tsv,chip_width,chip_height,package_width,package_height,heat,simulation,map,blk_num,power_therm_vec);
 
-    chip.temperature_vec = thermal.ThermSim( die, thick, chip_therm, pack, ...
-              tsv_therm, bump, portion, power_therm_vec, ...
-              map, blk_num, granularity, draw, drawP, heat, displayT);
-          
-    chip.temperature = max(chip.temperature_vec);
+chip.temperature_vec = temp_vec;
+chip.temperature = max_temp;
 
 
 %% ============== END THERMAL MODULE ================
