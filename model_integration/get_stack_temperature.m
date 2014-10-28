@@ -5,14 +5,17 @@ function [max_temp temp_vec] = get_stack_temperature(num_layers,die_thickness,wi
 %%%%%%%%%%%%%%%%%%%%%%%geometry information of the chip%%%%%%%%%%%%%%%%%%%
     die.N = num_layers;
     die.model = 3; % for each die, how many layers we model
-    
+    die.material_IDs = heat.material_IDs; % Chip, ILD, underfill
+    die.layer_thicknesses = [die_thickness sum(wire.pn) heat.underfill_thickness];
+
     % flip chip package; order:
     %heatsink->TIM->CHIP_BULK1->METAL->BONDING->CHIP_BULK2-> ...
     %               CHIP_BULKN->METAL->MICRO-BUMPS->INTERPOSER    
-    thick.bump = 40e-6;  %micro-bump thickness; between second die and interposer
-    thick.tim = 5e-6; %tim thickness; between the chip and heatsink
-    thick.under = 5e-6; %underfill bonding thickness; between two dies
-    thick.inter = 200e-6; %interposer thickness
+    thick.bump = heat.bump_thickness;  %micro-bump thickness; between second die and interposer
+    thick.tim = heat.tim_thickness; %tim thickness; between the chip and heatsink
+    thick.under = heat.underfill_thickness; %underfill bonding thickness; between two dies
+    thick.inter = heat.interposer_thickness; %interposer thickness
+    
     thick.die = die_thickness; %die thickness
     thick.ild = sum(wire.pn); %metal layer thickness
 
