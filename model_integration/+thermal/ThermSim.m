@@ -2,7 +2,7 @@ function T = ThermSim( die, thick, chip, pack, ...
                    tsv, bump, portion, power,  ...
                    map, blk_num, granularity, ...
                    draw, draw_P, h, displayT)
-    disp(['start time: ', num2str(fix(clock))]);
+    %disp(['start time: ', num2str(fix(clock))]);
     %start = tic;
 %%%%%%%%%%%%%%%%%%%%material information for the chip%%%%%%%%%%%%%%%%%%%%%%
 %thermal conductivity
@@ -37,11 +37,11 @@ function T = ThermSim( die, thick, chip, pack, ...
     
 %%%%%%%%%%%%%%%%%%%%%%%start meshing%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %disp('starting meshing the package');
-    tic;
+    %tic;
     [ chip.Xmesh chip.Ymesh, pack.Xmesh, pack.Ymesh, ...
       chip.Nx, chip.Ny, pack.Nx, pack.Ny ] = thermal.mesh(chip, pack);
     %disp('finish meshing the package');
-    toc;   
+    %toc;   
 %%%%%%%%%%%%%%%%%%%%%%%%%finish meshing%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %%%%%%%%%%%%%%%%%%%%%%%%%array initialization%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
