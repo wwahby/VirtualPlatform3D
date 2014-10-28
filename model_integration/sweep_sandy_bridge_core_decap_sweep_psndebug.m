@@ -63,7 +63,7 @@ rent_exp_gpu = 0.55;
 
 %% 
 num_layers = [1 2 4 8];
-decap_ratios = logspace(-3,-1,21);
+decap_ratios = logspace(-2,0,21);
 
 
 layer_length = length(num_layers);
