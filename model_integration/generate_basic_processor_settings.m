@@ -66,6 +66,7 @@ wire.alt_resistivity_em = 30e-9;    %(Ohm*m) Resistivity of alternate EM-resista
 psn.noise_fraction = 0.15;          % (-) Maximum power supply noise as a fraction of Vdd
 psn.noise_target = 0.1875;          % (V) Acceptable power supply noise
 psn.decap_area_fraction = 0.1;      % (Ratio) - Fraction of chip area dedicated to decoupling capacitors
+psn.power_tsv_width = 10e-6;        % (m) Width of TSVs used for power delivery. This may be larger than signal TSVs. Setting this to -1 will cause PSN module to use the signal TSV width.
 
 % Power connection parameters
 psn.Npads_1d = 100;                  % (-) Number of pads from one side of chip to the other

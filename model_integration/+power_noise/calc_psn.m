@@ -63,7 +63,11 @@ Vdd = chip.Vdd;
 Pdens = power.density;
 decap = psn.decap_area_fraction;
 h_tsv = tsv.height_m;
-w_tsv = tsv.width_m; %tsv.width_m;
+if (psn.power_tsv_width == -1)
+    w_tsv = tsv.width_m;
+else
+    w_tsv = psn.power_tsv_width;
+end
 pitch_tsv = psn.pitch_tsv;
 RPKG = psn.package_resistance;
 LPKG = psn.package_inductance;
