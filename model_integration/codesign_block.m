@@ -149,7 +149,7 @@ disp(dispstr)
 psn_target = psn.noise_target;
 npads_1d = psn.Npads_1d;
 if (psn_max < psn_target)
-    while(psn_max < psn_target)
+    while((psn_max < psn_target) && (npads_1d > 1));
         npads_1d_old = npads_1d;
         npads_1d = round(1/2*npads_1d);
         psn.Npads_1d = npads_1d;
@@ -209,7 +209,7 @@ psn_second_linear_bound = psn;
 %% Binary search
 
 gen_ind = 1;
-max_gens = 50;
+max_gens = 16;
 tol = psn_mismatch_tolerance;
 rel_err = (psn_max - psn_target)/psn_target;
 norm_err = abs(rel_err);
