@@ -148,12 +148,15 @@ disp(dispstr)
 %% Find bounds for binary search
 psn_target = psn.noise_target;
 npads_1d = psn.Npads_1d;
+npads = psn.Npads;
 if (psn_max < psn_target)
     while((psn_max < psn_target) && (npads_1d > 1));
         npads_1d_old = npads_1d;
+        npads_old = npads;
         npads_1d = round(1/2*npads_1d);
         psn.Npads_1d = npads_1d;
         psn.Npads = psn.Npads_1d^2;
+        npads = psn.Npads;
         [psn_max RTSV LTSV cap_density l_unit_cell] = power_noise.calc_psn(psn,power,chip,tsv,rho_m,mu_m,chip.temperature);
         psn.noise = psn_max;
         psn.Rtsv = RTSV;
@@ -169,18 +172,22 @@ if (psn_max < psn_target)
             psn_best = psn;
         end
         
-        fprintf('\tpsn_runs: %d\tNpads_1d: %d\tpsn_target: %.3g\tpsn_max: %.3g\trel_err: %.3g\n',0,psn.Npads_1d, psn.noise_target, psn_max,rel_err);
+        fprintf('\tpsn_runs: %d\tNpads: %d\tpsn_target: %.3g\tpsn_max: %.3g\trel_err: %.3g\n',0,psn.Npads, psn.noise_target, psn_max,rel_err);
     end
     
-    lbnd = npads_1d;
-    rbnd = npads_1d_old;
+%     lbnd = npads_1d;
+%     rbnd = npads_1d_old;
+    lbnd = npads;
+    rbnd = npads_old;
 elseif(psn_max > psn_target)
     while(psn_max > psn_target)
         
         npads_1d_old = npads_1d;
+        npads_old = npads;
         npads_1d = 2*npads_1d;
         psn.Npads_1d = npads_1d;
         psn.Npads = psn.Npads_1d^2;
+        npads = psn.Npads;
         [psn_max RTSV LTSV cap_density l_unit_cell] = power_noise.calc_psn(psn,power,chip,tsv,rho_m,mu_m,chip.temperature);
         psn.noise = psn_max;
         psn.Rtsv = RTSV;
@@ -196,15 +203,17 @@ elseif(psn_max > psn_target)
             psn_best = psn;
         end
         
-        fprintf('\tpsn_runs: %d\tNpads_1d: %d\tpsn_target: %.3g\tpsn_max: %.3g\trel_err: %.3g\n',0,psn.Npads_1d, psn.noise_target, psn_max,rel_err);
+        fprintf('\tpsn_runs: %d\tNpads: %d\tpsn_target: %.3g\tpsn_max: %.3g\trel_err: %.3g\n',0,psn.Npads, psn.noise_target, psn_max,rel_err);
     end
-    lbnd = npads_1d_old;
-    rbnd = npads_1d;
+%     lbnd = npads_1d_old;
+%     rbnd = npads_1d;
+    lbnd = npads;
+    rbnd = npads_old;
 end
 
-npads_second_linear_bound = psn.Npads_1d;
-err_second_linear_bound = norm_err;
-psn_second_linear_bound = psn;
+% npads_second_linear_bound = psn.Npads_1d;
+% err_second_linear_bound = norm_err;
+% psn_second_linear_bound = psn;
 
 %% Binary search
 
@@ -216,8 +225,9 @@ norm_err = abs(rel_err);
 while ((norm_err > tol) && (gen_ind < max_gens) && (rbnd > lbnd+1))
     
     mid = round((lbnd+rbnd)/2);
-    psn.Npads_1d = mid;
-    psn.Npads = psn.Npads_1d^2;
+    %psn.Npads_1d = mid;
+    psn.Npads = mid;
+    %psn.Npads = psn.Npads_1d^2;
     [psn_max RTSV LTSV cap_density l_unit_cell] = power_noise.calc_psn(psn,power,chip,tsv,rho_m,mu_m,chip.temperature);
     psn.noise = psn_max;
     psn.Rtsv = RTSV;
@@ -239,7 +249,7 @@ while ((norm_err > tol) && (gen_ind < max_gens) && (rbnd > lbnd+1))
         psn_best = psn;
     end
     
-    fprintf('\tpsn_runs: %d\tNpads_1d: %d\tpsn_target: %d\tpsn_max: %d\trel_err: %.3g\n',gen_ind,psn.Npads_1d, psn.noise_target, psn_max,rel_err);
+    fprintf('\tpsn_runs: %d\tNpads: %d\tpsn_target: %d\tpsn_max: %d\trel_err: %.3g\n',gen_ind,psn.Npads, psn.noise_target, psn_max,rel_err);
     gen_ind = gen_ind + 1;
 end
 
@@ -295,7 +305,7 @@ end
 %     end
 % end
 % psn = psn_best;
-fprintf('\tPSN Done! \tNpads_1d: %d\tpsn_target: %d\tpsn_max: %d\tnorm_err: %.3g\n',psn.Npads_1d, psn.noise_target, psn_max,norm_err_min);
+fprintf('\tPSN Done! \tNpads: %d\tpsn_target: %d\tpsn_max: %d\tnorm_err: %.3g\n',psn.Npads, psn.noise_target, psn_max,norm_err_min);
         
 
 
