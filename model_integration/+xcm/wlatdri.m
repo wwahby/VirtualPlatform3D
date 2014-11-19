@@ -8,7 +8,7 @@ if(length(wire.routing_efficiency) == 1) % if we only have one entry for routing
 end
 
 % dead man counter to get out of while loop if something goes wrong
-max_wla_attempts = 100;
+max_wla_attempts = 20;
 min_top_fill_factor = 0.01;
 
 lbnd = min_top_fill_factor;
