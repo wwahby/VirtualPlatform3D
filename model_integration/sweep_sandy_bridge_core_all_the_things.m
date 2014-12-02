@@ -9,12 +9,13 @@ simulation.separate_wiring_tiers = 1; % 1 = Each logic plane will have its own w
                                       % 0 = All metal layers for entire device will be routed on top of entire 3D stack
 
 %% Logic core parameters
-Ng_core = 86e6/4;
-Ach_mm2_core = 18.5;
-gate_pitch_core = 465e-9*2;
-min_pitch_core = 112.5e-9;
+compression_factor = 1; % linear scaling factor. 1 = actual 32nm design, 4.57 = equivalent 7nm SB
+Ng_core = 86e6/4; %86M transistors, assume 2in NAND -> /4 to get total NAND gates
+Ach_mm2_core = 18.5/(compression_factor^2);
+gate_pitch_core = 465e-9*2/compression_factor;
+min_pitch_core = 112.5e-9/compression_factor;
 fmax_core = 3.6e9;
-w_trans = 32e-9;
+w_trans = 32e-9/compression_factor;
 Vdd_core = 1.25;
 
 %% Thermal parameters
@@ -71,13 +72,13 @@ rent_exp_mem = 0.4;
 rent_exp_gpu = 0.55;
 
 %% 
-tiers = [1 2 4 8];
-thicknesses = [1e-6 10e-6 100e-6];
-rel_permittivities = [1 3];
+tiers = 1:8;
+thicknesses = [10e-6];
+force_thickness = 1;
+rel_permittivities = [3.0];
 frequencies = [fmax_core];
 heat_fluxes = [ h_air ];
-%decap_ratios = [1e-2 1e-1:1e-1:1];
-decap_ratios = [0.1 0.5 1.0 1.5 2];
+decap_ratios = [0.01 0.1 1.0];
 
 
 num_stacks = length(tiers);
@@ -86,6 +87,7 @@ num_thicks = length(thicknesses);
 num_freqs = length(frequencies);
 num_cooling_configs = length(heat_fluxes);
 num_decaps = length(decap_ratios);
+total_configs = num_stacks * num_perms * num_thicks * num_freqs * num_cooling_configs * num_decaps;
 
 power = zeros(num_cooling_configs,num_decaps,num_thicks,num_stacks,num_perms,num_freqs);
 power_density = zeros(num_cooling_configs,num_decaps,num_thicks,num_stacks,num_perms,num_freqs);
@@ -107,25 +109,28 @@ chip_cell = cell(num_cooling_configs,num_decaps,num_thicks,num_stacks,num_perms,
 tsv_cell = cell(num_cooling_configs,num_decaps,num_thicks,num_stacks,num_perms,num_freqs);
 
 t_sweep_start = cputime;
+cur_config = 0;
 for cind = 1:num_cooling_configs
     for dind = 1:num_decaps
         for thind = 1:num_thicks
             for nind = 1:length(tiers)
                 for pind = 1:num_perms
                     for freq_ind = 1:num_freqs
+                        cur_config = cur_config + 1;
                         die_thickness = thicknesses(thind);
                         num_layers_per_block = tiers(nind);
                         epsrd = rel_permittivities(pind);
                         fmax_core = frequencies(freq_ind);
 
-                        fprintf('====================\n')
-                        fprintf('==== cooling: %d/%d =====\n',cind,num_cooling_configs);
-                        fprintf('==== decap:   %d/%d =====\n',dind,num_decaps);
-                        fprintf('== thickness: %d/%d =====\n',thind,num_thicks);
-                        fprintf('==== Tiers:   %d/%d =====\n',nind,num_stacks);
-                        fprintf('==== epsrd:   %d/%d =====\n',pind,num_perms);
-                        fprintf('==== freq:    %d/%d =====\n',freq_ind,num_freqs);
-                        fprintf('====================\n')
+                        fprintf('===============================\n')
+                        fprintf('==   cooling: %d/%d \t=====\n',cind,num_cooling_configs);
+                        fprintf('==     decap: %d/%d \t=====\n',dind,num_decaps);
+                        fprintf('== thickness: %d/%d \t=====\n',thind,num_thicks);
+                        fprintf('==     Tiers: %d/%d \t=====\n',nind,num_stacks);
+                        fprintf('==     epsrd: %d/%d \t=====\n',pind,num_perms);
+                        fprintf('==      freq: %d/%d \t=====\n',freq_ind,num_freqs);
+                        fprintf('==   Overall: %d/%d \t=====\n',cur_config,total_configs);
+                        fprintf('===============================\n')
 
                         %% define parameters
 
@@ -135,12 +140,11 @@ for cind = 1:num_cooling_configs
                         core.wire.repeater_fraction = [0.3]; % 1 is default from gen_basic_proc_settings
                         core.wire.routing_efficiency = [0.6]; % 0.4 is default from gen_basic_proc_settings
                         core.wire.use_graphene = 0;
-                        simulation.force_thickness = 1;
+                        simulation.force_thickness = force_thickness;
                         core.chip.thickness_nominal = die_thickness;
                         core.wire.dielectric_epsr = epsrd;
                         core.psn.decap_area_fraction = decap_ratios(dind);
-
-
+                        
                         if (die_thickness < 30e-6) % for monolithic-scale chips use thin SiO2 layer rather than underfill
                             heat.interposer_thickness = 200e-6; % (m) Thickness of the interposer below the 3D stack
                             heat.bump_thickness = 40e-6;        % (m) Microbump thickness (between interposer and bottom chip of 3D stack)
@@ -190,43 +194,255 @@ t_sweep_stop = cputime;
 fprintf('\nTotal time elapsed for parameter sweep: %.3g seconds\n\n',(t_sweep_stop-t_sweep_start));
 
 
-%% Plot number of PSN TSVs for different configurations
+%% Power TSVs vs tiers and decap
 
-%npads(cind,dind,thind,nind,pind,freq_ind)
-Yplot = [ npads(1,2, 1 ,1, 1 ,1)   npads(1,2, 2 ,1, 1 ,1)   npads(1,2, 3 ,1, 1 ,1)   npads(1,2, 1 ,1, 2 ,1)   npads(1,2, 2 ,1, 2 ,1)   npads(1,2, 3 ,1, 2 ,1);
-          npads(1,2, 1 ,2, 1 ,1)   npads(1,2, 2 ,2, 1 ,1)   npads(1,2, 3 ,2, 1 ,1)   npads(1,2, 1 ,2, 2 ,1)   npads(1,2, 2 ,2, 2 ,1)   npads(1,2, 3 ,2, 2 ,1);
-          npads(1,2, 1 ,3, 1 ,1)   npads(1,2, 2 ,3, 1 ,1)   npads(1,2, 3 ,3, 1 ,1)   npads(1,2, 1 ,3, 2 ,1)   npads(1,2, 2 ,3, 2 ,1)   npads(1,2, 3 ,3, 2 ,1);
-          npads(1,2, 1 ,4, 1 ,1)   npads(1,2, 2 ,4, 1 ,1)   npads(1,2, 3 ,4, 1 ,1)   npads(1,2, 1 ,4, 2 ,1)   npads(1,2, 2 ,4, 2 ,1)   npads(1,2, 3 ,4, 2 ,1)];
-      
 f1 = figure(1);
 clf
-bar(Yplot,'group')
+Yplot = [];
+hold on
+
+Lmat = [];
+Cmat = [];
+for nind = 1:num_stacks
+    pvec = zeros(1,num_decaps);
+    lvec = zeros(1,num_decaps);
+    cvec = zeros(1,num_decaps);
+    pvec(1:end) = npads(1,:,1,nind,1,1);
+    lvec(1:end) = Ltsv_m2(1,:,1,nind,1,1);
+    cvec(1:end) = cap_density(1,:,1,nind,1,1);
+    Yplot = [Yplot; pvec];
+    Lmat = [Lmat ; lvec];
+    Cmat = [Cmat ; cvec];
+end
+
+A_ptsv_single = (10e-3)^2; % mm^2
+A_ptsvs = Yplot * A_ptsv_single;
+A_decap = ones(size(Yplot));
+A_decap(:,1) = 0.01;
+A_decap(:,2) = 0.1;
+A_decap(:,3) = 1.0;
+A_decap = A_decap * Ach_mm2_core;
+
+A_pow_tot = A_decap + A_ptsvs;
+
+b = bar(Yplot,1.0,'group');
+set(b(1),'FaceColor',[ 0 0 0.85])
+set(b(2),'FaceColor',[0.9 0.9 0])
+set(b(3),'FaceColor',[0.85 0 0])
 set(gca,'yscale','log')
 set(gca,'xtickmode','manual')
-set(gca,'xtick',[1 2 3 4])
-set(gca,'xticklabel',[1 2 4 8])
+set(gca,'xtick',1:num_stacks)
+set(gca,'xticklabel',tiers)
+xlim([min(tiers)-0.5 max(tiers)+0.5])
 xlabel('Number of tiers')
 ylabel('Number of power delivery TSVs')
 fixfigs(1,3,14,12)
+legend({'1%','10%','100%'},'location','nw','fontweight','bold')
+%legend({'Limited on-chip decoupling','Extensive on-chip decoupling','Interposer-based decoupling'},'location','nw','fontweight','bold')
+legend('boxoff')
 
 
-%% Plot the number of PSN TSVs vs. decap
-%npads(cind,dind,thind,nind,pind,freq_ind)
 f2 = figure(2);
-clf
-plot_color = [0 0 0; 0 0 1; 1 0 0; 0 1 0];
-%plot_styles = {'-','-','--','--','-','-','--','--'};
+clf;
+% b = bar(A_ptsvs./Ach_mm2_core,1.0,'group');
+% set(b(1),'FaceColor',[ 0 0 0.85])
+% set(b(2),'FaceColor',[0.9 0.9 0])
+% set(b(3),'FaceColor',[0.85 0 0])
 hold on
-for nind = 1:num_stacks
-    nplt_eps1 = npads(1,:,1,nind,1,1);
-    nplt_eps2 = npads(1,:,1,nind,2,1);
-    plot(decap_ratios,nplt_eps1,'color',plot_color(nind,:),'linestyle','-')
-    plot(decap_ratios,nplt_eps2,'color',plot_color(nind,:),'linestyle','--')
+cols = [ 0 0 1; 0 1 0; 1 0 0; 0 0 0; 0 0 1; 0 1 0; 1 0 0; 0 0 0; 0 0 1; 0 1 0; 1 0 0; 0 0 0];
+for dind = 1:num_decaps
+    plot(tiers,A_ptsvs(:,dind)','color',cols(dind,:))
+end
+    
+set(gca,'yscale','log')
+% set(gca,'xtickmode','manual')
+% set(gca,'xtick',[1 2 3 4])
+% set(gca,'xticklabel',[1 2 4 8])
+xlabel('Number of tiers')
+ylabel('Fraction of chip required for power TSVs')
+fixfigs(2,3,14,12)
+%legend({'1%','10%','100%'},'location','nw','fontweight','bold')
+%legend({'Limited on-chip decoupling','Extensive on-chip decoupling','Interposer-based decoupling'},'location','nw','fontweight','bold')
+%legend('boxoff')
+
+f3 = figure(3)
+clf;
+hold on
+cols = [ 0 0 1; 0 1 0; 1 0 0; 0 0 0; 0 0 1; 0 1 0; 1 0 0; 0 0 0; 0 0 1; 0 1 0; 1 0 0; 0 0 0];
+for dind = 1:num_decaps
+    plot(tiers,Cmat(:,dind)','color',cols(dind,:),'linestyle','--')
+    plot(tiers,Lmat(:,dind)','color',cols(dind,:),'linestyle','-')
 end
 set(gca,'yscale','log')
-fixfigs(2,3,14,12)
-          
-% %% Find the maximum frequency that the device can run to stay below 90C
+xlabel('Number of tiers')
+ylabel('Reactance Density')
+fixfigs(3,3,14,12)
+
+
+%% Power consumption vs tier number
+%npads(cind,dind,thind,nind,pind,freq_ind)
+
+% f1 = figure(1);
+% clf
+% 
+% Yplot = [];
+% for nind = 1:num_stacks
+%     pvec = zeros(1,num_perms);
+%     pvec(1:end) = power(1,1, 1 ,nind, : ,1);
+%     pvec = fliplr(pvec);
+%     Yplot = [Yplot; pvec];
+%     
+% end
+% b = bar(Yplot,1.0,'group');
+% set(b(1),'FaceColor',[0.00 0.00 0.85])
+% set(b(2),'FaceColor',[0.00 0.85 0.00])
+% set(b(3),'FaceColor',[0.90 0.90 0.00])
+% set(b(4),'FaceColor',[0.85 0.00 0.00])
+% % pow1 = zeros(1,length(tiers));
+% % pow2 = pow1;
+% % pow1(1:end) = power(1,1, 1 ,:, end ,1);
+% % pow2(1:end) = power(1,1, 1 ,:, 1 ,1);
+% % plot(tiers,pow1,'b');
+% % hold on
+% % plot(tiers,pow2,'r');
+% xlabel('Number of tiers')
+% ylabel('Total power (W)')
+% xlim([0 9])
+% fixfigs(1,3,14,12)
+% legend({'\epsilon_r = 3.9','\epsilon_r = 3.0','\epsilon_r = 2.0','\epsilon_r = 1.0'},'fontweight','bold')
+% legend('boxoff')
+% 
+% 
+% f2 = figure(2);
+% clf
+% hold on
+% col = [0 0 0; 0 0 1; 0 1 0 ; 1 0 0];
+% for pind = num_perms:-1:1
+%     pvec = zeros(1,num_stacks);
+%     pvec(1:end) = power(1,1, 1 ,:, pind ,1);
+%     %pvec = fliplr(pvec);
+%     plot(tiers,pvec,'linestyle','-','color',col((num_perms-pind+1),:))
+%     
+% end
+% ylim([0 35])
+% xlabel('Number of tiers')
+% ylabel('Total power (W)')
+% fixfigs(2,3,14,12)
+
+% tsv_ars = [ 5 10 20];
+% tsv_area_fracs = [ 0.01 0.1 0.1];
+% heat_fluxes = tsv_ars;
+% frequencies = tsv_area_fracs;
+
+%npads(cind,dind,thind,nind,pind,freq_ind)
+
+
+%%
+% %% Plot number of PSN TSVs for different configurations
+% 
+% %npads(cind,dind,thind,nind,pind,freq_ind)
+% Yplot = [ npads(1,2, 1 ,1, 1 ,1)   npads(1,2, 2 ,1, 1 ,1)   npads(1,2, 3 ,1, 1 ,1)   npads(1,2, 1 ,1, 4 ,1)   npads(1,2, 2 ,1, 4 ,1)   npads(1,2, 3 ,1, 4 ,1);
+%           npads(1,2, 1 ,2, 1 ,1)   npads(1,2, 2 ,2, 1 ,1)   npads(1,2, 3 ,2, 1 ,1)   npads(1,2, 1 ,2, 4 ,1)   npads(1,2, 2 ,2, 4 ,1)   npads(1,2, 3 ,2, 4 ,1);
+%           npads(1,2, 1 ,3, 1 ,1)   npads(1,2, 2 ,3, 1 ,1)   npads(1,2, 3 ,3, 1 ,1)   npads(1,2, 1 ,3, 4 ,1)   npads(1,2, 2 ,3, 4 ,1)   npads(1,2, 3 ,3, 4 ,1);
+%           npads(1,2, 1 ,4, 1 ,1)   npads(1,2, 2 ,4, 1 ,1)   npads(1,2, 3 ,4, 1 ,1)   npads(1,2, 1 ,4, 4 ,1)   npads(1,2, 2 ,4, 4 ,1)   npads(1,2, 3 ,4, 4 ,1)];
+%       
+% f1 = figure(1);
+% clf
+% bar(Yplot,'group')
+% set(gca,'yscale','log')
+% set(gca,'xtickmode','manual')
+% set(gca,'xtick',[1 2 3 4])
+% set(gca,'xticklabel',[1 2 4 8])
+% xlabel('Number of tiers')
+% ylabel('Number of power delivery TSVs')
+% fixfigs(1,3,14,12)
+% 
+% 
+% %% Plot the number of PSN TSVs vs. decap
+% %npads(cind,dind,thind,nind,pind,freq_ind)
+% f2 = figure(2);
+% clf
+% plot_color = [0 0 0; 0 0 1; 1 0 0; 0 1 0];
+% %plot_styles = {'-','-','--','--','-','-','--','--'};
+% hold on
+% 
+% pinds_to_plot = [1 4];
+% num_pinds_to_plot = length(pinds_to_plot);
+% Yplot2 = [];
+% for nind = 1:num_stacks
+%     yvec = zeros(1,num_pinds_to_plot*num_decaps);
+%     for pindind = 1:num_pinds_to_plot
+%         pind = rel_permittivities(pindind);
+%         for dind = 1:num_decaps
+%             freq_ind = 1;
+%             cind = 1;
+%             thind = 1;
+%             yvec((pindind-1)*num_decaps + dind) = npads(cind,dind,thind,nind,pind,freq_ind);
+%         end
+%     end
+%     
+%     %Yplot2(nind,:) = yvec;
+%     Yplot2 = [Yplot2; yvec];
+% end
+%             
+% bar(Yplot2,'group')
+% set(gca,'yscale','log')
+% set(gca,'xtickmode','manual')
+% set(gca,'xtick',[1 2 3 4])
+% set(gca,'xticklabel',[1 2 4 8])
+% xlabel('Number of tiers')
+% ylabel('Number of power delivery TSVs')
+% fixfigs(2,3,14,12)
+% 
+% 
+% 
+% %% Plot the number of PSN TSVs vs. decap
+% %npads(cind,dind,thind,nind,pind,freq_ind)
+% f3 = figure(3);
+% clf
+% plot_color = [0 0 0; 0 0 1; 1 0 0; 0 1 0];
+% %plot_styles = {'-','-','--','--','-','-','--','--'};
+% hold on
+% 
+% pinds_to_plot = [4];
+% num_pinds_to_plot = length(pinds_to_plot);
+% Yplot3 = [];
+% for nind = 1:num_stacks
+%     yvec = zeros(1,num_pinds_to_plot*num_decaps);
+%     for pindind = 1:num_pinds_to_plot
+%         pind = pinds_to_plot(pindind);
+%         for dind = 1:num_decaps
+%             freq_ind = 1;
+%             cind = 1;
+%             thind = 2;
+%             yvec((pindind-1)*num_decaps + dind) = npads(cind,dind,thind,nind,pind,freq_ind);
+%         end
+%     end
+%     %yvec
+%     %Yplot2(nind,:) = yvec;
+%     Yplot3 = [Yplot3; yvec];
+% end
+%             
+% b = bar(Yplot3,0.8,'group');
+% set(b(1),'FaceColor',[ 0 0 0.85])
+% set(b(2),'FaceColor',[0.9 0.9 0])
+% set(b(3),'FaceColor',[0.85 0 0])
+% set(gca,'yscale','log')
+% set(gca,'xtickmode','manual')
+% set(gca,'xtick',[1 2 3 4])
+% set(gca,'xticklabel',[1 2 4 8])
+% xlabel('Number of tiers')
+% ylabel('Number of power delivery TSVs')
+% fixfigs(3,3,14,12)
+%     
+
+
+
+
+
+
+
+%% Find the maximum frequency that the device can run to stay below 90C
 % Tmax = 90;
 % fmax_temp_limited = zeros(num_cooling_configs,num_thicks,num_perms,length(tiers));
 % 
