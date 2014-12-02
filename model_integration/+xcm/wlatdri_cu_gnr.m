@@ -207,7 +207,7 @@ while (Lm >= 0 && n < max_layers)
             
             resistivity_bulk = rho_m_alt_em;
             
-        	[width_cu pitch_cu delay_cu R_cu C_cu C_pul_cu rho_cu] = xcm.find_best_cu_wire( ...
+        	[width_met pitch_met delay_met R_met C_met C_pul_met rho_met] = xcm.find_best_cu_wire( ...
                 delay_max, width_guess, min_pitch, resistivity_bulk, wire_length, width_fraction, ...
                 aspect_ratio, electron_mfp, specularity_coeff, reflection_coeff, epsr_dielectric );
             
@@ -218,7 +218,7 @@ while (Lm >= 0 && n < max_layers)
             
             resistivity_bulk = rho_m_alt_em;
             
-            [width_cu_rep pitch_cu_rep delay_cu_rep R_cu_rep C_cu_rep C_pul_cu_rep rho_cu_rep] = xcm.find_best_cu_wire_with_repeaters( ...
+            [width_met_rep pitch_met_rep delay_met_rep R_met_rep C_met_rep C_pul_met_rep rho_met_rep] = xcm.find_best_cu_wire_with_repeaters( ...
                 delay_max, repeater_fraction_n, Ro, Co, width_guess, min_pitch, resistivity_bulk, ...
                 wire_length, width_fraction, aspect_ratio, electron_mfp, specularity_coeff, ...
                  reflection_coeff, epsr_dielectric );
@@ -245,7 +245,11 @@ while (Lm >= 0 && n < max_layers)
     
     if(use_repeaters )
         material_metal = material_rep;
-        pn_vec(n) = pitch_cu_rep;
+        if(material_rep == 3)
+            pn_vec(n) = pitch_met_rep;
+        else
+            pn_vec(n) = pitch_cu_rep;
+        end
         wire_width_vec(n) = width_cu_rep;
         pn_cu_vec(n) = pitch_cu_rep;
         pn_orig_vec(n) = pitch_cu;
@@ -254,8 +258,12 @@ while (Lm >= 0 && n < max_layers)
         
     else % use normal wire parameters
         material_metal = material_norep;
+        if(material_norep == 3)
+            pn_vec(n) = pitch_met;
+        else
+            pn_vec(n) = pitch_cu;
+        end
         pn_orig_vec(n) = pitch_cu;
-        pn_vec(n) = pitch_cu;
         wire_width_vec(n) = width_cu;
         pn_cu_vec(n) = pitch_cu;
         rho_vec(n) = rho_cu;
