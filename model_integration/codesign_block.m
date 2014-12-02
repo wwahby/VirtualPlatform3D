@@ -99,6 +99,7 @@ mu_m = wire.permeability_rel*mu0;
 %% Run twice to jump close to where we need to be
 norm_err_min = 1e3; % setting this to an arbitrarily high value to start
 
+fprintf('\tLimiting search space...\n')
 [psn_max RTSV LTSV cap_density l_unit_cell] = power_noise.calc_psn(psn,power,chip,tsv,rho_m,mu_m,chip.temperature);
 psn.noise = psn_max;
 psn.Rtsv = RTSV;
@@ -116,7 +117,7 @@ if (norm_err < norm_err_min) % new high score!
     psn_best = psn;
 end
 
-dispstr = sprintf('\tpsn_runs: %d\tNpads_1d: %d\tpsn_target: %d\tpsn_max: %d\trel_err: %.3g',0,psn.Npads_1d, psn.noise_target, psn_max,rel_err);	
+dispstr = sprintf('\tpsn_runs: %d\tNpads: %d\tpsn_target: %d\tpsn_max: %d\trel_err: %.3g',0,psn.Npads, psn.noise_target, psn_max,rel_err);	
 disp(dispstr)
 
 
@@ -141,11 +142,12 @@ npads_first_linear_bound = psn.Npads_1d;
 err_first_linear_bound = norm_err;
 psn_first_linear_bound = psn;
 
-dispstr = sprintf('\tpsn_runs: %d\tNpads_1d: %d\tpsn_target: %.3g\tpsn_max: %.3g\trel_err: %.3g',0,psn.Npads_1d, psn.noise_target, psn_max,rel_err);	
+dispstr = sprintf('\tpsn_runs: %d\tNpads: %d\tpsn_target: %.3g\tpsn_max: %.3g\trel_err: %.3g',0,psn.Npads, psn.noise_target, psn_max,rel_err);	
 disp(dispstr)
 
 
 %% Find bounds for binary search
+fprintf('\tFinding bounds for binary search...\n')
 psn_target = psn.noise_target;
 npads_1d = psn.Npads_1d;
 npads = psn.Npads;
@@ -207,8 +209,8 @@ elseif(psn_max > psn_target)
     end
 %     lbnd = npads_1d_old;
 %     rbnd = npads_1d;
-    lbnd = npads;
-    rbnd = npads_old;
+    lbnd = npads_old;
+    rbnd = npads;
 end
 
 % npads_second_linear_bound = psn.Npads_1d;
