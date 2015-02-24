@@ -72,11 +72,11 @@ rent_exp_mem = 0.4;
 rent_exp_gpu = 0.55;
 
 %% 
-tiers = 1:8;
-thicknesses = [10e-6];
+tiers = [1 2 4 8];
+thicknesses = [1e-6];
 force_thickness = 1;
 rel_permittivities = [3.0];
-frequencies = [fmax_core];
+frequencies = logspace(9,10,11);
 heat_fluxes = [ h_air ];
 decap_ratios = [0.01 0.1 1.0];
 
@@ -195,93 +195,93 @@ fprintf('\nTotal time elapsed for parameter sweep: %.3g seconds\n\n',(t_sweep_st
 
 
 %% Power TSVs vs tiers and decap
-
-f1 = figure(1);
-clf
-Yplot = [];
-hold on
-
-Lmat = [];
-Cmat = [];
-for nind = 1:num_stacks
-    pvec = zeros(1,num_decaps);
-    lvec = zeros(1,num_decaps);
-    cvec = zeros(1,num_decaps);
-    pvec(1:end) = npads(1,:,1,nind,1,1);
-    lvec(1:end) = Ltsv_m2(1,:,1,nind,1,1);
-    cvec(1:end) = cap_density(1,:,1,nind,1,1);
-    Yplot = [Yplot; pvec];
-    Lmat = [Lmat ; lvec];
-    Cmat = [Cmat ; cvec];
-end
-
-A_ptsv_single = (10e-3)^2; % mm^2
-A_ptsvs = Yplot * A_ptsv_single;
-A_decap = ones(size(Yplot));
-A_decap(:,1) = 0.01;
-A_decap(:,2) = 0.1;
-A_decap(:,3) = 1.0;
-A_decap = A_decap * Ach_mm2_core;
-
-A_pow_tot = A_decap + A_ptsvs;
-
-b = bar(Yplot,1.0,'group');
-set(b(1),'FaceColor',[ 0 0 0.85])
-set(b(2),'FaceColor',[0.9 0.9 0])
-set(b(3),'FaceColor',[0.85 0 0])
-set(gca,'yscale','log')
-set(gca,'xtickmode','manual')
-set(gca,'xtick',1:num_stacks)
-set(gca,'xticklabel',tiers)
-xlim([min(tiers)-0.5 max(tiers)+0.5])
-xlabel('Number of tiers')
-ylabel('Number of power delivery TSVs')
-fixfigs(1,3,14,12)
-legend({'1%','10%','100%'},'location','nw','fontweight','bold')
-%legend({'Limited on-chip decoupling','Extensive on-chip decoupling','Interposer-based decoupling'},'location','nw','fontweight','bold')
-legend('boxoff')
-
-
-f2 = figure(2);
-clf;
-% b = bar(A_ptsvs./Ach_mm2_core,1.0,'group');
+% 
+% f1 = figure(1);
+% clf
+% Yplot = [];
+% hold on
+% 
+% Lmat = [];
+% Cmat = [];
+% for nind = 1:num_stacks
+%     pvec = zeros(1,num_decaps);
+%     lvec = zeros(1,num_decaps);
+%     cvec = zeros(1,num_decaps);
+%     pvec(1:end) = npads(1,:,1,nind,1,1);
+%     lvec(1:end) = Ltsv_m2(1,:,1,nind,1,1);
+%     cvec(1:end) = cap_density(1,:,1,nind,1,1);
+%     Yplot = [Yplot; pvec];
+%     Lmat = [Lmat ; lvec];
+%     Cmat = [Cmat ; cvec];
+% end
+% 
+% A_ptsv_single = (10e-3)^2; % mm^2
+% A_ptsvs = Yplot * A_ptsv_single;
+% A_decap = ones(size(Yplot));
+% A_decap(:,1) = 0.01;
+% A_decap(:,2) = 0.1;
+% A_decap(:,3) = 1.0;
+% A_decap = A_decap * Ach_mm2_core;
+% 
+% A_pow_tot = A_decap + A_ptsvs;
+% 
+% b = bar(Yplot,1.0,'group');
 % set(b(1),'FaceColor',[ 0 0 0.85])
 % set(b(2),'FaceColor',[0.9 0.9 0])
 % set(b(3),'FaceColor',[0.85 0 0])
-hold on
-cols = [ 0 0 1; 0 1 0; 1 0 0; 0 0 0; 0 0 1; 0 1 0; 1 0 0; 0 0 0; 0 0 1; 0 1 0; 1 0 0; 0 0 0];
-for dind = 1:num_decaps
-    plot(tiers,A_ptsvs(:,dind)','color',cols(dind,:))
-end
-    
-set(gca,'yscale','log')
+% set(gca,'yscale','log')
 % set(gca,'xtickmode','manual')
-% set(gca,'xtick',[1 2 3 4])
-% set(gca,'xticklabel',[1 2 4 8])
-xlabel('Number of tiers')
-ylabel('Fraction of chip required for power TSVs')
-fixfigs(2,3,14,12)
-%legend({'1%','10%','100%'},'location','nw','fontweight','bold')
-%legend({'Limited on-chip decoupling','Extensive on-chip decoupling','Interposer-based decoupling'},'location','nw','fontweight','bold')
-%legend('boxoff')
-
-f3 = figure(3)
-clf;
-hold on
-cols = [ 0 0 1; 0 1 0; 1 0 0; 0 0 0; 0 0 1; 0 1 0; 1 0 0; 0 0 0; 0 0 1; 0 1 0; 1 0 0; 0 0 0];
-for dind = 1:num_decaps
-    plot(tiers,Cmat(:,dind)','color',cols(dind,:),'linestyle','--')
-    plot(tiers,Lmat(:,dind)','color',cols(dind,:),'linestyle','-')
-end
-set(gca,'yscale','log')
-xlabel('Number of tiers')
-ylabel('Reactance Density')
-fixfigs(3,3,14,12)
+% set(gca,'xtick',1:num_stacks)
+% set(gca,'xticklabel',tiers)
+% xlim([min(tiers)-0.5 max(tiers)+0.5])
+% xlabel('Number of tiers')
+% ylabel('Number of power delivery TSVs')
+% fixfigs(1,3,14,12)
+% legend({'1%','10%','100%'},'location','nw','fontweight','bold')
+% %legend({'Limited on-chip decoupling','Extensive on-chip decoupling','Interposer-based decoupling'},'location','nw','fontweight','bold')
+% legend('boxoff')
+% 
+% 
+% f2 = figure(2);
+% clf;
+% % b = bar(A_ptsvs./Ach_mm2_core,1.0,'group');
+% % set(b(1),'FaceColor',[ 0 0 0.85])
+% % set(b(2),'FaceColor',[0.9 0.9 0])
+% % set(b(3),'FaceColor',[0.85 0 0])
+% hold on
+% cols = [ 0 0 1; 0 1 0; 1 0 0; 0 0 0; 0 0 1; 0 1 0; 1 0 0; 0 0 0; 0 0 1; 0 1 0; 1 0 0; 0 0 0];
+% for dind = 1:num_decaps
+%     plot(tiers,A_ptsvs(:,dind)','color',cols(dind,:))
+% end
+%     
+% set(gca,'yscale','log')
+% % set(gca,'xtickmode','manual')
+% % set(gca,'xtick',[1 2 3 4])
+% % set(gca,'xticklabel',[1 2 4 8])
+% xlabel('Number of tiers')
+% ylabel('Fraction of chip required for power TSVs')
+% fixfigs(2,3,14,12)
+% %legend({'1%','10%','100%'},'location','nw','fontweight','bold')
+% %legend({'Limited on-chip decoupling','Extensive on-chip decoupling','Interposer-based decoupling'},'location','nw','fontweight','bold')
+% %legend('boxoff')
+% 
+% f3 = figure(3)
+% clf;
+% hold on
+% cols = [ 0 0 1; 0 1 0; 1 0 0; 0 0 0; 0 0 1; 0 1 0; 1 0 0; 0 0 0; 0 0 1; 0 1 0; 1 0 0; 0 0 0];
+% for dind = 1:num_decaps
+%     plot(tiers,Cmat(:,dind)','color',cols(dind,:),'linestyle','--')
+%     plot(tiers,Lmat(:,dind)','color',cols(dind,:),'linestyle','-')
+% end
+% set(gca,'yscale','log')
+% xlabel('Number of tiers')
+% ylabel('Reactance Density')
+% fixfigs(3,3,14,12)
 
 
 %% Power consumption vs tier number
-%npads(cind,dind,thind,nind,pind,freq_ind)
-
+% %npads(cind,dind,thind,nind,pind,freq_ind);
+% 
 % f1 = figure(1);
 % clf
 % 
@@ -324,17 +324,36 @@ fixfigs(3,3,14,12)
 %     plot(tiers,pvec,'linestyle','-','color',col((num_perms-pind+1),:))
 %     
 % end
-% ylim([0 35])
+% %ylim([0 35])
 % xlabel('Number of tiers')
 % ylabel('Total power (W)')
 % fixfigs(2,3,14,12)
-
+% 
 % tsv_ars = [ 5 10 20];
 % tsv_area_fracs = [ 0.01 0.1 0.1];
 % heat_fluxes = tsv_ars;
 % frequencies = tsv_area_fracs;
 
-%npads(cind,dind,thind,nind,pind,freq_ind)
+%% Communication power fraction
+figure(1)
+clf
+hold on
+col = [0 0 0; 0 0 1; 0 1 0 ; 1 0 0];
+for nind = 1:num_stacks
+    pvec = zeros(1,num_freqs);
+    pow_vec = zeros(1,num_freqs);
+    comm_pow_vec = zeros(1,num_freqs);
+    pow_vec(1:end) = power(1,1,1,nind,1,:);
+    comm_pow_vec(1:end) = wire_power(1,1,1,nind,1,:) + rep_power(1,1,1,nind,1,:);
+    comm_pow_frac_vec = comm_pow_vec./pow_vec;
+    plot(frequencies/1e9,comm_pow_frac_vec,'linestyle','-','color',col(nind,:)) ;
+end
+xlim([1 10])
+ylim([0 1])
+xlabel('Clock Frequency (GHz)')
+ylabel('On-chip communication power fraction')
+fixfigs(1,3,14,12)
+%npads(cind,dind,thind,nind,pind,freq_ind);
 
 
 %%

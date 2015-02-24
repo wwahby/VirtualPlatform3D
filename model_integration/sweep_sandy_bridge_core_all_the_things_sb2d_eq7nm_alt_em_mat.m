@@ -10,7 +10,7 @@ simulation.separate_wiring_tiers = 1; % 1 = Each logic plane will have its own w
 
 %% Logic core parameters
 
-compression_factor = 4.57; % 32nm/compression_factor = node. 1 = normal 32nm test case, 4.57 = 7nm.
+compression_factor = 1; % 32nm/compression_factor = node. 1 = normal 32nm test case, 4.57 = 7nm.
 Ng_core = 86e6/4;
 Ach_mm2_core = 18.5/(compression_factor^2);
 gate_pitch_core = 465e-9*2/compression_factor;
@@ -73,10 +73,10 @@ rent_exp_mem = 0.4;
 rent_exp_gpu = 0.55;
 
 %% 
-tiers = [0 1];
+tiers = [0 1 0];
 thicknesses = [50e-6];
 force_thickness = 1;
-rel_permittivities = linspace(10,60,51)*1e-9;% linspace(0.5,3,41)*17.2e-9;
+rel_permittivities = linspace(10,60,151)*1e-9;% linspace(0.5,3,41)*17.2e-9;
 frequencies = [fmax_core];
 heat_fluxes = [ h_air ];
 %decap_ratios = [1e-2 1e-1:1e-1:1];
@@ -125,7 +125,7 @@ for cind = 1:num_cooling_configs
                         epsrd = 3.0;%rel_permittivities(pind);
                         fmax_core = frequencies(freq_ind);
                         
-                        cfs = [1 32/7];
+                        cfs = [1 32/7 32/7];
                         compression_factor = cfs(nind); % 32nm/compression_factor = node. 1 = normal 32nm test case, 4.57 = 7nm.
                         Ng_core = 86e6/4;
                         Ach_mm2_core = 18.5/(compression_factor^2);
@@ -151,7 +151,7 @@ for cind = 1:num_cooling_configs
                         %core.psn.mismatch_tolerance = 0.01;
                         %% Tweak wiring parameters
                         core.wire.repeater_fraction = [0.3]; % 1 is default from gen_basic_proc_settings
-                        core.wire.routing_efficiency = [0.6]; % 0.4 is default from gen_basic_proc_settings
+                        core.wire.routing_efficiency = [0.62]; % 0.4 is default from gen_basic_proc_settings
                         core.wire.use_graphene = 0;
                         simulation.force_thickness = force_thickness;
                         core.chip.thickness_nominal = die_thickness;
@@ -160,8 +160,8 @@ for cind = 1:num_cooling_configs
                         
                         %core.wire.resistivity = rel_permittivities(pind);
                         core.wire.use_em_resistant_metal = tiers(nind);   % (-) Allow or disallow use of electromigration-resistant metals below a specified minimum pitch
-                        core.wire.min_non_em_width = 35e-9; % (m) If use_em_resistant_metal is set to 1, Cu resistivity will be replaced with wire.alt_resistivity_em below this pitch
-                        if (nind == 1)
+                        core.wire.min_non_em_width = 25e-9; % (m) If use_em_resistant_metal is set to 1, Cu resistivity will be replaced with wire.alt_resistivity_em below this pitch
+                        if (tiers(nind) == 0)
                             core.wire.resistivity = rel_permittivities(pind);
                         else
                             core.wire.alt_resistivity_em = rel_permittivities(pind);
@@ -228,6 +228,7 @@ wpvec = pvec;
 rpvec = pvec;
 nmvec = pvec;
 nmvec_norm = pvec;
+nmvec_all = pvec;
 for pind = 1:num_perms
    
     pvec(pind) = power(1,1,1,2,pind,1);
@@ -235,6 +236,7 @@ for pind = 1:num_perms
     rpvec(pind) = rep_power(1,1,1,2,pind,1);
     nmvec_norm(pind) = length(wire_cell{1,1,1,1,pind,1}.pn);
     nmvec(pind) = length(wire_cell{1,1,1,2,pind,1}.pn);
+    nmvec_all(pind) = length(wire_cell{1,1,1,3,pind,1}.pn);
 end
 plot(rel_permittivities*1e9,pvec,'b')
 plot(rel_permittivities*1e9,wpvec,'g')   
@@ -252,13 +254,14 @@ clf
 hold on
 plot(rel_permittivities*1e9,nmvec,'b')
 plot(rel_permittivities*1e9,nmvec_norm,'k')
+plot(rel_permittivities*1e9,nmvec_all,'b--')
 xlabel('Wire Resistivity ({\Omega}\cdotnm)')
 ylabel('Number of Metal Levels')
 xlim([10 60])
-ylim([5.8 12.2])
-set(gca,'ytickmode','manual')
-set(gca,'ytick',7:12)
-set(gca,'yticklabel',7:12)
+ylim([4.8 11.2])
+% set(gca,'ytickmode','manual')
+% set(gca,'ytick',7:12)
+% set(gca,'yticklabel',7:12)
 fixfigs(2,3,14,12)
 %% Power consumption vs tier number
 %npads(cind,dind,thind,nind,pind,freq_ind)
