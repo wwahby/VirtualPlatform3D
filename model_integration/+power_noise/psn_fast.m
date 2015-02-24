@@ -130,7 +130,7 @@ for j=1:1:Nf
     
     Vp(j)=Up(j)-Js(layer)/2/s/Cd(layer);
     AbsVp(j)=abs(Vp(j));
-    Deg(j)=phase(Vp(j))/pi*180;
+    Deg(j)=unwrap(angle(Vp(j))/pi*180);
     Db(j)=20*log10(AbsVp(j));
 end
 
@@ -167,9 +167,10 @@ NFFT=2^nextpow2(length(v));
 Y = fft(v,NFFT);%/NFFT;
 Fs=1/(tstep);
 f1 = Fs/2*linspace(0,1,NFFT/2+1);
-fft_sys_phase=interp1(f,Deg,f1,'cubic',90);
-fft_sys_mag=interp1(f,10.^(Db/20),f1,'cubic',1e-5);
-fft_sys=(fft_sys_mag).*exp(1i*deg2rad(fft_sys_phase));
+fft_sys_phase=interp1(f,Deg,f1,'pchip',90);
+fft_sys_phase_rad = fft_sys_phase * pi/180;
+fft_sys_mag=interp1(f,10.^(Db/20),f1,'pchip',1e-5);
+fft_sys=(fft_sys_mag).*exp(1i*fft_sys_phase_rad);
 
 pval_sys=sum(fft_sys_mag.^2);
 output=Y(1:NFFT/2+1).*fft_sys;
