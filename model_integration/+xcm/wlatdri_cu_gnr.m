@@ -61,8 +61,8 @@ wire.wla_attempts = wire.wla_attempts + 1;
 %% Repeater constraints
 % Min inverter size (estimate)
 Ainv_min = gate_pitch^2/4;
-repeater_area_fraction = 0.10;
-repeater_via_area_fraction = 0.01;
+repeater_area_fraction = wire.repeater_max_area_fraction; %0.10;
+repeater_via_area_fraction = wire.repeater_via_max_area_fraction; %0.01;
 
 %%
 chi = 2/3; % conversion factor -- converts between point-to-point wirelength and total net length

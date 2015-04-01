@@ -29,11 +29,12 @@ chip.thickness_nominal = 50e-6; % (m) Nominal substrate thickness
 %% Transistor and gate parameters
 transistor.gate_length = w_trans;
 transistor.oxide_rel_permittivity = 25; % HfO2
-transistor.oxide_thickness = 1e-9;
-transistor.leakage_current_per_micron = 10e-9; %(A/um)
+transistor.oxide_thickness = 1.0e-9; %2.5e-9; %1.0e-9 %(nm)
+transistor.leakage_current_per_micron = 100e-9; %(A/um)
+transistor.capacitance_per_micron = 1.25e-15; % (F/um)
 transistor.capacitance = transistor.oxide_rel_permittivity*eps0*transistor.gate_length^2/transistor.oxide_thickness;
 transistor.subthreshold_swing = .060; % (V/decade at 300K)
-transistor.Vt = 0.25; % (V) - Threhsold voltage
+transistor.Vt = 0.25; % (V) - Threshold voltage
 
 gate.output_resistance = 8e3;   % (Ohm) Output resistance of a minimum-sized 2in NAND gate
 gate.num_transistors = 4;       % (-) number of transistors per average logic gate
@@ -60,6 +61,8 @@ wire.use_graphene = 0;          % (-) Allow or disallow graphene use
 wire.use_em_resistant_metal = 0;   % (-) Allow or disallow use of electromigration-resistant metals below a specified minimum pitch
 wire.min_non_em_width = 50e-9; % (m) If use_em_resistant_metal is set to 1, Cu resistivity will be replaced with wire.alt_resistivity_em below this pitch
 wire.alt_resistivity_em = 30e-9;    %(Ohm*m) Resistivity of alternate EM-resistant metal
+wire.repeater_max_area_fraction = 0.1; % (-) Fraction of chip area that can be consumed by repeater/buffer gates
+wire.repeater_via_max_area_fraction = 0.01; % (-) Fraction of routable wire area that can be consumed by vias for repeater connections
 
 %% Power supply noise model parameters
 
