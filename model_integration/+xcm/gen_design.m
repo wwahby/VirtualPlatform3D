@@ -166,8 +166,11 @@ swing_at_temp = transistor.subthreshold_swing * (chip.temperature+273)/300; % (V
 Vth = transistor.Vt;
 Vgs = 0;
 Vds = chip.Vdd;
-Ilk = (Ioff*1e6)*(3*w_trans);%*exp( (Vgs-Vth)/swing_at_temp)*(1-exp(-Vds/thermal_voltage)); % [FIX] very coarse leakage model -- update this with something better (incl temp, gate size, etc)
+Ilk = (Ioff*1e6)*(1.5*w_trans);% (1.5 because pmos should have ~3X nmos width, and half the transistors should be pmos)
+%[FIX] very coarse leakage model -- update this with something better (incl temp, gate size, etc)
 
+%Ct = transistor.capacitance_per_micron * w_trans/1e-6;
+%Cox = 4*transistor.capacitance; % (4 because pmos + nmos capacitance in parallel, pmos cap ~3X nmos)
 Cox = 1.5*transistor.capacitance; % (1.5 because pmos should have ~3X nmos width, and half the transistors should be pmos)
 Co = Cox; % Need to include parasitics for realistic estimate
 Co_rep = Cox*repeater.size;
