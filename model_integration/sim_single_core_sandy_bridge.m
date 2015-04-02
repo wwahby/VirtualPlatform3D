@@ -2,7 +2,7 @@
 simulation.use_joyner = 0;
 simulation.redo_wiring_after_repeaters = 0;
 simulation.topdown_WLARI = 1; % Use topdown simultaneous WLA and RI (0 = use standard bottom-up optimal WLA, followed by one pass of RI)
-simulation.skip_psn_loops = 0; % Skip PSN TSV homing for faster debug
+simulation.skip_psn_loops = 1; % Skip PSN TSV homing for faster debug
 simulation.draw_thermal_map = 0; % Plot thermal profile of each chip
 simulation.print_thermal_data = 0; % Output max temp in each layer to console
 simulation.separate_wiring_tiers = 1; % 1 = Each logic plane will have its own wiring tiers between it and the next logic plane
@@ -90,8 +90,11 @@ epsrd = rel_permittivity;
 [core.chip core.transistor core.gate core.tsv core.wire core.psn] = generate_basic_processor_settings(rent_exp_logic,num_layers_per_block,Ng_core,Ach_mm2_core,gate_pitch_core,min_pitch_core,Vdd_core,fmax_core,w_trans);
 %core.psn.mismatch_tolerance = 0.01;
 %% Tweak wiring parameters
-core.wire.repeater_fraction = [0.3]; % 1 is default from gen_basic_proc_settings
-core.wire.routing_efficiency = [0.6]; % 0.4 is default from gen_basic_proc_settings
+core.wire.repeater_fraction = [0.5]; % 1 is default from gen_basic_proc_settings
+core.wire.routing_efficiency = [0.5]; % 0.4 is default from gen_basic_proc_settings
+core.wire.repeater_max_area_fraction = 0.3; % (-) Fraction of chip area that can be consumed by repeater/buffer gates
+core.wire.repeater_via_max_area_fraction = 0.05; % (-) Fraction of routable wire area that can be consumed by vias for repeater connections
+
 core.wire.use_graphene = 0;
 simulation.force_thickness = force_thickness;
 core.chip.thickness_nominal = die_thickness;
@@ -121,6 +124,22 @@ heat.up = heat_flux_top;        % above chip
 
 t_sweep_stop = cputime;
 fprintf('\nTotal time elapsed for parameter sweep: %.3g seconds\n\n',(t_sweep_stop-t_sweep_start));
+
+
+%% Plots
+
+intel_pitch = [112.5 112.5 112.5 168.8 225 337.6 450.1 566.5 19400  ]; % Actual intel data
+intel_pitch_no_pow = [112.5 112.5 112.5 168.8 225 337.6 450.1 566.5];
+intel_power_total = 73;
+
+figure(1)
+clf
+hold on
+plot(intel_pitch_no_pow,'k','linewidth',2)
+plot(core.wire.pn*1e9,'b-','linewidth',2)
+
+xlabel('Wiring tier')
+ylabel('Wire Pitch (nm)')
 
 
 
