@@ -1,4 +1,4 @@
-function [chip transistor gate tsv wire psn] = generate_basic_processor_settings(rent_exp,num_layers,Ng,Ach_mm2,gate_pitch,min_pitch,Vdd,fmax,w_trans)
+function [chip, transistor, gate, tsv, wire, psn, heat] = generate_basic_processor_settings(rent_exp,num_layers,Ng,Ach_mm2,gate_pitch,min_pitch,Vdd,fmax,w_trans)
 % simple function to setup standard CPU settings
 
 S = num_layers;
@@ -86,6 +86,47 @@ psn.package_inductance = 0.5e-9;    % (H) Inductance per package pad
 % Power TSV determination
 psn.mismatch_tolerance = 0.01;      % (-) Allowable normalized deviation from noise target
 
-%% General simulation parameters
-simulation.force_thickness = 0;
+%% Thermal parameters
+%the heat transfer coefficient
+% r = 1/(hA); A is the size of top surface area
+% the cooling capability of the top heatsink; 20000, 1cm*1cm, means:
+% 0.5 W/K
+% h = q/dT - q = heat flux (W/m^2)
+heat.up = 20000;
+
+% Bottom surface heat transfer coefficient
+% This parameter controls the area directly BELOW the bottom chip
+% If the interposer is larger than the bottom chip, heat.d controls the
+% rest of the area
+% Microfluidic heat sinks are assumed to be as large as the chip in the interposer
+heat.down = 5;  
+
+% Heat transfer coefficient for the interposer area NOT directly underneath
+% the chip(s)
+heat.d = 5;
+
+% Side surface heat coefficient, usually near adiabatic
+heat.side = 5;
+
+heat.Ta = 298; % ambient temperature
+
+% Alternative settings
+q_cm2 = 50; % (W/cm2) Top heat sink max heat flux
+q = q_cm2*1e4; % (W/m2) Top heat sink max heat flux
+dT = 70; % (deg C) Temp difference between chip surface and coolant (air)
+heat.up = q/dT;
+heat.down = 2*heat.up;
+heat.d = heat.down;
+
+heat.interposer_thickness = 200e-6; % (m) Thickness of the interposer below the 3D stack
+heat.bump_thickness = 40e-6;        % (m) Microbump thickness (between interposer and bottom chip of 3D stack)
+heat.underfill_thickness = 5e-6;    % (m) Thickness of underfill material between each die in the 3D stack
+heat.tim_thickness = 5e-6;          % (m) Thickness of thermal interface material between top chip in stack and heat sink
+heat.material_IDs = [ 2 9 3];
+
+% If die thickness is thinner than some limit, we're dealing with a
+% monolithic 3D stack rather than a conventional 3D stack
+heat.monolithic_max_thickness = 30e-6; % (m)
+heat.monolithic_intertier_bond_thickness = 0.2e-6;    % (m) Thickness of oxide layer between ILD and next chip
+heat.monolithic_material_IDs = [ 2 9 5];
 
