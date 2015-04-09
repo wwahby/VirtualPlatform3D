@@ -22,8 +22,8 @@ simulation.force_thickness = 1;
 
 
 %% 32nm Nehalem, single core
-%Ng = 48e6/4;
-Ng_core = 39e6/4;
+%Ng_core = 48e6/4;
+Ng_core = 38e6/4;
 Ach_mm2_core = 18.3;
 gate_pitch_core = 2*693e-9; % average gate pitch (sqrt(A_core/Ngates))
 min_pitch_core = 112.5e-9; % actual contacted gate pitch
@@ -31,6 +31,10 @@ fmax_core = 3.6e9;
 w_trans = 32e-9;
 Vdd_core = 1.40;
 
+% Using Intel_32nm_nehalem_clarkdale_2core_both_dice.jpg
+Ng_core = 42e6/4;
+gate_pitch_core = 2*653e-9; % average gate pitch (sqrt(A_core/Ngates))
+Ach_mm2_core = 18.0;
 
 %% 32nm Nehalem, SRAM
 
@@ -87,7 +91,8 @@ core.wire.repeater_fraction = [0.4]; % 1 is default from gen_basic_proc_settings
 core.wire.routing_efficiency = [0.5]; % 0.4 is default from gen_basic_proc_settings
 core.wire.repeater_max_area_fraction = 0.2; % (-) Fraction of chip area that can be consumed by repeater/buffer gates
 core.wire.repeater_via_max_area_fraction = 0.05; % (-) Fraction of routable wire area that can be consumed by vias for repeater connections
-core.gate.output_resistance = 10e3;
+core.gate.output_resistance = 8e3;
+core.transistor.capacitance = 1e-15*1e6*3*w_trans; % ITRS projection is 1fF/um of gate width. This is an estimate for pMOS transistor capacitance
 core.wire.use_graphene = 0;
 
 
@@ -97,6 +102,7 @@ gpu.wire.use_graphene = core.wire.use_graphene;
 gpu.wire.repeater_max_area_fraction = core.wire.repeater_max_area_fraction;
 gpu.wire.repeater_via_max_area_fraction = core.wire.repeater_via_max_area_fraction;
 gpu.gate.output_resistane = core.gate.output_resistance;
+gpu.transistor_capacitance = core.transistor.capacitance;
 
 
 con.wire.repeater_fraction = core.wire.repeater_fraction;
@@ -105,6 +111,7 @@ con.wire.use_graphene = core.wire.use_graphene;
 con.wire.repeater_max_area_fraction = core.wire.repeater_max_area_fraction;
 con.wire.repeater_via_max_area_fraction = core.wire.repeater_via_max_area_fraction;
 con.gate.output_resistane = core.gate.output_resistance;
+con.transistor_capacitance = core.transistor.capacitance;
 
 mem.wire.repeater_fraction = core.wire.repeater_fraction;
 mem.wire.routing_efficiency = core.wire.routing_efficiency;
@@ -112,6 +119,7 @@ mem.wire.use_graphene = core.wire.use_graphene;
 mem.wire.repeater_max_area_fraction = core.wire.repeater_max_area_fraction;
 mem.wire.repeater_via_max_area_fraction = core.wire.repeater_via_max_area_fraction;
 mem.gate.output_resistane = core.gate.output_resistance;
+mem.transistor_capacitance = core.transistor.capacitance;
 
 
 %% calculate block parameters
