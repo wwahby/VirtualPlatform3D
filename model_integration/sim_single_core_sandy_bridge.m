@@ -87,13 +87,16 @@ epsrd = rel_permittivity;
 
 %% define parameters
 
-[core.chip core.transistor core.gate core.tsv core.wire core.psn] = generate_basic_processor_settings(rent_exp_logic,num_layers_per_block,Ng_core,Ach_mm2_core,gate_pitch_core,min_pitch_core,Vdd_core,fmax_core,w_trans);
+[core.chip core.transistor core.gate core.tsv core.wire core.psn core.heat] = generate_basic_processor_settings(rent_exp_logic,num_layers_per_block,Ng_core,Ach_mm2_core,gate_pitch_core,min_pitch_core,Vdd_core,fmax_core,w_trans);
 %core.psn.mismatch_tolerance = 0.01;
 %% Tweak wiring parameters
-core.wire.repeater_fraction = [0.5]; % 1 is default from gen_basic_proc_settings
+core.wire.repeater_fraction = [0.4]; % 1 is default from gen_basic_proc_settings
 core.wire.routing_efficiency = [0.5]; % 0.4 is default from gen_basic_proc_settings
-core.wire.repeater_max_area_fraction = 0.3; % (-) Fraction of chip area that can be consumed by repeater/buffer gates
-core.wire.repeater_via_max_area_fraction = 0.05; % (-) Fraction of routable wire area that can be consumed by vias for repeater connections
+core.wire.repeater_max_area_fraction = 0.2;
+core.wire.repeater_via_max_area_fraction = 0.05;
+core.gate.output_resistance = 8e3; % Ohm
+core.transistor.capacitance = 1e-15*1e6*3*w_trans; % ITRS projection is 1fF/um of gate width. This is an estimate for pMOS transistor capacitance
+
 
 core.wire.use_graphene = 0;
 simulation.force_thickness = force_thickness;
@@ -119,7 +122,7 @@ end
 heat.up = heat_flux_top;        % above chip
 
 %% calculate block parameters
-[core.chip core.power core.tsv core.wire core.repeater core.psn] = codesign_block(core.chip,core.tsv,core.gate,core.transistor,core.wire,heat,core.psn,simulation);
+[core.chip core.power core.tsv core.wire core.repeater core.psn] = codesign_block(core.chip,core.tsv,core.gate,core.transistor,core.wire,core.heat,core.psn,simulation);
 
 
 t_sweep_stop = cputime;
