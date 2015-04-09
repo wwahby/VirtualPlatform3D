@@ -5,15 +5,23 @@ function [max_temp temp_vec] = get_stack_temperature(num_layers,die_thickness,wi
 %%%%%%%%%%%%%%%%%%%%%%%geometry information of the chip%%%%%%%%%%%%%%%%%%%
     die.N = num_layers;
     die.model = 3; % for each die, how many layers we model
-    die.material_IDs = heat.material_IDs; % Chip, ILD, underfill
-    die.layer_thicknesses = [die_thickness sum(wire.pn) heat.underfill_thickness];
+    if (die_thickness < heat.monolithic_max_thickness)
+        die.material_IDs = heat.monolithic_material_IDs;
+        die.layer_thicknesses = [die_thickness sum(wire.pn) heat.underfill_thickness];
+        under_thickness = heat.underfill_thickness; % thickness of the bonding material between dice (underfill in this case)
+    else
+        die.material_IDs = heat.material_IDs; % Chip, ILD, underfill
+        die.layer_thicknesses = [die_thickness sum(wire.pn) heat.monolithic_intertier_bond_thickness];
+        under_thickness = heat.monolithic_intertier_bond_thickness; % thickness of the bonding material between dice (oxide in this case)
+    end
+    
 
     % flip chip package; order:
     %heatsink->TIM->CHIP_BULK1->METAL->BONDING->CHIP_BULK2-> ...
     %               CHIP_BULKN->METAL->MICRO-BUMPS->INTERPOSER    
     thick.bump = heat.bump_thickness;  %micro-bump thickness; between second die and interposer
     thick.tim = heat.tim_thickness; %tim thickness; between the chip and heatsink
-    thick.under = heat.underfill_thickness; %underfill bonding thickness; between two dies
+    thick.under = under_thickness; %underfill bonding thickness; between two dies
     thick.inter = heat.interposer_thickness; %interposer thickness
     
     thick.die = die_thickness; %die thickness
