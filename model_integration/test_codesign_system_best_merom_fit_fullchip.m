@@ -22,6 +22,18 @@ w_trans = 65e-9;
 eps0 = 8.854e-12; % (F/m) vacuum permittivity
 %gate_pitch = sqrt( Ach_mm2/1e6/Ng);
 
+
+rent_exp_logic = 0.6;
+num_layers_per_block = 1;
+Ng_core = Ng;
+Ach_mm2_core = Ach_mm2;
+gate_pitch_core = gate_pitch;
+min_pitch_core = min_pitch;
+Vdd_core = 1.25;
+fmax_core = fmax;
+
+[chip, transistor, gate, tsv, wire, psn] = generate_basic_processor_settings(rent_exp_logic,num_layers_per_block,Ng_core,Ach_mm2_core,gate_pitch_core,min_pitch_core,Vdd_core,fmax_core,w_trans);
+
 %% ==================================================
 %  ================ BEGIN SIMULATION ================
 %  ==================================================
@@ -139,6 +151,12 @@ heat.up = q/dT;
 heat.down = 2*heat.up;
 heat.d = heat.down;
 
+heat.interposer_thickness = 200e-6; % (m) Thickness of the interposer below the 3D stack
+heat.bump_thickness = 40e-6;        % (m) Microbump thickness (between interposer and bottom chip of 3D stack)
+heat.underfill_thickness = 5e-6;    % (m) Thickness of underfill material between each die in the 3D stack
+heat.tim_thickness = 5e-6;          % (m) Thickness of thermal interface material between top chip in stack and heat sink
+heat.material_IDs = [ 2 9 3];
+
 %% Simulation parameters
 simulation.use_joyner = 0;
 simulation.redo_wiring_after_repeaters = 0;
@@ -147,12 +165,13 @@ simulation.skip_psn_loops = 1; % Skip PSN TSV homing for faster debug
 simulation.draw_thermal_map = 0; % Plot thermal profile of each chip
 simulation.print_thermal_data = 0; % Output max temp in each layer to console
 simulation.separate_wiring_tiers = 0;
+simulation.force_thickness = 1;
 
 
 
 %% Codesign system
 tic % begin timing
-[core.chip core.power core.tsv core.wire core.repeater core.psn] = codesign_system(chip,tsv,gate,transistor,wire,heat,psn,simulation);
+[core.chip, core.power, core.tsv, core.wire, core.repeater, core.psn] = codesign_block(chip,tsv,gate,transistor,wire,heat,psn,simulation);
 toc % finish timing
 
 %% 65nm Merom, SRAM
@@ -182,7 +201,7 @@ chip.temperature = 25;  % (deg C) Temperature
 chip.thickness_nominal = 50e-6; % (m) Nominal substrate thickness
 
 tic % begin timing
-[mem.chip mem.power mem.tsv mem.wire mem.repeater mem.psn] = codesign_system(chip,tsv,gate,transistor,wire,heat,psn,simulation);
+[mem.chip, mem.power, mem.tsv, mem.wire, mem.repeater, mem.psn] = codesign_block(chip,tsv,gate,transistor,wire,heat,psn,simulation);
 toc % finish timing
 
 
@@ -204,7 +223,7 @@ core1_rel_areas = core1_areas/core1_area;
 core1_rel_powers = core.power.total * core1_rel_areas;
 
 core1_rel_x_coords = [cumsum(fliplr( core1_widths(2:end) ))];
-core1_left_x_coords = mem_width + [fliplr(core1_rel_x_coords) 0]
+core1_left_x_coords = mem_width + [fliplr(core1_rel_x_coords) 0];
 %core1_left_x_coords = mem_width + [cumsum(fliplr( core1_widths(2:end) ))];
 rel_y_coords = [0 0 (core1_heights(2)-core1_heights(3)) (core1_heights(2)-core1_heights(4)) (core1_heights(2)-core1_heights(4)) (core1_heights(2)-core1_heights(4)) ];
 core1_bot_y_coords = chip_height/2 + rel_y_coords;
@@ -245,7 +264,7 @@ chip_power_total = 2*core.power.total + mem.power.total
 package_width = 37.5e-3;
 package_height = 37.5e-3;
 power_therm_vec = chip_power_total;
-[max_temp temp_vec] = get_stack_temperature(core.chip.num_layers,core.chip.thickness,core.wire,core.tsv,chip_width,chip_height,package_width,package_height,heat,simulation,map,blk_num,power_therm_vec)
+[max_temp, temp_vec] = get_stack_temperature(core.chip.num_layers,core.chip.thickness,core.wire,core.tsv,chip_width,chip_height,package_width,package_height,heat,simulation,map,blk_num,power_therm_vec)
 
 %% WLA Validation
 
