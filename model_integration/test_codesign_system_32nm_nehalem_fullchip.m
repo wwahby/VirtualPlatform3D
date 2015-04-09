@@ -17,6 +17,7 @@ simulation.skip_psn_loops = 1; % Skip PSN TSV homing for faster debug
 simulation.draw_thermal_map = 1; % Plot thermal profile of each chip
 simulation.print_thermal_data = 0; % Output max temp in each layer to console
 simulation.separate_wiring_tiers = 1;
+simulation.force_thickness = 1;
 
 
 
@@ -75,73 +76,49 @@ rent_exp_con = 0.6;
 
 %% define parameters
 
-[core.chip core.transistor core.gate core.tsv core.wire core.psn] = generate_basic_processor_settings(rent_exp_logic,num_layers_per_block,Ng_core,Ach_mm2_core,gate_pitch_core,min_pitch_core,Vdd_core,fmax_core,w_trans);
-[mem.chip mem.transistor mem.gate mem.tsv mem.wire mem.psn] = generate_basic_processor_settings(rent_exp_mem,num_layers_per_block,Ng_mem,Ach_mm2_mem,gate_pitch_mem,min_pitch_mem,Vdd_mem,fmax_mem,w_trans);
-[gpu.chip gpu.transistor gpu.gate gpu.tsv gpu.wire gpu.psn] = generate_basic_processor_settings(rent_exp_gpu,num_layers_per_block,Ng_gpu,Ach_mm2_gpu,gate_pitch_gpu,min_pitch_gpu,Vdd_gpu,fmax_gpu,w_trans_gpu);
-[con.chip con.transistor con.gate con.tsv con.wire con.psn] = generate_basic_processor_settings(rent_exp_con,num_layers_per_block,Ng_con,Ach_mm2_con,gate_pitch_con,min_pitch_con,Vdd_con,fmax_con,w_trans_gpu);
+[core.chip core.transistor core.gate core.tsv core.wire core.psn core.heat] = generate_basic_processor_settings(rent_exp_logic,num_layers_per_block,Ng_core,Ach_mm2_core,gate_pitch_core,min_pitch_core,Vdd_core,fmax_core,w_trans);
+[mem.chip mem.transistor mem.gate mem.tsv mem.wire mem.psn mem.heat] = generate_basic_processor_settings(rent_exp_mem,num_layers_per_block,Ng_mem,Ach_mm2_mem,gate_pitch_mem,min_pitch_mem,Vdd_mem,fmax_mem,w_trans);
+[gpu.chip gpu.transistor gpu.gate gpu.tsv gpu.wire gpu.psn gpu.heat] = generate_basic_processor_settings(rent_exp_gpu,num_layers_per_block,Ng_gpu,Ach_mm2_gpu,gate_pitch_gpu,min_pitch_gpu,Vdd_gpu,fmax_gpu,w_trans_gpu);
+[con.chip con.transistor con.gate con.tsv con.wire con.psn con.heat] = generate_basic_processor_settings(rent_exp_con,num_layers_per_block,Ng_con,Ach_mm2_con,gate_pitch_con,min_pitch_con,Vdd_con,fmax_con,w_trans_gpu);
 
 
 %% Tweak wiring parameters
-core.wire.repeater_fraction = [0.3]; % 1 is default from gen_basic_proc_settings
-core.wire.routing_efficiency = [0.4]; % 0.4 is default from gen_basic_proc_settings
-core.gate.output_resistance = 8e3; % Ohm
+core.wire.repeater_fraction = [0.4]; % 1 is default from gen_basic_proc_settings
+core.wire.routing_efficiency = [0.5]; % 0.4 is default from gen_basic_proc_settings
+core.wire.repeater_max_area_fraction = 0.2; % (-) Fraction of chip area that can be consumed by repeater/buffer gates
+core.wire.repeater_via_max_area_fraction = 0.05; % (-) Fraction of routable wire area that can be consumed by vias for repeater connections
+core.gate.output_resistance = 10e3;
 core.wire.use_graphene = 0;
+
 
 gpu.wire.repeater_fraction = core.wire.repeater_fraction;
 gpu.wire.routing_efficiency = core.wire.routing_efficiency;
 gpu.wire.use_graphene = core.wire.use_graphene;
-gpu.gate.output_resistance = 8e3;
+gpu.wire.repeater_max_area_fraction = core.wire.repeater_max_area_fraction;
+gpu.wire.repeater_via_max_area_fraction = core.wire.repeater_via_max_area_fraction;
+gpu.gate.output_resistane = core.gate.output_resistance;
+
 
 con.wire.repeater_fraction = core.wire.repeater_fraction;
 con.wire.routing_efficiency = core.wire.routing_efficiency;
 con.wire.use_graphene = core.wire.use_graphene;
-con.gate.output_resistance = 8e3;
+con.wire.repeater_max_area_fraction = core.wire.repeater_max_area_fraction;
+con.wire.repeater_via_max_area_fraction = core.wire.repeater_via_max_area_fraction;
+con.gate.output_resistane = core.gate.output_resistance;
 
 mem.wire.repeater_fraction = core.wire.repeater_fraction;
 mem.wire.routing_efficiency = core.wire.routing_efficiency;
 mem.wire.use_graphene = core.wire.use_graphene;
-mem.gate.output_resistance = 8e3;
-
-
-%% Thermal parameters
-%the heat transfer coefficient
-% r = 1/(hA); A is the size of top surface area
-% the cooling capability of the top heatsink; 20000, 1cm*1cm, means:
-% 0.5 W/K
-% h = q/dT - q = heat flux (W/m^2)
-heat.up = 20000;
-
-% Bottom surface heat transfer coefficient
-% This parameter controls the area directly BELOW the bottom chip
-% If the interposer is larger than the bottom chip, heat.d controls the
-% rest of the area
-% Microfluidic heat sinks are assumed to be as large as the chip in the interposer
-heat.down = 5;  
-
-% Heat transfer coefficient for the interposer area NOT directly underneath
-% the chip(s)
-heat.d = 5;
-
-% Side surface heat coefficient, usually near adiabatic
-heat.side = 5;
-
-heat.Ta = 298; % ambient temperature
-
-% Alternative settings
-% q_cm2 = 50; % (W/cm2) Top heat sink max heat flux
-% q = q_cm2*1e4; % (W/m2) Top heat sink max heat flux
-% dT = 70; % (deg C) Temp difference between chip surface and coolant (air)
-% heat.up = q/dT;
-% heat.down = 5;
-% heat.d = 5;
-% heat.side = 5;
+mem.wire.repeater_max_area_fraction = core.wire.repeater_max_area_fraction;
+mem.wire.repeater_via_max_area_fraction = core.wire.repeater_via_max_area_fraction;
+mem.gate.output_resistane = core.gate.output_resistance;
 
 
 %% calculate block parameters
-[core.chip core.power core.tsv core.wire core.repeater core.psn] = codesign_block(core.chip,core.tsv,core.gate,core.transistor,core.wire,heat,core.psn,simulation);
-[mem.chip mem.power mem.tsv mem.wire mem.repeater mem.psn] = codesign_block(mem.chip,mem.tsv,mem.gate,mem.transistor,mem.wire,heat,mem.psn,simulation);
-[gpu.chip gpu.power gpu.tsv gpu.wire gpu.repeater gpu.psn] = codesign_block(gpu.chip,gpu.tsv,gpu.gate,gpu.transistor,gpu.wire,heat,gpu.psn,simulation);
-[con.chip con.power con.tsv con.wire con.repeater con.psn] = codesign_block(con.chip,con.tsv,con.gate,con.transistor,con.wire,heat,con.psn,simulation);
+[core.chip core.power core.tsv core.wire core.repeater core.psn] = codesign_block(core.chip,core.tsv,core.gate,core.transistor,core.wire,core.heat,core.psn,simulation);
+[mem.chip mem.power mem.tsv mem.wire mem.repeater mem.psn] = codesign_block(mem.chip,mem.tsv,mem.gate,mem.transistor,mem.wire,mem.heat,mem.psn,simulation);
+[gpu.chip gpu.power gpu.tsv gpu.wire gpu.repeater gpu.psn] = codesign_block(gpu.chip,gpu.tsv,gpu.gate,gpu.transistor,gpu.wire,gpu.heat,gpu.psn,simulation);
+[con.chip con.power con.tsv con.wire con.repeater con.psn] = codesign_block(con.chip,con.tsv,con.gate,con.transistor,con.wire,con.heat,con.psn,simulation);
 
 chip_power_total = 2*core.power.total + mem.power.total + gpu.power.total + con.power.total
 
@@ -244,7 +221,7 @@ map_power = [die2_power die1_power_vec]';
 package_width = 37.5e-3;
 package_height = 37.5e-3;
 power_therm_vec = chip_power_total;
-[max_temp temp_vec] = get_stack_temperature(core.chip.num_layers,core.chip.thickness,core.wire,core.tsv,total_chip_width,total_chip_height,package_width,package_height,heat,simulation,map,blk_num,power_therm_vec)
+[max_temp temp_vec] = get_stack_temperature(core.chip.num_layers,core.chip.thickness,core.wire,core.tsv,total_chip_width,total_chip_height,package_width,package_height,core.heat,simulation,map,blk_num,power_therm_vec)
 
 
 %% WLA Validation
