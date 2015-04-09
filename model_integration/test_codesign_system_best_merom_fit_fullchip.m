@@ -32,7 +32,7 @@ min_pitch_core = min_pitch;
 Vdd_core = 1.25;
 fmax_core = fmax;
 
-[chip, transistor, gate, tsv, wire, psn] = generate_basic_processor_settings(rent_exp_logic,num_layers_per_block,Ng_core,Ach_mm2_core,gate_pitch_core,min_pitch_core,Vdd_core,fmax_core,w_trans);
+[chip, transistor, gate, tsv, wire, psn, heat] = generate_basic_processor_settings(rent_exp_logic,num_layers_per_block,Ng_core,Ach_mm2_core,gate_pitch_core,min_pitch_core,Vdd_core,fmax_core,w_trans);
 wire.routing_efficiency = 0.50;  % (-) Fraction of available area that the wire routing tool can actually use
 wire.repeater_fraction = [0.4]; % (-) fraction of optimal repeaters to insert
 
