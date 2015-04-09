@@ -73,6 +73,7 @@ gpu.wire.routing_efficiency = core.wire.routing_efficiency;
 gpu.gate.output_resistance = core.gate.output_resistance; % Ohm
 gpu.wire.repeater_max_area_fraction = core.wire.repeater_max_area_fraction;
 gpu.wire.repeater_via_max_area_fraction = core.wire.repeater_via_max_area_fraction;
+gpu.transistor_capacitance = core.transistor.capacitance;
 
 
 mem.wire.repeater_fraction = core.wire.repeater_fraction;
@@ -80,6 +81,7 @@ mem.wire.routing_efficiency = core.wire.routing_efficiency;
 mem.gate.output_resistance = core.gate.output_resistance; % Ohm
 mem.wire.repeater_max_area_fraction = core.wire.repeater_max_area_fraction;
 mem.wire.repeater_via_max_area_fraction = core.wire.repeater_via_max_area_fraction;
+mem.transistor_capacitance = core.transistor.capacitance;
 
 %% calculate block parameters
 [core.chip core.power core.tsv core.wire core.repeater core.psn] = codesign_block(core.chip,core.tsv,core.gate,core.transistor,core.wire,core.heat,core.psn,simulation);
@@ -140,15 +142,14 @@ sys_agent_bot_y = mem_io_height;
     %blk_num is for splitting the power maps of each die
     blk_num = [8];
     
-    
 %%
 
 chip_power = 4*core.power.total + mem.power.total + gpu.power.total;
 
 package_width = 37.5e-3;
 package_height = 37.5e-3;
-power_therm_vec = chip_power_total;
-[max_temp temp_vec] = get_stack_temperature(core.chip.num_layers,core.chip.thickness,core.wire,core.tsv,total_chip_width,total_chip_height,package_width,package_height,core.heat,simulation,map,blk_num,power_therm_vec)
+power_therm_vec = chip_power;
+[max_temp temp_vec] = get_stack_temperature(core.chip.num_layers,core.chip.thickness,core.wire,core.tsv,chip_width,chip_height,package_width,package_height,core.heat,simulation,map,blk_num,power_therm_vec)
 
     
 %% Report
