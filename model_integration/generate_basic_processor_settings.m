@@ -111,12 +111,21 @@ heat.side = 5;
 heat.Ta = 298; % ambient temperature
 
 % Alternative settings
+heat.r_air = 1/1.825; %K/W for a 1cm^2 HS
+heat.r_water = 1/4.63; %K/W for a 1cm^2 HS
+heat.A_hs = (1e-2)^2; % 1 cm^2
+
+heat.h_air = 1/(heat.r_air*heat.A_hs);
+heat.h_water = 1/(heat.r_water*heat.A_hs);
+heat.h_package = 5;
+
 q_cm2 = 50; % (W/cm2) Top heat sink max heat flux
 q = q_cm2*1e4; % (W/m2) Top heat sink max heat flux
 dT = 70; % (deg C) Temp difference between chip surface and coolant (air)
-heat.up = q/dT;
-heat.down = 2*heat.up;
-heat.d = heat.down;
+
+heat.up = heat.h_air;
+heat.down = heat.h_package;
+heat.d = heat.h_package;
 
 heat.interposer_thickness = 200e-6; % (m) Thickness of the interposer below the 3D stack
 heat.bump_thickness = 40e-6;        % (m) Microbump thickness (between interposer and bottom chip of 3D stack)
@@ -126,7 +135,7 @@ heat.material_IDs = [ 2 9 3];
 
 % If die thickness is thinner than some limit, we're dealing with a
 % monolithic 3D stack rather than a conventional 3D stack
-heat.monolithic_max_thickness = 30e-6; % (m)
+heat.monolithic_max_thickness = 20e-6; % (m)
 heat.monolithic_intertier_bond_thickness = 0.2e-6;    % (m) Thickness of oxide layer between ILD and next chip
 heat.monolithic_material_IDs = [ 2 9 5];
 
