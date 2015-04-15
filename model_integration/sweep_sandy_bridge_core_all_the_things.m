@@ -19,29 +19,6 @@ w_trans = 32e-9/compression_factor;
 Vdd_core = 1.25;
 
 %% Thermal parameters
-% %the heat transfer coefficient
-% % r = 1/(hA); A is the size of top surface area
-% % the cooling capability of the top heatsink; 20000, 1cm*1cm, means:
-% % 0.5 W/K
-% % h = q/dT - q = heat flux (W/m^2)
-% heat.up = 20000;
-% 
-% % Bottom surface heat transfer coefficient
-% % This parameter controls the area directly BELOW the bottom chip
-% % If the interposer is larger than the bottom chip, heat.d controls the
-% % rest of the area
-% % Microfluidic heat sinks are assumed to be as large as the chip in the interposer
-% heat.down = 5;  
-% 
-% % Heat transfer coefficient for the interposer area NOT directly underneath
-% % the chip(s)
-% heat.d = 5;
-% 
-% % Side surface heat coefficient, usually near adiabatic
-% heat.side = 5;
-% 
-% heat.Ta = 298; % ambient temperature
-
 
 r_air = 1/1.825; %K/W for a 1cm^2 HS
 r_water = 1/4.63; %K/W for a 1cm^2 HS
@@ -49,21 +26,6 @@ A_hs = (1e-2)^2; % 1 cm^2
 
 h_air = 1/(r_air*A_hs);
 h_water = 1/(r_water*A_hs);
-h_package = 5; % it sucks
-
-heat.up = h_air;        % above chip
-heat.down = h_package;     % directly beneath chip
-heat.d = h_package;        % package, not under chip
-heat.side = h_package;          % side
-heat.Ta = 298; % ambient temperature
-
-heat.interposer_thickness = 200e-6; % (m) Thickness of the interposer below the 3D stack
-heat.bump_thickness = 40e-6;        % (m) Microbump thickness (between interposer and bottom chip of 3D stack)
-heat.underfill_thickness = 1e-6;    % (m) Thickness of underfill material between each die in the 3D stack
-heat.tim_thickness = 5e-6;          % (m) Thickness of thermal interface material between top chip in stack and heat sink
-
-heat.material_IDs = [ 2 9 3];
-
 
 
 %%
@@ -72,11 +34,11 @@ rent_exp_mem = 0.4;
 rent_exp_gpu = 0.55;
 
 %% 
-tiers = [1 2 4 8];
-thicknesses = [1e-6];
+tiers = [1];
+thicknesses = [50e-6];
 force_thickness = 1;
-rel_permittivities = 1:4;
-frequencies = 1e9;
+rel_permittivities = linspace(1,4,101);
+frequencies = fmax_core;
 heat_fluxes = [ h_air ];
 decap_ratios = [0.1];
 wire_resistivities = [17.2e-9];
@@ -139,7 +101,7 @@ for cind = 1:num_cooling_configs
 
                             %% define parameters
 
-                            [core.chip, core.transistor, core.gate, core.tsv, core.wire, core.psn] = generate_basic_processor_settings(rent_exp_logic,num_layers_per_block,Ng_core,Ach_mm2_core,gate_pitch_core,min_pitch_core,Vdd_core,fmax_core,w_trans);
+                            [core.chip, core.transistor, core.gate, core.tsv, core.wire, core.psn, core.heat] = generate_basic_processor_settings(rent_exp_logic,num_layers_per_block,Ng_core,Ach_mm2_core,gate_pitch_core,min_pitch_core,Vdd_core,fmax_core,w_trans);
                             %core.psn.mismatch_tolerance = 0.01;
                             %% Tweak wiring parameters
     %                         core.wire.repeater_fraction = [0.3]; % 1 is default from gen_basic_proc_settings
@@ -156,24 +118,10 @@ for cind = 1:num_cooling_configs
                             core.wire.dielectric_epsr = epsrd;
                             core.psn.decap_area_fraction = decap_ratios(dind);
 
-                            if (die_thickness < 30e-6) % for monolithic-scale chips use thin SiO2 layer rather than underfill
-                                heat.interposer_thickness = 200e-6; % (m) Thickness of the interposer below the 3D stack
-                                heat.bump_thickness = 40e-6;        % (m) Microbump thickness (between interposer and bottom chip of 3D stack)
-                                heat.underfill_thickness = 0.2e-6;    % (m) Thickness of underfill material between each die in the 3D stack
-                                heat.tim_thickness = 5e-6;          % (m) Thickness of thermal interface material between top chip in stack and heat sink
-                                heat.material_IDs = [ 2 9 5];
-                            else % for standard die stacking go ahead and use regular underfill
-                                heat.interposer_thickness = 200e-6; % (m) Thickness of the interposer below the 3D stack
-                                heat.bump_thickness = 40e-6;        % (m) Microbump thickness (between interposer and bottom chip of 3D stack)
-                                heat.underfill_thickness = 5e-6;    % (m) Thickness of underfill material between each die in the 3D stack
-                                heat.tim_thickness = 5e-6;          % (m) Thickness of thermal interface material between top chip in stack and heat sink
-                                heat.material_IDs = [ 2 9 3];
-                            end
-
-                            heat.up = heat_fluxes(cind);        % above chip
+                            core.heat.up = heat_fluxes(cind);        % above chip
 
                             %% calculate block parameters
-                            [core.chip, core.power, core.tsv, core.wire, core.repeater, core.psn] = codesign_block(core.chip,core.tsv,core.gate,core.transistor,core.wire,heat,core.psn,simulation);
+                            [core.chip, core.power, core.tsv, core.wire, core.repeater, core.psn] = codesign_block(core.chip,core.tsv,core.gate,core.transistor,core.wire,core.heat,core.psn,simulation);
 
                             power(cind,dind,thind,nind,pind,freq_ind,wire_res_ind) = core.power.total;
                             power_density(cind,dind,thind,nind,pind,freq_ind,wire_res_ind) = core.power.density;
