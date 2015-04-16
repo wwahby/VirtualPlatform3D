@@ -34,13 +34,13 @@ rent_exp_mem = 0.4;
 rent_exp_gpu = 0.55;
 
 %% 
-tiers = [1];
-thicknesses = [50e-6];
+tiers = [1 2 4 8];
+thicknesses = [10e-6];
 force_thickness = 1;
-rel_permittivities = linspace(1,4,101);
+rel_permittivities = [3];
 frequencies = fmax_core;
 heat_fluxes = [ h_air ];
-decap_ratios = [0.1];
+decap_ratios = logspace(-2,0,2e1+1);%[0.01 0.1 1];
 wire_resistivities = [17.2e-9];
 
 
@@ -151,11 +151,26 @@ for cind = 1:num_cooling_configs
 end
 
 t_sweep_stop = cputime;
-fprintf('\nTotal time elapsed for parameter sweep: %.3g seconds\n\n',(t_sweep_stop-t_sweep_start));
+fprintf('\nTotal time elapsed for parameter sweep: %.3g seconds\t(%.3g minutes)\n\n',(t_sweep_stop-t_sweep_start),(t_sweep_stop-t_sweep_start)/60);
 
 
+%% Power vs tier thickness (tier thickness sweep only)
+% 
+% figure(1)
+% clf
+% hold on
+% linecol = [ 0 0 0; 0 0 1; 0 1 0; 1 0 0];
+% for nind = 1:num_stacks
+%     plvec = zeros(1,num_thicks);
+%     plvec(1:end) = wire_power(cind,dind,:,nind,pind,freq_ind,wire_res_ind) + rep_power(cind,dind,:,nind,pind,freq_ind,wire_res_ind);
+%     plot(thicknesses/1e-6,plvec,'linestyle','-','color',linecol(nind,:),'linewidth',2);
+% end
+% set(gca,'xscale','log')
+% h = xlabel('Tier thickness (microns)');
+% ylabel('On-chip communication power (W)')
+% fixfigs(1,2,14,12)
 
-%% Communication power fraction
+% %% Communication power fraction
 % figure(1)
 % clf
 % hold on
@@ -173,32 +188,94 @@ fprintf('\nTotal time elapsed for parameter sweep: %.3g seconds\n\n',(t_sweep_st
 % ylim([0 1])
 % xlabel('Clock Frequency (GHz)')
 % ylabel('On-chip communication power fraction')
-% fixfigs(1,3,14,12)
+% fixfigs(1,2,14,12)
 % %npads(cind,dind,thind,nind,pind,freq_ind,wire_res_ind);
 
-%%
-
-figure(1)
-clf
-hold on
-linecol = [ 0 0 0; 0 0 1; 0 1 0; 1 0 0];
-for nind = 1:num_stacks
-    plvec = zeros(1,num_perms);
-    plvec(1:end) = temp(cind,dind,thind,nind,:,freq_ind,wire_res_ind); 
-    plot(rel_permittivities,plvec,'color',linecol(nind,:),'linewidth',2);
-
-end
-
-figure(2)
-clf
-hold on
-linecol = [ 0 0 0; 0 0 1; 0 1 0; 1 0 0];
-for nind = 1:num_stacks
-    plvec = zeros(1,num_perms);
-    plvec(1:end) = power(cind,dind,thind,nind,:,freq_ind,wire_res_ind); 
-    plot(rel_permittivities,plvec,'color',linecol(nind,:),'linewidth',2);
-
-end
+%% Use these for tier and ILD sweep
+% 
+% figure(1)
+% clf
+% hold on
+% linecol = [ 0 0 0; 0 0 1; 0 1 0; 1 0 0];
+% nn = 0;
+% for nind = [1 2 4 8]
+%     nn = nn+1;
+%     plvec = zeros(1,num_perms);
+%     plvec(1:end) = temp(cind,dind,thind,nind,:,freq_ind,wire_res_ind); 
+%     plot(rel_permittivities,plvec,'color',linecol(nn,:),'linewidth',2);
+% 
+% end
+% xlabel('ILD Relative Permittivity')
+% ylabel('Maximum Temperature (C)')
+% 
+% figure(2)
+% clf
+% hold on
+% linecol = [ 0 0 0; 0 0 1; 0 1 0; 1 0 0];
+% nn = 0;
+% for nind = [1 2 4 8]
+%     nn = nn + 1;
+%     plvec = zeros(1,num_perms);
+%     plvec(1:end) = power(cind,dind,thind,nind,:,freq_ind,wire_res_ind); 
+%     plot(rel_permittivities,plvec,'color',linecol(nn,:),'linewidth',2);
+% end
+% xlabel('ILD Relative Permittivity')
+% ylabel('Power Consumption (W)')
+% 
+% figure(7)
+% clf
+% hold on
+% linecol = [ 0 0 0; 0 0 1; 0 1 0; 1 0 0];
+% for pind = 1:num_perms
+%     plvec = zeros(1,num_stacks);
+%     plvec(1:end) = power(cind,dind,thind,:,pind,freq_ind,wire_res_ind); 
+%     plot(tiers,plvec,'color',linecol(5-pind,:),'linewidth',2);
+% end
+% xlabel('Number of tiers')
+% ylabel('Power Consumption (W)')
+% 
+% 
+% figure(3)
+% clf
+% hold on
+% plvec = zeros(1,num_perms);
+% avec = zeros(3,num_perms);
+% plvec(1:end) = power(cind,dind,thind,nind,:,freq_ind,wire_res_ind);
+% avec(1,:) = plvec;
+% plot(rel_permittivities,plvec,'k','linewidth',2);
+% plvec(1:end) = wire_power(cind,dind,thind,nind,:,freq_ind,wire_res_ind);
+% avec(2,:) = plvec;
+% plot(rel_permittivities,plvec,'b','linewidth',2);
+% plvec(1:end) = rep_power(cind,dind,thind,nind,:,freq_ind,wire_res_ind);
+% avec(3,:) = plvec;
+% avec(1,:) = avec(1,:) - avec(2,:) - avec(3,:);
+% plot(rel_permittivities,plvec,'r','linewidth',2);
+% xlabel('ILD Relative Permittivity')
+% ylabel('Single Core Power Consumption (W)')
+% fixfigs(3,2,14,12)
+% 
+% 
+% bvec = avec(2:end,:);
+% 
+% figure(4)
+% clf
+% hold on
+% h = area(rel_permittivities,avec');
+% h(1).FaceColor = [0.3 0.3 1];
+% h(2).FaceColor = [1 1 0.3];
+% h(2).FaceColor = [0.3 1 0.3];
+% h(3).FaceColor = [1 0.3 0.3];
+% xlabel('ILD Relative Permittivity','fontsize',14)
+% ylabel('Single Core Power Consumption (W)','fontsize',14)
+% 
+% figure(5)
+% clf
+% hold on
+% h = area(rel_permittivities,bvec');
+% h(1).FaceColor = [0.3 0.3 1];
+% h(2).FaceColor = [1 0.3 0.3];
+% xlabel('ILD Relative Permittivity','fontsize',14)
+% ylabel('Single Core Power Consumption (W)','fontsize',14)
 
 
 %% Metal pitch vs resistivity
@@ -241,3 +318,33 @@ end
 % ylabel('Number of power TSVs')
 
 
+%% Impact of decap
+
+figure(1)
+clf
+hold on
+linecol = [ 0 0 0; 0 0 1; 0 1 0; 1 0 0];
+for ddd = 1:num_decaps
+    plvec = zeros(1,num_stacks);
+    plvec(1:end) = npads(cind,ddd,thind,:,pind,freq_ind,wire_res_ind);
+    plot(tiers,plvec,'color',linecol(ddd,:),'linewidth',2);
+end
+%set(gca,'yscale','log')
+xlabel('Number of tiers')
+ylabel('Power and ground connections per tier')
+fixfigs(1,2,14,12)
+
+figure(2)
+clf
+hold on
+linecol = [ 0 0 0; 0 0 1; 0 1 0; 1 0 0];
+for nind= 1:num_stacks
+    plvec = zeros(1,num_decaps);
+    plvec(1:end) = npads(cind,:,thind,nind,pind,freq_ind,wire_res_ind);
+    plot(decap_ratios,plvec,'color',linecol(nind,:),'linewidth',2);
+end
+%set(gca,'yscale','log')
+set(gca,'xscale','log')
+xlabel('Decap ratio')
+ylabel('Number of power and ground TSVs')
+fixfigs(2,2,14,12)
