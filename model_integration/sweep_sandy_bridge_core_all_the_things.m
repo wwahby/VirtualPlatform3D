@@ -343,13 +343,37 @@ clf
 hold on
 linecol = [ 0 0 0; 0 0 1; 0 1 0; 1 0 0];
 nind = [1 2 4 8];
+area = zeros(1,num_stacks);
+area_mm2 = zeros(1,num_stacks);
 for nnn = 1:4
     plvec = zeros(1,num_decaps);
-    plvec(1:end) = npads(cind,:,thind,nind(nnn),pind,freq_ind,wire_res_ind);
+    plvec(1:end) = npads(cind,:,thind,(nnn),pind,freq_ind,wire_res_ind);
+    area(nnn) = chip_cell{cind,dind,thind,nnn,pind,freq_ind,wire_res_ind}.area_per_layer_m2;
+    area_mm2(nnn) = area(nnn)/1e-6;
     plot(decap_ratios,plvec,'color',linecol(nnn,:),'linewidth',2);
 end
-%set(gca,'yscale','log')
+set(gca,'yscale','log')
 set(gca,'xscale','log')
 xlabel('Fraction of die used for decoupling capacitors')
 ylabel('Number of power and ground TSVs')
 fixfigs(2,2,14,12)
+
+figure(3)
+clf
+hold on
+linecol = [ 0 0 0; 0 0 1; 0 1 0; 1 0 0];
+nind = [1 2 4 8];
+area = zeros(1,num_stacks);
+area_mm2 = zeros(1,num_stacks);
+for nnn = 1:4
+    plvec = zeros(1,num_decaps);
+    plvec(1:end) = npads(cind,:,thind,(nnn),pind,freq_ind,wire_res_ind);
+    area(nnn) = chip_cell{cind,dind,thind,nnn,pind,freq_ind,wire_res_ind}.area_per_layer_m2;
+    area_mm2(nnn) = area(nnn)/1e-6;
+    plot(decap_ratios*area_mm2(nnn),plvec,'color',linecol(nnn,:),'linewidth',2);
+end
+set(gca,'yscale','log')
+set(gca,'xscale','log')
+xlabel('Area used for decoupling capacitors (mm^2)')
+ylabel('Number of power and ground TSVs')
+fixfigs(3,2,14,12)
