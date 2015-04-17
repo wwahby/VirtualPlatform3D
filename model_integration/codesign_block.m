@@ -100,5 +100,5 @@ time_elapsed = time_stop - time_start;
 % repstr = sprintf('\th_tsv_um: %.4g \t w_tsv_um: %.4g',h_tsv_m/1e-6,w_tsv_m/1e-6);
 % disp(repstr);
 
-fprintf('\tTotal time elapsed for block design: %.3g seconds',time_elapsed)
+fprintf('\tTotal time elapsed for block design: %.3g seconds\n\n',time_elapsed)
 
