@@ -2,11 +2,13 @@
 simulation.use_joyner = 0;
 simulation.redo_wiring_after_repeaters = 0;
 simulation.topdown_WLARI = 1; % Use topdown simultaneous WLA and RI (0 = use standard bottom-up optimal WLA, followed by one pass of RI)
-simulation.skip_psn_loops = 0; % Skip PSN TSV homing for faster debug
+simulation.skip_psn_loops = 1; % Skip PSN TSV homing for faster debug
 simulation.draw_thermal_map = 0; % Plot thermal profile of each chip
 simulation.print_thermal_data = 0; % Output max temp in each layer to console
 simulation.separate_wiring_tiers = 1; % 1 = Each logic plane will have its own wiring tiers between it and the next logic plane
                                       % 0 = All metal layers for entire device will be routed on top of entire 3D stack
+simulation.wla_max_attempts = 15;
+simulation.wla_min_top_fill_factor = 0.01;
 
 %% Logic core parameters
 compression_factor = 1; % linear scaling factor. 1 = actual 32nm design, 4.57 = equivalent 7nm SB
@@ -34,13 +36,13 @@ rent_exp_mem = 0.4;
 rent_exp_gpu = 0.55;
 
 %% 
-tiers = [1 2 4 8];
+tiers = 1:8;
 thicknesses = [10e-6];
 force_thickness = 1;
-rel_permittivities = [3];
+rel_permittivities = linspace(1,4,41);
 frequencies = [3e8 1e10]; % (1) is min freq (2) is max freq
 heat_fluxes = [ h_air h_water];
-decap_ratios = logspace(-2,0,2e1+1);%[0.01 0.1 1];
+decap_ratios = [0.1];%[0.01 0.1 1];
 wire_resistivities = [17.2e-9];
 
 
@@ -88,7 +90,7 @@ for cind = 1:num_cooling_configs
                             fmax_core = frequencies(freq_ind);
                             wire_resistivity = wire_resistivities(wire_res_ind);
 
-                            fprintf('===============================\n')
+                            fprintf('\n===============================\n')
                             fprintf('==   cooling: %d/%d \t=====\n',cind,num_cooling_configs);
                             fprintf('==     decap: %d/%d \t=====\n',dind,num_decaps);
                             fprintf('== thickness: %d/%d \t=====\n',thind,num_thicks);
@@ -149,7 +151,7 @@ for cind = 1:num_cooling_configs
                                 end
 
                                 num_gens = num_gens + 1;
-                                fprintf('\n\tRun %d: \t Freq: %.3g \t Temp: %.4d\n',num_gens, mid, target_cur_value);
+                                fprintf('Run %d: \t Freq: %.3g \t Temp: %.4d\n\n',num_gens, mid, target_cur_value);
                             end
                             time_bin_stop = cputime;
                             fprintf('Time for last binary search: %d seconds\n',time_bin_stop - time_bin_start);
@@ -171,8 +173,10 @@ for cind = 1:num_cooling_configs
                             chip_cell{cind,dind,thind,nind,pind,freq_ind,wire_res_ind} = core.chip;
                             tsv_cell{cind,dind,thind,nind,pind,freq_ind,wire_res_ind} = core.tsv;
 
-                            Ltsv_m2(cind,dind,thind,nind,pind,freq_ind,wire_res_ind) = psn_cell{cind,dind,thind,nind,pind,freq_ind,wire_res_ind}.Ltsv/psn_cell{cind,dind,thind,nind,pind,freq_ind,wire_res_ind}.l_unit_cell^2;
-                            cap_density(cind,dind,thind,nind,pind,freq_ind,wire_res_ind) = psn_cell{cind,dind,thind,nind,pind,freq_ind,wire_res_ind}.cap_density;
+                            if (simulation.skip_psn_loops == 0)
+                                Ltsv_m2(cind,dind,thind,nind,pind,freq_ind,wire_res_ind) = psn_cell{cind,dind,thind,nind,pind,freq_ind,wire_res_ind}.Ltsv/psn_cell{cind,dind,thind,nind,pind,freq_ind,wire_res_ind}.l_unit_cell^2;
+                                cap_density(cind,dind,thind,nind,pind,freq_ind,wire_res_ind) = psn_cell{cind,dind,thind,nind,pind,freq_ind,wire_res_ind}.cap_density;
+                            end
                         end
                     end
                 end
@@ -382,24 +386,14 @@ fprintf('\nTotal time elapsed for parameter sweep: %.3g seconds\t(%.3g minutes)\
 
 %% Max frequency under 90C
 
-max_freqs = zeros(num_stacks,num_decaps);
-temp_vec = zeros(num_stacks,num_decaps);
+max_freqs = zeros(num_stacks,num_perms);
+temp_vec = zeros(num_stacks,num_perms);
 cind = 1;
 for nind = 1:num_stacks
-    for dind = 1:num_decaps
+    for pind = 1:num_perms
         clock_period = chip_cell{cind,dind,thind,nind,pind,freq_ind,wire_res_ind}.clock_period;
-        max_freqs(nind,dind) = 1/clock_period;
-        temp_vec(nind,dind) = temp(cind,dind,thind,nind,pind,freq_ind,wire_res_ind);
-        pg_vec(nind,dind) = npads(cind,dind,thind,nind,pind,freq_ind,wire_res_ind);
-        
+        max_freqs(nind,pind) = 1/clock_period;
+        temp_vec(nind,pind) = temp(cind,dind,thind,nind,pind,freq_ind,wire_res_ind);
+        pg_vec(nind,pind) = npads(cind,dind,thind,nind,pind,freq_ind,wire_res_ind);
     end
 end
-
-figure(1)
-clf
-hold on
-linecol = [ 0 0 0; 0 0 1; 0 1 0; 1 0 0];
-for nind = 1:num_stacks
-    plot(decap_ratios,pg_vec(nind,:),'color',linecol(nind,:),'linewidth',2)
-end
-set(gca,'xscale','log')

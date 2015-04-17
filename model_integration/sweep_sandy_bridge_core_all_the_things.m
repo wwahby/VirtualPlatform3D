@@ -7,6 +7,8 @@ simulation.draw_thermal_map = 0; % Plot thermal profile of each chip
 simulation.print_thermal_data = 0; % Output max temp in each layer to console
 simulation.separate_wiring_tiers = 1; % 1 = Each logic plane will have its own wiring tiers between it and the next logic plane
                                       % 0 = All metal layers for entire device will be routed on top of entire 3D stack
+simulation.wla_max_attempts = 15;
+simulation.wla_min_top_fill_factor = 0.01;
 
 %% Logic core parameters
 compression_factor = 1; % linear scaling factor. 1 = actual 32nm design, 4.57 = equivalent 7nm SB
@@ -34,7 +36,7 @@ rent_exp_mem = 0.4;
 rent_exp_gpu = 0.55;
 
 %% 
-tiers = [1 2 4 8];
+tiers = 1:8;
 thicknesses = [10e-6];
 force_thickness = 1;
 rel_permittivities = [3];
@@ -88,7 +90,7 @@ for cind = 1:num_cooling_configs
                             fmax_core = frequencies(freq_ind);
                             wire_resistivity = wire_resistivities(wire_res_ind);
 
-                            fprintf('===============================\n')
+                            fprintf('\n===============================\n')
                             fprintf('==   cooling: %d/%d \t=====\n',cind,num_cooling_configs);
                             fprintf('==     decap: %d/%d \t=====\n',dind,num_decaps);
                             fprintf('== thickness: %d/%d \t=====\n',thind,num_thicks);
@@ -140,8 +142,10 @@ for cind = 1:num_cooling_configs
                             chip_cell{cind,dind,thind,nind,pind,freq_ind,wire_res_ind} = core.chip;
                             tsv_cell{cind,dind,thind,nind,pind,freq_ind,wire_res_ind} = core.tsv;
 
-                            Ltsv_m2(cind,dind,thind,nind,pind,freq_ind,wire_res_ind) = psn_cell{cind,dind,thind,nind,pind,freq_ind,wire_res_ind}.Ltsv/psn_cell{cind,dind,thind,nind,pind,freq_ind,wire_res_ind}.l_unit_cell^2;
-                            cap_density(cind,dind,thind,nind,pind,freq_ind,wire_res_ind) = psn_cell{cind,dind,thind,nind,pind,freq_ind,wire_res_ind}.cap_density;
+                            if (simulation.skip_psn_loops == 0)
+                                Ltsv_m2(cind,dind,thind,nind,pind,freq_ind,wire_res_ind) = psn_cell{cind,dind,thind,nind,pind,freq_ind,wire_res_ind}.Ltsv/psn_cell{cind,dind,thind,nind,pind,freq_ind,wire_res_ind}.l_unit_cell^2;
+                                cap_density(cind,dind,thind,nind,pind,freq_ind,wire_res_ind) = psn_cell{cind,dind,thind,nind,pind,freq_ind,wire_res_ind}.cap_density;
+                            end
                         end
                     end
                 end
@@ -320,31 +324,32 @@ fprintf('\nTotal time elapsed for parameter sweep: %.3g seconds\t(%.3g minutes)\
 
 %% Impact of decap
 
-figure(1)
-clf
-hold on
-linecol = [ 0 0 0; 0 0 1; 0 1 0; 1 0 0];
-for ddd = 1:num_decaps
-    plvec = zeros(1,num_stacks);
-    plvec(1:end) = npads(cind,ddd,thind,:,pind,freq_ind,wire_res_ind);
-    plot(tiers,plvec,'color',linecol(ddd,:),'linewidth',2);
-end
-%set(gca,'yscale','log')
-xlabel('Number of tiers')
-ylabel('Power and ground connections per tier')
-fixfigs(1,2,14,12)
+% figure(1)
+% clf
+% hold on
+% linecol = [ 0 0 0; 0 0 1; 0 1 0; 1 0 0];
+% for ddd = 1:num_decaps
+%     plvec = zeros(1,num_stacks);
+%     plvec(1:end) = npads(cind,ddd,thind,:,pind,freq_ind,wire_res_ind);
+%     plot(tiers,plvec,'color',linecol(ddd,:),'linewidth',2);
+% end
+% %set(gca,'yscale','log')
+% xlabel('Number of tiers')
+% ylabel('Power and ground connections per tier')
+% fixfigs(1,2,14,12)
 
 figure(2)
 clf
 hold on
 linecol = [ 0 0 0; 0 0 1; 0 1 0; 1 0 0];
-for nind= 1:num_stacks
+nind = [1 2 4 8];
+for nnn = 1:4
     plvec = zeros(1,num_decaps);
-    plvec(1:end) = npads(cind,:,thind,nind,pind,freq_ind,wire_res_ind);
-    plot(decap_ratios,plvec,'color',linecol(nind,:),'linewidth',2);
+    plvec(1:end) = npads(cind,:,thind,nind(nnn),pind,freq_ind,wire_res_ind);
+    plot(decap_ratios,plvec,'color',linecol(nnn,:),'linewidth',2);
 end
 %set(gca,'yscale','log')
 set(gca,'xscale','log')
-xlabel('Decap ratio')
+xlabel('Fraction of die used for decoupling capacitors')
 ylabel('Number of power and ground TSVs')
 fixfigs(2,2,14,12)
