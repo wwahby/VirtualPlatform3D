@@ -8,7 +8,7 @@ function psn = determine_power_tsv_requirements(tsv,psn,power,wire,chip)
 eps0 = 8.854e-12; % (F/m) vacuum permittivity
 mu0 = 4*pi*1e-7; % (H/m) Vacuum permeability
 
-disp('Evaluating power supply noise...')
+% disp('Evaluating power supply noise...')
 psn.pitch_tsv = tsv.pitch_m*10; % [FIX] Power TSVs aren't going to be on the same pitch as signal TSVs
 psn_mismatch_tolerance = psn.mismatch_tolerance; % 5% mismatch is OK
 psn_iterations = 1;
@@ -19,7 +19,7 @@ mu_m = wire.permeability_rel*mu0;
 %% Run twice to jump close to where we need to be
 norm_err_min = 1e3; % setting this to an arbitrarily high value to start
 
-fprintf('\tLimiting search space...\n')
+% fprintf('\tLimiting search space...\n')
 [psn_max, RTSV, LTSV, cap_density, l_unit_cell] = power_noise.calc_psn(psn,power,chip,tsv,rho_m,mu_m,chip.temperature);
 psn.noise = psn_max;
 psn.Rtsv = RTSV;
@@ -37,8 +37,8 @@ if (norm_err < norm_err_min) % new high score!
     psn_best = psn;
 end
 
-dispstr = sprintf('\tpsn_runs: %d\tNpads: %d\tpsn_target: %d\tpsn_max: %d\trel_err: %.3g',0,psn.Npads, psn.noise_target, psn_max,rel_err);	
-disp(dispstr)
+% dispstr = sprintf('\tpsn_runs: %d\tNpads: %d\tpsn_target: %d\tpsn_max: %d\trel_err: %.3g',0,psn.Npads, psn.noise_target, psn_max,rel_err);	
+% disp(dispstr)
 
 
 new_pads_1d = round(sqrt(psn.Npads*mismatch_norm));
@@ -62,12 +62,12 @@ npads_first_linear_bound = psn.Npads_1d;
 err_first_linear_bound = norm_err;
 psn_first_linear_bound = psn;
 
-dispstr = sprintf('\tpsn_runs: %d\tNpads: %d\tpsn_target: %.3g\tpsn_max: %.3g\trel_err: %.3g',0,psn.Npads, psn.noise_target, psn_max,rel_err);	
-disp(dispstr)
+% dispstr = sprintf('\tpsn_runs: %d\tNpads: %d\tpsn_target: %.3g\tpsn_max: %.3g\trel_err: %.3g',0,psn.Npads, psn.noise_target, psn_max,rel_err);	
+% disp(dispstr)
 
 
 %% Find bounds for binary search
-fprintf('\tFinding bounds for binary search...\n')
+% fprintf('\tFinding bounds for binary search...\n')
 psn_target = psn.noise_target;
 npads_1d = psn.Npads_1d;
 npads = psn.Npads;
@@ -94,7 +94,7 @@ if (psn_max < psn_target)
             psn_best = psn;
         end
 
-        fprintf('\tpsn_runs: %d\tNpads: %d\tpsn_target: %.3g\tpsn_max: %.3g\trel_err: %.3g\n',0,psn.Npads, psn.noise_target, psn_max,rel_err);
+%         fprintf('\tpsn_runs: %d\tNpads: %d\tpsn_target: %.3g\tpsn_max: %.3g\trel_err: %.3g\n',0,psn.Npads, psn.noise_target, psn_max,rel_err);
     end
 
 %     lbnd = npads_1d;
@@ -125,7 +125,7 @@ elseif(psn_max > psn_target)
             psn_best = psn;
         end
 
-        fprintf('\tpsn_runs: %d\tNpads: %d\tpsn_target: %.3g\tpsn_max: %.3g\trel_err: %.3g\n',0,psn.Npads, psn.noise_target, psn_max,rel_err);
+%         fprintf('\tpsn_runs: %d\tNpads: %d\tpsn_target: %.3g\tpsn_max: %.3g\trel_err: %.3g\n',0,psn.Npads, psn.noise_target, psn_max,rel_err);
     end
 %     lbnd = npads_1d_old;
 %     rbnd = npads_1d;
@@ -171,9 +171,9 @@ while ((norm_err > tol) && (gen_ind < max_gens) && (rbnd > lbnd+1))
         psn_best = psn;
     end
 
-    fprintf('\tpsn_runs: %d\tNpads: %d\tpsn_target: %d\tpsn_max: %d\trel_err: %.3g\n',gen_ind,psn.Npads, psn.noise_target, psn_max,rel_err);
+%     fprintf('\tpsn_runs: %d\tNpads: %d\tpsn_target: %d\tpsn_max: %d\trel_err: %.3g\n',gen_ind,psn.Npads, psn.noise_target, psn_max,rel_err);
     gen_ind = gen_ind + 1;
 end
 
 
-fprintf('\tPSN Done! \tNpads: %d\tpsn_target: %d\tpsn_max: %d\tnorm_err: %.3g\n',psn.Npads, psn.noise_target, psn_max,norm_err_min);
+ fprintf('\tPSN Done! \tNpads: %d\tpsn_target: %d\tpsn_max: %d\tnorm_err: %.3g\n',psn.Npads, psn.noise_target, psn_max,norm_err_min);

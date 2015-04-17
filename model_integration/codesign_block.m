@@ -10,8 +10,9 @@ mu0 = 4*pi*1e-7; % (H/m) Vacuum permeability
 %   Rent parameters
 %   Number of logic gates
 %   Number of layers
-disp(' ')
-disp('Estimating TSV requirements...')
+
+% disp(' ')
+% disp('Estimating TSV requirements...')
 [nt_max, nt_tot, nt_to, nt_through, Tacmat] = xcm.estimate_tsvs_required(chip.num_gates,chip.num_layers,chip.rent_k,chip.rent_p,chip.alpha);
 
 %% TSV Sizing
@@ -19,7 +20,7 @@ disp('Estimating TSV requirements...')
 %   Area available
 %   Max area for TSVs
 %   TSV aspect ratio
-disp('Sizing TSVs...')
+% disp('Sizing TSVs...')
 [w_tsv_m, h_tsv_m] = xcm.size_tsvs(chip.area_total/chip.num_layers, tsv.max_area_fraction, nt_max, tsv.aspect_ratio );
 %h_tsv_gp = round(h_tsv_gp);
 
@@ -44,8 +45,7 @@ else
 end
 %% System determination
 % Run WLD + WLA + RI to get power estimate
-disp('Generating system...')
-%[ iidf l Ln pn pn_orig Cxc Ltot Cn Pdyn Plk Pw Prep Ng_act N_tsvs T_tsvs Atf_act ] = gen_design_old(Ng,alpha,k,p,S,h_tsv_m,Atf_max,AR_tsv,Ach_m2,chi,rho_m,epsr_d,Tclk,alpha_t,gate_pitch,w_trans,eps_ox,tox,N_trans_per_gate,a,Ioff,Vdd,Ro,use_joyner,redo_wiring);
+% disp('Generating system...')
 [chip, power, wire, repeater, tsv] = xcm.gen_design(chip,tsv,gate,transistor,wire,simulation);
 
 %Pdens = power.total/chip.area_per_layer_m2;
@@ -100,5 +100,5 @@ time_elapsed = time_stop - time_start;
 % repstr = sprintf('\th_tsv_um: %.4g \t w_tsv_um: %.4g',h_tsv_m/1e-6,w_tsv_m/1e-6);
 % disp(repstr);
 
-disp(sprintf('Total time elapsed for block design: %d',time_elapsed))
+fprintf('\tTotal time elapsed for block design: %.3g seconds',time_elapsed)
 

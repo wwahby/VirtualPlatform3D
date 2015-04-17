@@ -24,6 +24,7 @@ wire.routing_efficiency(1) = rbnd;
 
 
 bin_gen = 1;
+num_runs = 1;
 while( (bottom_layer_underfilled) && (bin_gen <= max_wla_attempts) )
    
     mid = (lbnd + rbnd)/2;
@@ -96,7 +97,8 @@ while( (bottom_layer_underfilled) && (bin_gen <= max_wla_attempts) )
     bottom_layer_underfilled = (max_ff < min_fill_factor);
     
     if(bottom_layer_underfilled)
-        fprintf('WLA: M0 underfilled! Adjusting top layer fill factor and rerunning...\n')
+%         fprintf('WLA: M0 underfilled! Adjusting top layer fill factor and rerunning...\n')
+        num_runs = num_runs + 1;
     end
         
     
@@ -108,4 +110,4 @@ end
 wire.best_bot_fill_factor = max_ff;
 wire.best_top_fill_factor = best_top_ff;
 
-fprintf('WLA Done! Final Fill Factors:: Bot: %.3g \t Top: %.3g\n',max_ff,best_top_ff);
+fprintf('\tWLA Done! Final Fill Factors:: WLA Runs: %d \t Bot: %.3g \t Top: %.3g\n',num_runs, max_ff, best_top_ff);

@@ -109,8 +109,8 @@ Ns_act = Nsc - g_tsv;
 Ng_act = Ns_act*S;
 chip.Ng_actual = Ng_act;
 
-repstr1 = sprintf('Ng_nom: %.4g\tNg_cor: %.4g\tNg_act: %.4g\tAtf_act: %.4g',Ng,Ngc,Ng_act,Atf_act);
-disp(repstr1)
+% repstr1 = sprintf('Ng_nom: %.4g\tNg_cor: %.4g\tNg_act: %.4g\tAtf_act: %.4g',Ng,Ngc,Ng_act,Atf_act);
+% disp(repstr1)
 
 %% Calculate WLD
 iidf = xcm.calc_Iidf_corrected(alpha,k,p,Lx,S,h_tsv,Nuc_1d,w_tsv);
