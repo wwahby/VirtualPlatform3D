@@ -139,7 +139,7 @@ if (simulation.topdown_WLARI == 1)
     % with different top-level metal fill factors until we find a good
     % wiring solution
     
-    [wire repeater] = xcm.wlatdri(chip,gate,wire);
+    [wire repeater] = xcm.wlatdri(chip,gate,wire,simulation);
     
 else
     

@@ -1,4 +1,4 @@
-function [wire repeater] = wlatdri(chip,gate,wire)
+function [wire repeater] = wlatdri(chip,gate,wire,simulation)
 
 bottom_layer_underfilled = 1;
 min_fill_factor = 0.97; % minimum utilization of available bottom layer area
@@ -8,9 +8,13 @@ if(length(wire.routing_efficiency) == 1) % if we only have one entry for routing
 end
 
 % dead man counter to get out of while loop if something goes wrong
-max_wla_attempts = 100;
-min_top_fill_factor = 0.01;
+% max_wla_attempts = 100;
+% min_top_fill_factor = 0.01;
 
+max_wla_attempts = simulation.wla_max_attempts;
+min_top_fill_factor = simulation.wla_min_top_fill_factor;
+
+% dead man counter to get out of while loop if something goes wrong
 lbnd = min_top_fill_factor;
 rbnd = top_fill_factor;
 
@@ -110,4 +114,4 @@ end
 wire.best_bot_fill_factor = max_ff;
 wire.best_top_fill_factor = best_top_ff;
 
-fprintf('\tWLA Done! Final Fill Factors:: WLA Runs: %d \t Bot: %.3g \t Top: %.3g\n',num_runs, max_ff, best_top_ff);
+fprintf('\tWLA Done! WLA Runs: %d \t Final Fill Factors:: \t Bot: %.3g \t Top: %.3g\n',num_runs, max_ff, best_top_ff);
