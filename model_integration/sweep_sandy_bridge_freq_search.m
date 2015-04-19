@@ -386,14 +386,37 @@ fprintf('\nTotal time elapsed for parameter sweep: %.3g seconds\t(%.3g minutes)\
 
 %% Max frequency under 90C
 
-max_freqs = zeros(num_stacks,num_perms);
+max_freqs_air = zeros(num_stacks,num_perms);
+max_freqs_water = zeros(num_stacks,num_perms);
 temp_vec = zeros(num_stacks,num_perms);
+pg_vec = zeros(num_stacks,num_perms);
 cind = 1;
 for nind = 1:num_stacks
     for pind = 1:num_perms
-        clock_period = chip_cell{cind,dind,thind,nind,pind,freq_ind,wire_res_ind}.clock_period;
-        max_freqs(nind,pind) = 1/clock_period;
+        clock_period_air = chip_cell{1,dind,thind,nind,pind,freq_ind,wire_res_ind}.clock_period;
+        max_freqs_air(nind,pind) = 1/clock_period_air;
+        
+        clock_period_water = chip_cell{2,dind,thind,nind,pind,freq_ind,wire_res_ind}.clock_period;
+        max_freqs_water(nind,pind) = 1/clock_period_water;
+        
         temp_vec(nind,pind) = temp(cind,dind,thind,nind,pind,freq_ind,wire_res_ind);
         pg_vec(nind,pind) = npads(cind,dind,thind,nind,pind,freq_ind,wire_res_ind);
     end
 end
+
+
+figure(1)
+clf
+hold on
+linecol = [ 0 0 0; 0 0 1; 0 1 0; 1 0 0];
+nnn = 0;
+for nind= [1 2 4 8]
+    nnn = nnn + 1;
+    plot(rel_permittivities,max_freqs_air(nind,:)/1e9,'linestyle','-','color',linecol(nnn,:),'linewidth',2);
+    %plot(rel_permittivities,max_freqs_water(nind,:)/1e9,'linestyle','--','color',linecol(nnn,:),'linewidth',2);
+end
+%set(gca,'yscale','log')
+%set(gca,'xscale','log')
+xlabel('ILD Relative Permittivity')
+ylabel('Maximum Clock Frequency (GHz)')
+fixfigs(1,2,14,12)
