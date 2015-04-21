@@ -36,13 +36,13 @@ rent_exp_mem = 0.4;
 rent_exp_gpu = 0.55;
 
 %% 
-tiers = 1:8;
-thicknesses = [10e-6];
+tiers = [1 2 4 8];
+thicknesses = [1e-6 10e-6 100e-6];
 force_thickness = 1;
-rel_permittivities = [3];
+rel_permittivities = [1 3.9];
 frequencies = fmax_core;
 heat_fluxes = [ h_air ];
-decap_ratios = logspace(-2,0,2e1+1);%[0.01 0.1 1];
+decap_ratios = [0.1];%[0.01 0.1 1];
 wire_resistivities = [17.2e-9];
 
 
@@ -337,43 +337,81 @@ fprintf('\nTotal time elapsed for parameter sweep: %.3g seconds\t(%.3g minutes)\
 % xlabel('Number of tiers')
 % ylabel('Power and ground connections per tier')
 % fixfigs(1,2,14,12)
+% 
+% figure(2)
+% clf
+% hold on
+% linecol = [ 0 0 0; 0 0 1; 0 1 0; 1 0 0];
+% nind = [1 2 4 8];
+% area = zeros(1,num_stacks);
+% area_mm2 = zeros(1,num_stacks);
+% for nnn = 1:4
+%     plvec = zeros(1,num_decaps);
+%     plvec(1:end) = npads(cind,:,thind,(nnn),pind,freq_ind,wire_res_ind);
+%     area(nnn) = chip_cell{cind,dind,thind,nnn,pind,freq_ind,wire_res_ind}.area_per_layer_m2;
+%     area_mm2(nnn) = area(nnn)/1e-6;
+%     plot(decap_ratios,plvec,'color',linecol(nnn,:),'linewidth',2);
+% end
+% set(gca,'yscale','log')
+% set(gca,'xscale','log')
+% xlabel('Fraction of die used for decoupling capacitors')
+% ylabel('Number of power and ground TSVs')
+% fixfigs(2,2,14,12)
+% 
+% figure(3)
+% clf
+% hold on
+% linecol = [ 0 0 0; 0 0 1; 0 1 0; 1 0 0];
+% nind = [1 2 4 8];
+% area = zeros(1,num_stacks);
+% area_mm2 = zeros(1,num_stacks);
+% for nnn = 1:4
+%     plvec = zeros(1,num_decaps);
+%     plvec(1:end) = npads(cind,:,thind,(nnn),pind,freq_ind,wire_res_ind);
+%     area(nnn) = chip_cell{cind,dind,thind,nnn,pind,freq_ind,wire_res_ind}.area_per_layer_m2;
+%     area_mm2(nnn) = area(nnn)/1e-6;
+%     plot(decap_ratios*area_mm2(nnn),plvec,'color',linecol(nnn,:),'linewidth',2);
+% end
+% set(gca,'yscale','log')
+% set(gca,'xscale','log')
+% xlabel('Area used for decoupling capacitors (mm^2)')
+% ylabel('Number of power and ground TSVs')
+% fixfigs(3,2,14,12)
 
-figure(2)
-clf
-hold on
-linecol = [ 0 0 0; 0 0 1; 0 1 0; 1 0 0];
-nind = [1 2 4 8];
-area = zeros(1,num_stacks);
-area_mm2 = zeros(1,num_stacks);
-for nnn = 1:4
-    plvec = zeros(1,num_decaps);
-    plvec(1:end) = npads(cind,:,thind,(nnn),pind,freq_ind,wire_res_ind);
-    area(nnn) = chip_cell{cind,dind,thind,nnn,pind,freq_ind,wire_res_ind}.area_per_layer_m2;
-    area_mm2(nnn) = area(nnn)/1e-6;
-    plot(decap_ratios,plvec,'color',linecol(nnn,:),'linewidth',2);
-end
-set(gca,'yscale','log')
-set(gca,'xscale','log')
-xlabel('Fraction of die used for decoupling capacitors')
-ylabel('Number of power and ground TSVs')
-fixfigs(2,2,14,12)
+%% Power TSVs, Tiers, and ILD
 
-figure(3)
-clf
-hold on
-linecol = [ 0 0 0; 0 0 1; 0 1 0; 1 0 0];
-nind = [1 2 4 8];
-area = zeros(1,num_stacks);
-area_mm2 = zeros(1,num_stacks);
-for nnn = 1:4
-    plvec = zeros(1,num_decaps);
-    plvec(1:end) = npads(cind,:,thind,(nnn),pind,freq_ind,wire_res_ind);
-    area(nnn) = chip_cell{cind,dind,thind,nnn,pind,freq_ind,wire_res_ind}.area_per_layer_m2;
-    area_mm2(nnn) = area(nnn)/1e-6;
-    plot(decap_ratios*area_mm2(nnn),plvec,'color',linecol(nnn,:),'linewidth',2);
+% Use these parameters to generate this plot
+% tiers = [1 2 4 8];
+% thicknesses = [1e-6 10e-6 100e-6];
+% force_thickness = 1;
+% rel_permittivities = [1 3.9];
+% frequencies = fmax_core;
+% heat_fluxes = [ h_air ];
+% decap_ratios = [0.1];%[0.01 0.1 1];
+% wire_resistivities = [17.2e-9];
+
+num_ptsvs = zeros(num_stacks,2*num_perms);
+for nind = 1:num_stacks
+    for pind = 1:num_perms
+        th = 0;
+        for thind = [1 3]
+            th = th + 1;
+            num_ptsvs(nind,(pind-1)*2 + th) = npads(cind,dind,thind,nind,pind,freq_ind,wire_res_ind);           
+        end
+    end
 end
+
+figure(1)
+clf
+b = bar(num_ptsvs,1,'grouped');
+colormap jet
+set(gca,'xticklabel',{'1','2','4','8'})
+ylim([1e0 1e4])
 set(gca,'yscale','log')
-set(gca,'xscale','log')
-xlabel('Area used for decoupling capacitors (mm^2)')
-ylabel('Number of power and ground TSVs')
-fixfigs(3,2,14,12)
+xlabel('Number of tiers')
+ylabel('Number of power delivery TSVs')
+b(1).FaceColor = 'blue';
+b(2).FaceColor = 'green';
+b(3).FaceColor = 'yellow';
+b(4).FaceColor = 'red';
+fixfigs(1,2,14,12)
