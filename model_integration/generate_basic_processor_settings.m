@@ -1,4 +1,4 @@
-function [chip transistor gate tsv wire psn] = generate_basic_processor_settings(rent_exp,num_layers,Ng,Ach_mm2,gate_pitch,min_pitch,Vdd,fmax,w_trans)
+function [chip, transistor, gate, tsv, wire, psn, heat] = generate_basic_processor_settings(rent_exp,num_layers,Ng,Ach_mm2,gate_pitch,min_pitch,Vdd,fmax,w_trans)
 % simple function to setup standard CPU settings
 
 S = num_layers;
@@ -29,11 +29,12 @@ chip.thickness_nominal = 50e-6; % (m) Nominal substrate thickness
 %% Transistor and gate parameters
 transistor.gate_length = w_trans;
 transistor.oxide_rel_permittivity = 25; % HfO2
-transistor.oxide_thickness = 1e-9;
-transistor.leakage_current_per_micron = 10e-9; %(A/um)
+transistor.oxide_thickness = 1.0e-9; %2.5e-9; %1.0e-9 %(nm)
+transistor.leakage_current_per_micron = 100e-9; %(A/um)
+transistor.capacitance_per_micron = 1.25e-15; % (F/um)
 transistor.capacitance = transistor.oxide_rel_permittivity*eps0*transistor.gate_length^2/transistor.oxide_thickness;
 transistor.subthreshold_swing = .060; % (V/decade at 300K)
-transistor.Vt = 0.25; % (V) - Threhsold voltage
+transistor.Vt = 0.25; % (V) - Threshold voltage
 
 gate.output_resistance = 8e3;   % (Ohm) Output resistance of a minimum-sized 2in NAND gate
 gate.num_transistors = 4;       % (-) number of transistors per average logic gate
@@ -60,6 +61,8 @@ wire.use_graphene = 0;          % (-) Allow or disallow graphene use
 wire.use_em_resistant_metal = 0;   % (-) Allow or disallow use of electromigration-resistant metals below a specified minimum pitch
 wire.min_non_em_width = 50e-9; % (m) If use_em_resistant_metal is set to 1, Cu resistivity will be replaced with wire.alt_resistivity_em below this pitch
 wire.alt_resistivity_em = 30e-9;    %(Ohm*m) Resistivity of alternate EM-resistant metal
+wire.repeater_max_area_fraction = 0.1; % (-) Fraction of chip area that can be consumed by repeater/buffer gates
+wire.repeater_via_max_area_fraction = 0.01; % (-) Fraction of routable wire area that can be consumed by vias for repeater connections
 
 %% Power supply noise model parameters
 
@@ -83,6 +86,56 @@ psn.package_inductance = 0.5e-9;    % (H) Inductance per package pad
 % Power TSV determination
 psn.mismatch_tolerance = 0.01;      % (-) Allowable normalized deviation from noise target
 
-%% General simulation parameters
-simulation.force_thickness = 0;
+%% Thermal parameters
+%the heat transfer coefficient
+% r = 1/(hA); A is the size of top surface area
+% the cooling capability of the top heatsink; 20000, 1cm*1cm, means:
+% 0.5 W/K
+% h = q/dT - q = heat flux (W/m^2)
+heat.up = 20000;
+
+% Bottom surface heat transfer coefficient
+% This parameter controls the area directly BELOW the bottom chip
+% If the interposer is larger than the bottom chip, heat.d controls the
+% rest of the area
+% Microfluidic heat sinks are assumed to be as large as the chip in the interposer
+heat.down = 5;  
+
+% Heat transfer coefficient for the interposer area NOT directly underneath
+% the chip(s)
+heat.d = 5;
+
+% Side surface heat coefficient, usually near adiabatic
+heat.side = 5;
+
+heat.Ta = 298; % ambient temperature
+
+% Alternative settings
+heat.r_air = 1/1.825; %K/W for a 1cm^2 HS
+heat.r_water = 1/4.63; %K/W for a 1cm^2 HS
+heat.A_hs = (1e-2)^2; % 1 cm^2
+
+heat.h_air = 1/(heat.r_air*heat.A_hs);
+heat.h_water = 1/(heat.r_water*heat.A_hs);
+heat.h_package = 5;
+
+q_cm2 = 50; % (W/cm2) Top heat sink max heat flux
+q = q_cm2*1e4; % (W/m2) Top heat sink max heat flux
+dT = 70; % (deg C) Temp difference between chip surface and coolant (air)
+
+heat.up = heat.h_air;
+heat.down = heat.h_package;
+heat.d = heat.h_package;
+
+heat.interposer_thickness = 200e-6; % (m) Thickness of the interposer below the 3D stack
+heat.bump_thickness = 40e-6;        % (m) Microbump thickness (between interposer and bottom chip of 3D stack)
+heat.underfill_thickness = 5e-6;    % (m) Thickness of underfill material between each die in the 3D stack
+heat.tim_thickness = 5e-6;          % (m) Thickness of thermal interface material between top chip in stack and heat sink
+heat.material_IDs = [ 2 9 3];
+
+% If die thickness is thinner than some limit, we're dealing with a
+% monolithic 3D stack rather than a conventional 3D stack
+heat.monolithic_max_thickness = 20e-6; % (m)
+heat.monolithic_intertier_bond_thickness = 0.2e-6;    % (m) Thickness of oxide layer between ILD and next chip
+heat.monolithic_material_IDs = [ 2 9 5];
 

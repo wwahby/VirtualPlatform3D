@@ -2,7 +2,7 @@
 simulation.use_joyner = 0;
 simulation.redo_wiring_after_repeaters = 0;
 simulation.topdown_WLARI = 1; % Use topdown simultaneous WLA and RI (0 = use standard bottom-up optimal WLA, followed by one pass of RI)
-simulation.skip_psn_loops = 0; % Skip PSN TSV homing for faster debug
+simulation.skip_psn_loops = 1; % Skip PSN TSV homing for faster debug
 simulation.draw_thermal_map = 0; % Plot thermal profile of each chip
 simulation.print_thermal_data = 0; % Output max temp in each layer to console
 simulation.separate_wiring_tiers = 1; % 1 = Each logic plane will have its own wiring tiers between it and the next logic plane
@@ -36,12 +36,12 @@ rent_exp_mem = 0.4;
 rent_exp_gpu = 0.55;
 
 %% 
-tiers = [1 2 4 8];
-thicknesses = [1e-6 10e-6 100e-6];
+tiers = 1:8;
+thicknesses = [10e-6];
 force_thickness = 1;
-rel_permittivities = [1 3.9];
-frequencies = fmax_core;
-heat_fluxes = [ h_air ];
+rel_permittivities = linspace(1,4,41);
+frequencies = [3e8 1e10]; % (1) is min freq (2) is max freq
+heat_fluxes = [ h_air h_water];
 decap_ratios = [0.1];%[0.01 0.1 1];
 wire_resistivities = [17.2e-9];
 
@@ -49,11 +49,11 @@ wire_resistivities = [17.2e-9];
 num_stacks = length(tiers);
 num_perms = length(rel_permittivities);
 num_thicks = length(thicknesses);
-num_freqs = length(frequencies);
 num_cooling_configs = length(heat_fluxes);
 num_decaps = length(decap_ratios);
 num_wire_resistivities = length(wire_resistivities);
-total_configs = num_stacks * num_perms * num_thicks * num_freqs * num_cooling_configs * num_decaps * num_wire_resistivities;
+num_freqs = 1;
+total_configs = num_stacks * num_perms * num_thicks * num_cooling_configs * num_freqs * num_decaps * num_wire_resistivities;
 
 power = zeros(num_cooling_configs,num_decaps,num_thicks,num_stacks,num_perms,num_freqs,num_wire_resistivities);
 power_density = zeros(num_cooling_configs,num_decaps,num_thicks,num_stacks,num_perms,num_freqs,num_wire_resistivities);
@@ -96,8 +96,7 @@ for cind = 1:num_cooling_configs
                             fprintf('== thickness: %d/%d \t=====\n',thind,num_thicks);
                             fprintf('==     Tiers: %d/%d \t=====\n',nind,num_stacks);
                             fprintf('==     epsrd: %d/%d \t=====\n',pind,num_perms);
-                            fprintf('==      freq: %d/%d \t=====\n',freq_ind,num_freqs);
-                            fprintf('==      freq: %d/%d \t=====\n',wire_res_ind,num_wire_resistivities);
+                            fprintf('==       rho: %d/%d \t=====\n',wire_res_ind,num_wire_resistivities);
                             fprintf('==   Overall: %d/%d \t=====\n',cur_config,total_configs);
                             fprintf('===============================\n')
 
@@ -123,7 +122,39 @@ for cind = 1:num_cooling_configs
                             core.heat.up = heat_fluxes(cind);        % above chip
 
                             %% calculate block parameters
-                            [core.chip, core.power, core.tsv, core.wire, core.repeater, core.psn] = codesign_block(core.chip,core.tsv,core.gate,core.transistor,core.wire,core.heat,core.psn,simulation);
+                            fmin = frequencies(1);
+                            fmax = frequencies(2);
+                            max_gens = 10;
+                            target_max_value = 90;
+                            target_cur_value = target_max_value*2; % start with something invalid so we run it at least once
+                            abs_err = abs(target_max_value - target_cur_value);
+                            tolerance = 0.5;
+                            left = fmin;
+                            right = fmax;
+                            
+                            num_gens = 0;
+                            time_bin_start = cputime;
+                            while ((abs_err > tolerance) && (num_gens < max_gens))
+                                mid = 1/2*(left+right);
+                                core.chip.clock_period = 1/mid;
+                                [core.chip, core.power, core.tsv, core.wire, core.repeater, core.psn] = codesign_block(core.chip,core.tsv,core.gate,core.transistor,core.wire,core.heat,core.psn,simulation);
+                                target_cur_value = core.chip.temperature;
+                                abs_err = abs(target_max_value - target_cur_value);
+
+                                if (target_cur_value > target_max_value)
+                                    right = mid;
+                                elseif (target_cur_value < target_max_value)
+                                    left = mid;
+                                else
+                                    left = 1/2*(left + mid);
+                                    right = 1/2*(right + mid);
+                                end
+
+                                num_gens = num_gens + 1;
+                                fprintf('Run %d: \t Freq: %.3g \t Temp: %.4d\n\n',num_gens, mid, target_cur_value);
+                            end
+                            time_bin_stop = cputime;
+                            fprintf('Time for last binary search: %d seconds\n',time_bin_stop - time_bin_start);
 
                             power(cind,dind,thind,nind,pind,freq_ind,wire_res_ind) = core.power.total;
                             power_density(cind,dind,thind,nind,pind,freq_ind,wire_res_ind) = core.power.density;
@@ -342,76 +373,50 @@ fprintf('\nTotal time elapsed for parameter sweep: %.3g seconds\t(%.3g minutes)\
 % clf
 % hold on
 % linecol = [ 0 0 0; 0 0 1; 0 1 0; 1 0 0];
-% nind = [1 2 4 8];
-% area = zeros(1,num_stacks);
-% area_mm2 = zeros(1,num_stacks);
-% for nnn = 1:4
+% for nind= 1:num_stacks
 %     plvec = zeros(1,num_decaps);
-%     plvec(1:end) = npads(cind,:,thind,(nnn),pind,freq_ind,wire_res_ind);
-%     area(nnn) = chip_cell{cind,dind,thind,nnn,pind,freq_ind,wire_res_ind}.area_per_layer_m2;
-%     area_mm2(nnn) = area(nnn)/1e-6;
-%     plot(decap_ratios,plvec,'color',linecol(nnn,:),'linewidth',2);
+%     plvec(1:end) = npads(cind,:,thind,nind,pind,freq_ind,wire_res_ind);
+%     plot(decap_ratios,plvec,'color',linecol(nind,:),'linewidth',2);
 % end
-% set(gca,'yscale','log')
+% %set(gca,'yscale','log')
 % set(gca,'xscale','log')
-% xlabel('Fraction of die used for decoupling capacitors')
+% xlabel('Decap ratio')
 % ylabel('Number of power and ground TSVs')
 % fixfigs(2,2,14,12)
-% 
-% figure(3)
-% clf
-% hold on
-% linecol = [ 0 0 0; 0 0 1; 0 1 0; 1 0 0];
-% nind = [1 2 4 8];
-% area = zeros(1,num_stacks);
-% area_mm2 = zeros(1,num_stacks);
-% for nnn = 1:4
-%     plvec = zeros(1,num_decaps);
-%     plvec(1:end) = npads(cind,:,thind,(nnn),pind,freq_ind,wire_res_ind);
-%     area(nnn) = chip_cell{cind,dind,thind,nnn,pind,freq_ind,wire_res_ind}.area_per_layer_m2;
-%     area_mm2(nnn) = area(nnn)/1e-6;
-%     plot(decap_ratios*area_mm2(nnn),plvec,'color',linecol(nnn,:),'linewidth',2);
-% end
-% set(gca,'yscale','log')
-% set(gca,'xscale','log')
-% xlabel('Area used for decoupling capacitors (mm^2)')
-% ylabel('Number of power and ground TSVs')
-% fixfigs(3,2,14,12)
 
-%% Power TSVs, Tiers, and ILD
+%% Max frequency under 90C
 
-% Use these parameters to generate this plot
-% tiers = [1 2 4 8];
-% thicknesses = [1e-6 10e-6 100e-6];
-% force_thickness = 1;
-% rel_permittivities = [1 3.9];
-% frequencies = fmax_core;
-% heat_fluxes = [ h_air ];
-% decap_ratios = [0.1];%[0.01 0.1 1];
-% wire_resistivities = [17.2e-9];
-
-num_ptsvs = zeros(num_stacks,2*num_perms);
+max_freqs_air = zeros(num_stacks,num_perms);
+max_freqs_water = zeros(num_stacks,num_perms);
+temp_vec = zeros(num_stacks,num_perms);
+pg_vec = zeros(num_stacks,num_perms);
+cind = 1;
 for nind = 1:num_stacks
     for pind = 1:num_perms
-        th = 0;
-        for thind = [1 3]
-            th = th + 1;
-            num_ptsvs(nind,(pind-1)*2 + th) = npads(cind,dind,thind,nind,pind,freq_ind,wire_res_ind);           
-        end
+        clock_period_air = chip_cell{1,dind,thind,nind,pind,freq_ind,wire_res_ind}.clock_period;
+        max_freqs_air(nind,pind) = 1/clock_period_air;
+        
+        clock_period_water = chip_cell{2,dind,thind,nind,pind,freq_ind,wire_res_ind}.clock_period;
+        max_freqs_water(nind,pind) = 1/clock_period_water;
+        
+        temp_vec(nind,pind) = temp(cind,dind,thind,nind,pind,freq_ind,wire_res_ind);
+        pg_vec(nind,pind) = npads(cind,dind,thind,nind,pind,freq_ind,wire_res_ind);
     end
 end
 
+
 figure(1)
 clf
-b = bar(num_ptsvs,1,'grouped');
-colormap jet
-set(gca,'xticklabel',{'1','2','4','8'})
-ylim([1e0 1e4])
-set(gca,'yscale','log')
-xlabel('Number of tiers')
-ylabel('Number of power delivery TSVs')
-b(1).FaceColor = 'blue';
-b(2).FaceColor = 'green';
-b(3).FaceColor = 'yellow';
-b(4).FaceColor = 'red';
+hold on
+linecol = [ 0 0 0; 0 0 1; 0 1 0; 1 0 0];
+nnn = 0;
+for nind= [1 2 4 8]
+    nnn = nnn + 1;
+    plot(rel_permittivities,max_freqs_air(nind,:)/1e9,'linestyle','-','color',linecol(nnn,:),'linewidth',2);
+    %plot(rel_permittivities,max_freqs_water(nind,:)/1e9,'linestyle','--','color',linecol(nnn,:),'linewidth',2);
+end
+%set(gca,'yscale','log')
+%set(gca,'xscale','log')
+xlabel('ILD Relative Permittivity')
+ylabel('Maximum Clock Frequency (GHz)')
 fixfigs(1,2,14,12)

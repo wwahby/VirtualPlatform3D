@@ -6,12 +6,6 @@ clear all
 %  ================== BEGIN INPUTS ==================
 %  ==================================================
 
-%% Stack parameters
-S = 1;
-
-close all
-clear all
-
 %% Simulation parameters
 simulation.use_joyner = 0;
 simulation.redo_wiring_after_repeaters = 0;
@@ -20,6 +14,7 @@ simulation.skip_psn_loops = 1; % Skip PSN TSV homing for faster debug
 simulation.draw_thermal_map = 0; % Plot thermal profile of each chip
 simulation.print_thermal_data = 0; % Output max temp in each layer to console
 simulation.separate_wiring_tiers = 0;
+simulation.force_thickness = 1;
 
 %% Logic core parameters
 Ach_mm2_core = 32.15;
@@ -40,38 +35,6 @@ min_pitch_mem = 160e-9; % actual contacted gate pitch
 fmax_mem = 3.33e9;
 Vdd_mem = 1.40;
 
-%% Thermal parameters
-%the heat transfer coefficient
-% r = 1/(hA); A is the size of top surface area
-% the cooling capability of the top heatsink; 20000, 1cm*1cm, means:
-% 0.5 W/K
-% h = q/dT - q = heat flux (W/m^2)
-heat.up = 20000;
-
-% Bottom surface heat transfer coefficient
-% This parameter controls the area directly BELOW the bottom chip
-% If the interposer is larger than the bottom chip, heat.d controls the
-% rest of the area
-% Microfluidic heat sinks are assumed to be as large as the chip in the interposer
-heat.down = 5;  
-
-% Heat transfer coefficient for the interposer area NOT directly underneath
-% the chip(s)
-heat.d = 5;
-
-% Side surface heat coefficient, usually near adiabatic
-heat.side = 5;
-
-heat.Ta = 298; % ambient temperature
-
-% Alternate settings
-% q_cm2 = 50; % (W/cm2) Top heat sink max heat flux
-% q = q_cm2*1e4; % (W/m2) Top heat sink max heat flux
-% dT = 70; % (deg C) Temp difference between chip surface and coolant (air)
-% heat.up = q/dT;
-% heat.down = 5;
-% heat.d = 5;
-% heat.side = 5;
 %% 
 num_layers_per_block = 1;
 
@@ -81,23 +44,21 @@ rent_exp_gpu = 0.50;
 
 %% define parameters
 
-[core.chip core.transistor core.gate core.tsv core.wire core.psn] = generate_basic_processor_settings(rent_exp_logic,num_layers_per_block,Ng_core,Ach_mm2_core,gate_pitch_core,min_pitch_core,Vdd_core,fmax_core,w_trans);
-[mem.chip mem.transistor mem.gate mem.tsv mem.wire mem.psn] = generate_basic_processor_settings(rent_exp_mem,num_layers_per_block,Ng_mem,Ach_mm2_mem,gate_pitch_mem,min_pitch_mem,Vdd_mem,fmax_mem,w_trans);
+[core.chip core.transistor core.gate core.tsv core.wire core.psn core.heat] = generate_basic_processor_settings(rent_exp_logic,num_layers_per_block,Ng_core,Ach_mm2_core,gate_pitch_core,min_pitch_core,Vdd_core,fmax_core,w_trans);
+[mem.chip mem.transistor mem.gate mem.tsv mem.wire mem.psn mem.heat] = generate_basic_processor_settings(rent_exp_mem,num_layers_per_block,Ng_mem,Ach_mm2_mem,gate_pitch_mem,min_pitch_mem,Vdd_mem,fmax_mem,w_trans);
 
 
 %% Tweak wiring parameters
 core.wire.repeater_fraction = [0.4]; % 1 is default from gen_basic_proc_settings
 core.wire.routing_efficiency = [0.4]; % 0.4 is default from gen_basic_proc_settings
-core.gate.output_resistance = 8e3; % Ohm
 
 mem.wire.repeater_fraction = core.wire.repeater_fraction;
 mem.wire.routing_efficiency = core.wire.routing_efficiency;
 mem.wire.use_graphene = core.wire.use_graphene;
-mem.gate.output_resistance = 5e3;
 
 %% calculate block parameters
-[core.chip core.power core.tsv core.wire core.repeater core.psn] = codesign_block(core.chip,core.tsv,core.gate,core.transistor,core.wire,heat,core.psn,simulation);
-[mem.chip mem.power mem.tsv mem.wire mem.repeater mem.psn] = codesign_block(mem.chip,mem.tsv,mem.gate,mem.transistor,mem.wire,heat,mem.psn,simulation);
+[core.chip core.power core.tsv core.wire core.repeater core.psn] = codesign_block(core.chip,core.tsv,core.gate,core.transistor,core.wire,core.heat,core.psn,simulation);
+[mem.chip mem.power mem.tsv mem.wire mem.repeater mem.psn] = codesign_block(mem.chip,mem.tsv,mem.gate,mem.transistor,mem.wire,mem.heat,mem.psn,simulation);
 
 %% Define area
 core_width = 4.22e-3;
@@ -137,7 +98,7 @@ chip_power_total = 4*core.power.total + mem.power.total
 package_width = 37.5e-3;
 package_height = 37.5e-3;
 power_therm_vec = chip_power_total;
-[max_temp temp_vec] = get_stack_temperature(core.chip.num_layers,core.chip.thickness,core.wire,core.tsv,chip_width,chip_height,package_width,package_height,heat,simulation,map,blk_num,power_therm_vec)
+[max_temp temp_vec] = get_stack_temperature(core.chip.num_layers,core.chip.thickness,core.wire,core.tsv,chip_width,chip_height,package_width,package_height,core.heat,simulation,map,blk_num,power_therm_vec)
 %% WLA Validation
 
 intel_45nm_pitch = [160	160	160	250	280	360	560	810	30500]; % Actual intel data

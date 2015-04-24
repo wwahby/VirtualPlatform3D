@@ -109,8 +109,8 @@ Ns_act = Nsc - g_tsv;
 Ng_act = Ns_act*S;
 chip.Ng_actual = Ng_act;
 
-repstr1 = sprintf('Ng_nom: %.4g\tNg_cor: %.4g\tNg_act: %.4g\tAtf_act: %.4g',Ng,Ngc,Ng_act,Atf_act);
-disp(repstr1)
+% repstr1 = sprintf('Ng_nom: %.4g\tNg_cor: %.4g\tNg_act: %.4g\tAtf_act: %.4g',Ng,Ngc,Ng_act,Atf_act);
+% disp(repstr1)
 
 %% Calculate WLD
 iidf = xcm.calc_Iidf_corrected(alpha,k,p,Lx,S,h_tsv,Nuc_1d,w_tsv);
@@ -139,7 +139,7 @@ if (simulation.topdown_WLARI == 1)
     % with different top-level metal fill factors until we find a good
     % wiring solution
     
-    [wire repeater] = xcm.wlatdri(chip,gate,wire);
+    [wire repeater] = xcm.wlatdri(chip,gate,wire,simulation);
     
 else
     
@@ -166,8 +166,11 @@ swing_at_temp = transistor.subthreshold_swing * (chip.temperature+273)/300; % (V
 Vth = transistor.Vt;
 Vgs = 0;
 Vds = chip.Vdd;
-Ilk = (Ioff*1e6)*(3*w_trans);%*exp( (Vgs-Vth)/swing_at_temp)*(1-exp(-Vds/thermal_voltage)); % [FIX] very coarse leakage model -- update this with something better (incl temp, gate size, etc)
+Ilk = (Ioff*1e6)*(1.5*w_trans);% (1.5 because pmos should have ~3X nmos width, and half the transistors should be pmos)
+%[FIX] very coarse leakage model -- update this with something better (incl temp, gate size, etc)
 
+%Ct = transistor.capacitance_per_micron * w_trans/1e-6;
+%Cox = 4*transistor.capacitance; % (4 because pmos + nmos capacitance in parallel, pmos cap ~3X nmos)
 Cox = 1.5*transistor.capacitance; % (1.5 because pmos should have ~3X nmos width, and half the transistors should be pmos)
 Co = Cox; % Need to include parasitics for realistic estimate
 Co_rep = Cox*repeater.size;

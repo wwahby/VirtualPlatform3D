@@ -8,7 +8,7 @@ simulation.skip_psn_loops = 1; % Skip PSN TSV homing for faster debug
 simulation.draw_thermal_map = 0; % Plot thermal profile of each chip
 simulation.print_thermal_data = 0; % Output max temp in each layer to console
 simulation.separate_wiring_tiers = 1; % 1 = calculate wire pitch for wiring tiers between EACH logic plane
-simulation.force_thickness = 0;
+simulation.force_thickness = 1;
 
 %% Logic core parameters
 
@@ -46,40 +46,6 @@ min_pitch_gpu = 112.5e-9; % actual contacted gate pitch
 fmax_gpu = 1.35e9; % max clock
 %fmax_gpu = 850e6; % base clock 
 Vdd_gpu = 1.25;
-
-%% Thermal parameters
-%the heat transfer coefficient
-% r = 1/(hA); A is the size of top surface area
-% the cooling capability of the top heatsink; 20000, 1cm*1cm, means:
-% 0.5 W/K
-% h = q/dT - q = heat flux (W/m^2)
-heat.up = 20000;
-
-% Bottom surface heat transfer coefficient
-% This parameter controls the area directly BELOW the bottom chip
-% If the interposer is larger than the bottom chip, heat.d controls the
-% rest of the area
-% Microfluidic heat sinks are assumed to be as large as the chip in the interposer
-heat.down = 5;  
-
-% Heat transfer coefficient for the interposer area NOT directly underneath
-% the chip(s)
-heat.d = 5;
-
-% Side surface heat coefficient, usually near adiabatic
-heat.side = 5;
-
-heat.Ta = 298; % ambient temperature
-
-% Alternative settings
-% q_cm2 = 50; % (W/cm2) Top heat sink max heat flux
-% q = q_cm2*1e4; % (W/m2) Top heat sink max heat flux
-% dT = 70; % (deg C) Temp difference between chip surface and coolant (air)
-% heat.up = q/dT;
-% heat.down = 5;
-% heat.d = 5;
-% heat.side = 5;
-
 %% 
 num_layers_per_block = 1;
 
@@ -89,29 +55,38 @@ rent_exp_gpu = 0.50;
 
 %% define parameters
 
-[core.chip core.transistor core.gate core.tsv core.wire core.psn] = generate_basic_processor_settings(rent_exp_logic,num_layers_per_block,Ng_core,Ach_mm2_core,gate_pitch_core,min_pitch_core,Vdd_core,fmax_core,w_trans);
-[mem.chip mem.transistor mem.gate mem.tsv mem.wire mem.psn] = generate_basic_processor_settings(rent_exp_mem,num_layers_per_block,Ng_mem,Ach_mm2_mem,gate_pitch_mem,min_pitch_mem,Vdd_mem,fmax_mem,w_trans);
-[gpu.chip gpu.transistor gpu.gate gpu.tsv gpu.wire gpu.psn] = generate_basic_processor_settings(rent_exp_gpu,num_layers_per_block,Ng_gpu,Ach_mm2_gpu,gate_pitch_gpu,min_pitch_gpu,Vdd_gpu,fmax_gpu,w_trans);
+[core.chip core.transistor core.gate core.tsv core.wire core.psn core.heat] = generate_basic_processor_settings(rent_exp_logic,num_layers_per_block,Ng_core,Ach_mm2_core,gate_pitch_core,min_pitch_core,Vdd_core,fmax_core,w_trans);
+[mem.chip mem.transistor mem.gate mem.tsv mem.wire mem.psn mem.heat] = generate_basic_processor_settings(rent_exp_mem,num_layers_per_block,Ng_mem,Ach_mm2_mem,gate_pitch_mem,min_pitch_mem,Vdd_mem,fmax_mem,w_trans);
+[gpu.chip gpu.transistor gpu.gate gpu.tsv gpu.wire gpu.psn gpu.heat] = generate_basic_processor_settings(rent_exp_gpu,num_layers_per_block,Ng_gpu,Ach_mm2_gpu,gate_pitch_gpu,min_pitch_gpu,Vdd_gpu,fmax_gpu,w_trans);
 
 %% Tweak wiring parameters
-core.wire.repeater_fraction = [0.3]; % 1 is default from gen_basic_proc_settings
-core.wire.routing_efficiency = [0.6]; % 0.4 is default from gen_basic_proc_settings
+core.wire.repeater_fraction = [0.4]; % 1 is default from gen_basic_proc_settings
+core.wire.routing_efficiency = [0.5]; % 0.4 is default from gen_basic_proc_settings
+core.wire.repeater_max_area_fraction = 0.2;
+core.wire.repeater_via_max_area_fraction = 0.05;
 core.gate.output_resistance = 8e3; % Ohm
+core.transistor.capacitance = 1e-15*1e6*3*w_trans; % ITRS projection is 1fF/um of gate width. This is an estimate for pMOS transistor capacitance
 
 
 gpu.wire.repeater_fraction = core.wire.repeater_fraction;
 gpu.wire.routing_efficiency = core.wire.routing_efficiency;
-gpu.gate.output_resistance = 8e3; % Ohm
+gpu.gate.output_resistance = core.gate.output_resistance; % Ohm
+gpu.wire.repeater_max_area_fraction = core.wire.repeater_max_area_fraction;
+gpu.wire.repeater_via_max_area_fraction = core.wire.repeater_via_max_area_fraction;
+gpu.transistor_capacitance = core.transistor.capacitance;
 
 
 mem.wire.repeater_fraction = core.wire.repeater_fraction;
 mem.wire.routing_efficiency = core.wire.routing_efficiency;
-mem.gate.output_resistance = 8e3; % Ohm
+mem.gate.output_resistance = core.gate.output_resistance; % Ohm
+mem.wire.repeater_max_area_fraction = core.wire.repeater_max_area_fraction;
+mem.wire.repeater_via_max_area_fraction = core.wire.repeater_via_max_area_fraction;
+mem.transistor_capacitance = core.transistor.capacitance;
 
 %% calculate block parameters
-[core.chip core.power core.tsv core.wire core.repeater core.psn] = codesign_block(core.chip,core.tsv,core.gate,core.transistor,core.wire,heat,core.psn,simulation);
-[mem.chip mem.power mem.tsv mem.wire mem.repeater mem.psn] = codesign_block(mem.chip,mem.tsv,mem.gate,mem.transistor,mem.wire,heat,mem.psn,simulation);
-[gpu.chip gpu.power gpu.tsv gpu.wire gpu.repeater gpu.psn] = codesign_block(gpu.chip,gpu.tsv,gpu.gate,gpu.transistor,gpu.wire,heat,gpu.psn,simulation);
+[core.chip core.power core.tsv core.wire core.repeater core.psn] = codesign_block(core.chip,core.tsv,core.gate,core.transistor,core.wire,core.heat,core.psn,simulation);
+[mem.chip mem.power mem.tsv mem.wire mem.repeater mem.psn] = codesign_block(mem.chip,mem.tsv,mem.gate,mem.transistor,mem.wire,mem.heat,mem.psn,simulation);
+[gpu.chip gpu.power gpu.tsv gpu.wire gpu.repeater gpu.psn] = codesign_block(gpu.chip,gpu.tsv,gpu.gate,gpu.transistor,gpu.wire,gpu.heat,gpu.psn,simulation);
 
 
 %% Define block dimensions (m)
@@ -167,88 +142,21 @@ sys_agent_bot_y = mem_io_height;
     %blk_num is for splitting the power maps of each die
     blk_num = [8];
     
-    
 %%
 
 chip_power = 4*core.power.total + mem.power.total + gpu.power.total;
-simulation.draw_thermal_map = 1; % Plot thermal profile of each chip
-simulation.print_thermal_data = 1; % Output max temp in each layer to console
 
-%% Thermal module -- Find actual system temperature
+package_width = 37.5e-3;
+package_height = 37.5e-3;
+power_therm_vec = chip_power;
+[max_temp temp_vec] = get_stack_temperature(core.chip.num_layers,core.chip.thickness,core.wire,core.tsv,chip_width,chip_height,package_width,package_height,core.heat,simulation,map,blk_num,power_therm_vec)
 
-%%%%%%%%%%%%%%%%%%%%%%%geometry information of the chip%%%%%%%%%%%%%%%%%%%
-    die.N = core.chip.num_layers;
-    die.model = 3; % for each die, how many layers we model
-    
-    % flip chip package; order:
-    %heatsink->TIM->CHIP_BULK1->METAL->BONDING->CHIP_BULK2-> ...
-    %               CHIP_BULKN->METAL->MICRO-BUMPS->INTERPOSER    
-    thick.bump = 40e-6;  %micro-bump thickness; between second die and interposer
-    thick.tim = 5e-6; %tim thickness; between the chip and heatsink
-    thick.under = 5e-6; %underfill bonding thickness; between two dies
-    thick.inter = 200e-6; %interposer thickness
-    thick.die = core.chip.thickness; %die thickness
-    thick.ild = sum(core.wire.pn); %metal layer thickness
-
-    grid_factor = 50;
-    chip_therm.Xsize = chip_width; %x dimension of chip
-    chip_therm.Ysize = chip_height; %y dimension of chip
-    chip_therm.Xgrid = chip_therm.Xsize/grid_factor; %x grid size of chip
-    chip_therm.Ygrid = chip_therm.Ysize/grid_factor; %y grid size of chip
-    
-    %for the interposer dimension
-    pack.Xsize = 37.5e-3;
-    pack.Ysize = 37.5e-3;
-    pack.Xgrid = pack.Xsize/grid_factor;
-    pack.Ygrid = pack.Ysize/grid_factor;
-    
-    %assumed TSV starting from top metal layer of a top die
-    %            to the first metal layer of a bottom die
-    %Thus the TSV passes through bonding layer & bulk of a botom die
-    %TSV geometry 
-    tsv_therm.d = core.tsv.width_m; % tsv diameter including the liner thickness
-    tsv_therm.liner = core.tsv.width_m/10; %liner thickness
-    tsv_therm.px = core.tsv.pitch_m; %x direction pitch
-    tsv_therm.py = core.tsv.pitch_m; %y direction pitch
-    tsv_therm.Nx = round(sqrt(core.tsv.num)); %x direction number
-    tsv_therm.Ny = round(sqrt(core.tsv.num)); %y direction number
-
-    %Bump geometry
-    bump.d = 20e-6;
-    bump.px = 100e-6;
-    bump.py = 100e-6;
-    bump.Nx = 40;
-    bump.Ny = 40;
-    
-    portion = 0.5; %the metal portion in the ILD layers
-    %This is used for equivalent thermal resistance calculation of metal
-    %layer
-    
-    power_therm_vec = ones(1,core.chip.num_layers)*chip_power/core.chip.num_layers;  %power dissipation of each die
-    % from top to bottom; unit: watt
-    
-    granularity = 20;
-    % thermal map, number of color used
-    
-    draw = simulation.draw_thermal_map;
-    drawP = simulation.draw_thermal_map;
-    % whether to draw the thermal map; 1 yes; 0 no
-    
-    displayT = simulation.print_thermal_data;
-    % print the temperature information
-
-
-    chip.temperature_vec = thermal.ThermSim( die, thick, chip_therm, pack, ...
-              tsv_therm, bump, portion, power_therm_vec, ...
-              map, blk_num, granularity, draw, drawP, heat, displayT);
-          
-    chip.temperature = max(chip.temperature_vec);
     
 %% Report
 
 fprintf('Total system power consumption:\n %.4g W\n\n',chip_power)
 disp('Max temperature in each tier: ')
-disp(chip.temperature_vec)
+disp(temp_vec)
 
     
 %% Wire pitch
@@ -263,6 +171,6 @@ plot(core.wire.pn*1e9,'r')
 xlabel('wiring layer')
 ylabel('wire pitch (nm)')
 grid on
-ylim([0 700])
+ylim([0 1.2*max(core.wire.pn*1e9)])
 legend('Actual','Simulated','location','nw')
 fixfigs(4,3,14,12)
