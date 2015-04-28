@@ -43,7 +43,7 @@ Nstart = xcm.calc_Nstart(Lx,S,r,g_tsv);
 
 %% Brute Force
 Mt2dbf = xcm.Mt_2d_brute_force(Lx);
-Mt2dbfc = xcm.Mt2d_brute_force_corrected(Lx, Nuc_1d, w_tsv);
+[Mt2dbfc, sfxc_bfc, dfxc_bfc] = xcm.Mt2d_brute_force_corrected(Lx, Nuc_1d, w_tsv);
 
 %% Plots
 figure(1)
@@ -131,3 +131,29 @@ ylabel('Relative Deviation in Site Function')
 set(gca,'yscale','log')
 set(gca,'xscale','log')
 fixfigs(7,2,14,12)
+
+figure(8)
+clf
+hold on
+plot(abs(term3-sfxc_bfc)./sfxc_bfc,'b')
+plot(abs(term4-dfxc_bfc)./dfxc_bfc,'r')
+xlabel('Separation (GP)')
+ylabel('Relative Deviation in Site Function Corrections')
+set(gca,'yscale','log')
+set(gca,'xscale','log')
+legend('SFXC','DFXC')
+fixfigs(8,2,14,12)
+
+figure(9)
+clf
+hold on
+plot(sfxc_bfc,'b')
+plot(term3,'b--')
+plot(dfxc_bfc,'r')
+plot(term4,'r--')
+xlabel('Separation (GP)')
+ylabel('Site Function Corrections')
+set(gca,'yscale','log')
+set(gca,'xscale','log')
+legend('SFXC','Term3','DFXC','Term4')
+fixfigs(9,2,14,12)
