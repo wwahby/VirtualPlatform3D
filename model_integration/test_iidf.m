@@ -36,7 +36,7 @@ nnsb = xcm.calc_Nnsb(Lx,S,r,g_tsv);
 Mt3d = xcm.Mt_3d_joyner(Lx,S,r);
 Mt2d = xcm.Mt_2d_joyner(Lx);
 [Mt2dc, term3, term4, term4_alt, h, g] = xcm.Mt2d_corrected(Lx, Nuc_1d, w_tsv);
-Mt2dc_alt = Mt2dc +2*term3 - conv(g,g) - conv(h,h);
+Mt2dc_alt = Mt2d - conv(g,g) - conv(h,h) + term4;
 Nstart = xcm.calc_Nstart(Lx,S,r,g_tsv);
 
 %h = xcm.calc_h(Lx, Nuc_1d, w_tsv);
@@ -103,10 +103,10 @@ clf
 hold on
 plot(abs(Mt2dbf - Mt2d),'k')
 plot(abs(Mt2dbf - Mt2dc),'r')
-plot(abs(Mt2dbf - Mt2dc_alt),'m')
+plot(abs(Mt2dbfc - Mt2dc),'g')
 plot(abs(Mt2dbf - Mt2dbfc),'b')
 grid on
-legend('2DBF vs 2D','2DBF vs 2DC','2DBF vs 2DC_ALT','2DBF vs 2DBFC','location','s')
+legend('2DBF vs 2D','2DBF vs 2DC','2DBFC vs 2DC','2DBF vs 2DBFC','location','s')
 xlabel('Separation (GP)')
 ylabel('Raw Error in Site Function')
 set(gca,'yscale','log')
@@ -118,14 +118,10 @@ clf
 hold on
 plot(abs(Mt2dbf - Mt2d)./Mt2dbf,'k')
 plot(abs(Mt2dbf - Mt2dc)./Mt2dbf,'r')
-plot(abs(Mt2dbf - Mt2dc_alt)./Mt2dbf,'m')
+plot(abs(Mt2dbfc - Mt2dc)./Mt2dbfc,'g')
 plot(abs(Mt2dbf - Mt2dbfc)./Mt2dbf,'b')
-
-% plot(abs(Mt2d./Mt2dbf-1),'k')
-% plot(abs(Mt2dc./Mt2dbf-1),'r')
-% plot(abs(Mt2dbfc./Mt2dbf-1),'b')
 grid on
-legend('2DBF vs 2D','2DBF vs 2DC','2DBF vs 2DC_ALT','2DBF vs 2DBFC','location','sw')
+legend('2DBF vs 2D','2DBF vs 2DC','2DBFC vs 2DC','2DBF vs 2DBFC','location','sw')
 xlabel('Separation (GP)')
 ylabel('Relative Deviation in Site Function')
 set(gca,'yscale','log')
