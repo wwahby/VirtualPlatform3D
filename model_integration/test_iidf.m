@@ -35,8 +35,8 @@ nnst = xcm.calc_Nnst(Lx,S,r,g_tsv);
 nnsb = xcm.calc_Nnsb(Lx,S,r,g_tsv);
 Mt3d = xcm.Mt_3d_joyner(Lx,S,r);
 Mt2d = xcm.Mt_2d_joyner(Lx);
-[Mt2dc, term3, term4, term4_alt, h, g] = xcm.Mt2d_corrected(Lx, Nuc_1d, w_tsv);
-Mt2dc_alt = Mt2d - conv(g,g) - conv(h,h) + term4;
+[Mt2dc, term3, term4, term4_alt, h, g, term3bf] = xcm.Mt2d_corrected(Lx, Nuc_1d, w_tsv);
+Mt2dc_alt = Mt2d - conv(g,g) - conv(h,h) + term4_alt;
 Nstart = xcm.calc_Nstart(Lx,S,r,g_tsv);
 
 %h = xcm.calc_h(Lx, Nuc_1d, w_tsv);
@@ -103,10 +103,11 @@ clf
 hold on
 plot(abs(Mt2dbf - Mt2d),'k')
 plot(abs(Mt2dbf - Mt2dc),'r')
-plot(abs(Mt2dbfc - Mt2dc),'g')
+plot(abs(Mt2dbfc - Mt2dc_alt),'m')
+plot(abs(Mt2dbfc - Mt2dc),'g--')
 plot(abs(Mt2dbf - Mt2dbfc),'b')
 grid on
-legend('2DBF vs 2D','2DBF vs 2DC','2DBFC vs 2DC','2DBF vs 2DBFC','location','s')
+legend('2DBF vs 2D','2DBF vs 2DC','2DBFC vs 2DC\_ALT','2DBFC vs 2DC','2DBF vs 2DBFC','location','w')
 xlabel('Separation (GP)')
 ylabel('Raw Error in Site Function')
 set(gca,'yscale','log')
@@ -118,10 +119,11 @@ clf
 hold on
 plot(abs(Mt2dbf - Mt2d)./Mt2dbf,'k')
 plot(abs(Mt2dbf - Mt2dc)./Mt2dbf,'r')
-plot(abs(Mt2dbfc - Mt2dc)./Mt2dbfc,'g')
+plot(abs(Mt2dbfc - Mt2dc_alt)./Mt2dbfc,'m')
+plot(abs(Mt2dbfc - Mt2dc)./Mt2dbfc,'g--')
 plot(abs(Mt2dbf - Mt2dbfc)./Mt2dbf,'b')
 grid on
-legend('2DBF vs 2D','2DBF vs 2DC','2DBFC vs 2DC','2DBF vs 2DBFC','location','sw')
+legend('2DBF vs 2D','2DBF vs 2DC','2DBFC vs 2DC\_ALT','2DBFC vs 2DC','2DBF vs 2DBFC','location','n')
 xlabel('Separation (GP)')
 ylabel('Relative Deviation in Site Function')
 set(gca,'yscale','log')
@@ -131,25 +133,40 @@ fixfigs(7,2,14,12)
 figure(8)
 clf
 hold on
-plot(abs(term3-sfxc_bfc)./sfxc_bfc,'b')
-plot(abs(term4-dfxc_bfc)./dfxc_bfc,'r')
+plot(abs(2*term3-sfxc_bfc)./sfxc_bfc,'b')
+plot(abs(term4_alt-dfxc_bfc)./dfxc_bfc,'g')
+plot(abs(term4-dfxc_bfc)./dfxc_bfc,'r--')
 xlabel('Separation (GP)')
 ylabel('Relative Deviation in Site Function Corrections')
 set(gca,'yscale','log')
 set(gca,'xscale','log')
-legend('SFXC','DFXC')
+legend('SFXC','DFXC\_ALT','DFXC')
 fixfigs(8,2,14,12)
 
 figure(9)
 clf
 hold on
 plot(sfxc_bfc,'b')
-plot(term3,'b--')
+plot(2*term3,'b--')
 plot(dfxc_bfc,'r')
-plot(term4,'r--')
+plot(term4_alt,'k')
+plot(term4,'g--')
+plot(sfxc_bfc + dfxc_bfc,'m')
 xlabel('Separation (GP)')
 ylabel('Site Function Corrections')
 set(gca,'yscale','log')
 set(gca,'xscale','log')
-legend('SFXC','Term3','DFXC','Term4')
+legend('SFXC','Term3','DFXC','Term4\_Alt','Term4','SFXC+DFXC','location','s')
 fixfigs(9,2,14,12)
+
+figure(10)
+clf
+hold on
+plot(term3,'b')
+plot(term3bf,'r--')
+% set(gca,'yscale','log')
+% set(gca,'xscale','log')
+xlabel('Separation (GP)')
+ylabel('Site Function Correction')
+legend('term3 - conv','term3 - BF')
+fixfigs(10,2,14,12)
