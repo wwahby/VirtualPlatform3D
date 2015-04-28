@@ -4,7 +4,7 @@ function [Mt2d, SFXC, DFXC] = Mt2d_brute_force_corrected(Lx, Nuc_1d, w_tsv)
 w_uc = Lx/Nuc_1d;
 
 forbidden_min = round(w_uc/2) - round(w_tsv/2);
-forbidden_max = forbidden_min + (w_tsv - round(w_tsv/2));
+forbidden_max = forbidden_min + w_tsv;
 
 Mt2d = zeros(1,2*Lx+1);
 SFXC = zeros(1,2*Lx+1);
