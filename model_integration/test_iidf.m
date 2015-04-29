@@ -35,17 +35,21 @@ nnst = xcm.calc_Nnst(Lx,S,r,g_tsv);
 nnsb = xcm.calc_Nnsb(Lx,S,r,g_tsv);
 Mt3d = xcm.Mt_3d_joyner(Lx,S,r);
 Mt2d = xcm.Mt_2d_joyner(Lx);
-[Mt2dc, term3, term4, term4_alt, h, g, term3bf] = xcm.Mt2d_corrected(Lx, Nuc_1d, w_tsv);
-Mt2dc_alt = Mt2d - conv(g,g) - conv(h,h) + term4_alt;
+[Mt2dc, term3, term4, term4_alt, h, g, term3bf_h] = xcm.Mt2d_corrected(Lx, Nuc_1d, w_tsv);
+Mt2dc_alt = Mt2d - 2*term3 + term4_alt;
 Nstart = xcm.calc_Nstart(Lx,S,r,g_tsv);
 
 %h = xcm.calc_h(Lx, Nuc_1d, w_tsv);
 
 %% Brute Force
-Mt2dbf = xcm.Mt_2d_brute_force(Lx);
-[Mt2dbfc, sfxc_bfc, dfxc_bfc] = xcm.Mt2d_brute_force_corrected(Lx, Nuc_1d, w_tsv);
+% Mt2dbf = xcm.Mt_2d_brute_force(Lx);
+% [Mt2dbfc, sfxc_bfc, dfxc_bfc] = xcm.Mt2d_brute_force_corrected(Lx, Nuc_1d, w_tsv);
 
+%% More brute force
+[term2bf, term3bf] = xcm.calc_mid_terms_brute_force(Lx, Nuc_1d, w_tsv);
 %% Plots
+Mt2dbfc_constructed = Mt2d - sfxc_bfc - dfxc_bfc;
+
 figure(1)
 clf
 loglog(iidf);
@@ -122,6 +126,7 @@ plot(abs(Mt2dbf - Mt2dc)./Mt2dbf,'r')
 plot(abs(Mt2dbfc - Mt2dc_alt)./Mt2dbfc,'m')
 plot(abs(Mt2dbfc - Mt2dc)./Mt2dbfc,'g--')
 plot(abs(Mt2dbf - Mt2dbfc)./Mt2dbf,'b')
+plot(abs(Mt2dbfc - Mt2dbfc_constructed)./Mt2dbfc,'r--')
 grid on
 legend('2DBF vs 2D','2DBF vs 2DC','2DBFC vs 2DC\_ALT','2DBFC vs 2DC','2DBF vs 2DBFC','location','n')
 xlabel('Separation (GP)')
@@ -157,14 +162,17 @@ ylabel('Site Function Corrections')
 set(gca,'yscale','log')
 set(gca,'xscale','log')
 legend('SFXC','Term3','DFXC','Term4\_Alt','Term4','SFXC+DFXC','location','s')
+grid on
 fixfigs(9,2,14,12)
 
+%%
 figure(10)
 clf
 hold on
 plot(term3,'b')
-plot(term3bf,'r--')
-% set(gca,'yscale','log')
+plot(term3bf_h,'r--')
+plot(term3bf,'g')
+ set(gca,'yscale','log')
 % set(gca,'xscale','log')
 xlabel('Separation (GP)')
 ylabel('Site Function Correction')
