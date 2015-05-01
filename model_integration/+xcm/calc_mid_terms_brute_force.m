@@ -23,48 +23,72 @@ Nx = Lx;
 Ny = Ly;
 
 w = w_tsv;
+% for l_ind = 1:lmax+1
+%     l = l_ind - 1
+%     lxmax = min(l,Lx);
+%     for lx_ind = 1:lxmax+1
+%         lx = lx_ind - 1;
+%         for x1_ind = 1:Nx
+%             x1 = x1_ind - 1;
+%             x1_uc = mod(x1,T);
+%             x2 = x1 - lx;
+%             x2_uc = mod(x2,T);
+%             x2_nogo = x2 < 0;
+%             if (~x2_nogo)
+%                 for y1_ind = 1:Ny
+%                     y1 = y1_ind - 1;
+%                     y1_uc = mod(y1,T);
+%                     ly = l - lx;
+%                     y2 = y1 - ly;
+%                     y2_uc = mod(y2,T);
+%                     y2_nogo = y2 < 0;
+%                     
+%                     p2_nogo = x2_nogo && y2_nogo;
+% 
+%                     if(~p2_nogo)
+%                         %a1 = fx(x1,Lx)*fx(y1,Ly); % guaranteed to be fine
+%                         %a2 = fx(x2,Lx)*fx(y2,Ly); % guaranteed to be fine
+% 
+%                         %b1 = q(x1_uc,y1_uc,t,w_tsv);
+%                         b1x = (x1_uc < t) && (x1_uc > t + w);
+%                         b1y = (y1_uc < t) && (y1_uc > t + w);
+%                         b1 = b1x*b1y;
+%                         
+%                         b2x = (x2_uc < t) && (x2_uc > t + w);
+%                         b2y = (y2_uc < t) && (y2_uc > t + w);
+%                         b2 = b2x*b2y;
+%                         %b2 = q(x2_uc,y2_uc,t,w_tsv);
+% 
+%                         term2(l_ind) = term2(l_ind) + b2;
+%                         term3(l_ind) = term3(l_ind) + b1;
+%                     end
+%                 end
+%             end
+%         end
+%     end
+% end
+ 
+
 for l_ind = 1:lmax+1
-    l = l_ind - 1
+    l = l_ind - 1;
     lxmax = min(l,Lx);
+
     for lx_ind = 1:lxmax+1
         lx = lx_ind - 1;
-        for x1_ind = 1:Nx
+        ly = l - lx;
+        ly_ind = ly + 1;
+
+        for x1_ind = lx_ind:Nx
             x1 = x1_ind - 1;
             x1_uc = mod(x1,T);
-            x2 = x1 - lx;
-            x2_uc = mod(x2,T);
-            x2_nogo = x2 < 0;
-            if (~x2_nogo)
-                for y1_ind = 1:Ny
-                    y1 = y1_ind - 1;
-                    y1_uc = mod(y1,T);
-                    ly = l - lx;
-                    y2 = y1 - ly;
-                    y2_uc = mod(y2,T);
-                    y2_nogo = y2 < 0;
-                    
-                    p2_nogo = x2_nogo && y2_nogo;
+            gx = (x1_uc > t) && (x1_uc < t + w);
 
-                    if(~p2_nogo)
-                        %a1 = fx(x1,Lx)*fx(y1,Ly); % guaranteed to be fine
-                        %a2 = fx(x2,Lx)*fx(y2,Ly); % guaranteed to be fine
-
-                        %b1 = q(x1_uc,y1_uc,t,w_tsv);
-                        b1x = (x1_uc < t) && (x1_uc > t + w);
-                        b1y = (y1_uc < t) && (y1_uc > t + w);
-                        b1 = b1x*b1y;
-                        
-                        b2x = (x2_uc < t) && (x2_uc > t + w);
-                        b2y = (y2_uc < t) && (y2_uc > t + w);
-                        b2 = b2x*b2y;
-                        %b2 = q(x2_uc,y2_uc,t,w_tsv);
-
-                        term2(l_ind) = term2(l_ind) + b2;
-                        term3(l_ind) = term3(l_ind) + b1;
-                    end
-                end
+            for y1_ind = ly_ind:Ny
+                y1 = y1_ind - 1;
+                y1_uc = mod(y1,T);
+                gy = (y1_uc > t) && (y1_uc < t + w);
+                term2(l_ind) = term2(l_ind) + gx*gy;
             end
         end
     end
 end
-    

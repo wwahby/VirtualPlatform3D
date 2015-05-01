@@ -5,14 +5,20 @@
 % S = 4;
 % r = 1;
 
-Ng = 200^2;
+% Ng = 200^2;
+% Nuc_1d = 10;
+% w_tsv = 5;
+
+Ng = 40^2;
+Nuc_1d = 4;
+w_tsv = 5;
+
 S = 1;
 r = 1;
 Ns = Ng/S;
 Lx = round(sqrt(Ns));
 
-Nuc_1d = 10;
-w_tsv = 5;
+
 
 % Recalculate these to make sure everything is a nice integer
 Ns = Lx^2;
@@ -42,60 +48,61 @@ Nstart = xcm.calc_Nstart(Lx,S,r,g_tsv);
 %h = xcm.calc_h(Lx, Nuc_1d, w_tsv);
 
 %% Brute Force
-% Mt2dbf = xcm.Mt_2d_brute_force(Lx);
-% [Mt2dbfc, sfxc_bfc, dfxc_bfc] = xcm.Mt2d_brute_force_corrected(Lx, Nuc_1d, w_tsv);
+Mt2dbf = xcm.Mt_2d_brute_force(Lx);
+[Mt2dbfc, sfxc_bfc, dfxc_bfc] = xcm.Mt2d_brute_force_corrected(Lx, Nuc_1d, w_tsv);
 
 %% More brute force
 [term2bf, term3bf] = xcm.calc_mid_terms_brute_force(Lx, Nuc_1d, w_tsv);
 %% Plots
-Mt2dbfc_constructed = Mt2d - sfxc_bfc - dfxc_bfc;
-
-figure(1)
-clf
-loglog(iidf);
-hold on
-%loglog(Iidf_joyner,'r--')
-title('Iidf')
-
-figure(2)
-clf
-plot(Mt3d,'b')
-hold on
-plot(Mt2d,'k:')
-%plot(Mt_joyner,'r--')
-
-figure(2)
-clf
-plot(nnst,'b')
-hold on
-%plot(Nnst_joyner,'r--')
-set(gca,'yscale','log')
-title('Nnst')
-
-figure(3)
-clf
-plot(nnsb,'b')
-hold on
-%plot(Nnsb_joyner,'r--')
-%set(gca,'yscale','log')
-title('Nnsb')
-
-figure(4)
-clf
-plot(Nstart,'b')
-% plot(Nstart_joyner,'r--')
+Mt2dc_constructed = Mt2d - 2*term2bf + term4_alt;
+% 
+% figure(1)
+% clf
+% loglog(iidf);
+% hold on
+% %loglog(Iidf_joyner,'r--')
+% title('Iidf')
+% 
+% figure(2)
+% clf
+% plot(Mt3d,'b')
+% hold on
+% plot(Mt2d,'k:')
+% %plot(Mt_joyner,'r--')
+% 
+% figure(2)
+% clf
+% plot(nnst,'b')
+% hold on
+% %plot(Nnst_joyner,'r--')
+% set(gca,'yscale','log')
+% title('Nnst')
+% 
+% figure(3)
+% clf
+% plot(nnsb,'b')
+% hold on
+% %plot(Nnsb_joyner,'r--')
+% %set(gca,'yscale','log')
+% title('Nnsb')
+% 
+% figure(4)
+% clf
+% plot(Nstart,'b')
+% % plot(Nstart_joyner,'r--')
 
 
 figure(5)
 clf
 hold on
 plot(Mt2d,'b-')
-plot(Mt2dc,'r--')
-plot(Mt2dc_alt,'m--')
+plot(Mt2dc,'r-')
+plot(Mt2dc_alt,'m-')
 plot(Mt2dbf,'g-.')
-plot(Mt2dbfc,'c--')
+plot(Mt2dbfc,'c-')
+plot(Mt2dc_constructed,'r--')
 grid on
-legend('2D','2DC','2DBF','2DBFC')
+legend('2D','2DC','2DC ALT','2D BF', '2DC BF', '2DC BF2 4ALT','location','s')
 xlabel('Separation (GP)')
 ylabel('Site Function')
 set(gca,'yscale','log')
@@ -157,11 +164,12 @@ plot(dfxc_bfc,'r')
 plot(term4_alt,'k')
 plot(term4,'g--')
 plot(sfxc_bfc + dfxc_bfc,'m')
+plot(2*term2bf,'b-.')
 xlabel('Separation (GP)')
 ylabel('Site Function Corrections')
 set(gca,'yscale','log')
 set(gca,'xscale','log')
-legend('SFXC','Term3','DFXC','Term4\_Alt','Term4','SFXC+DFXC','location','s')
+legend('SFXC','Term3','DFXC','Term4\_Alt','Term4','SFXC+DFXC','T2+3 BF','location','s')
 grid on
 fixfigs(9,2,14,12)
 
@@ -171,7 +179,7 @@ clf
 hold on
 plot(term3,'b')
 plot(term3bf_h,'r--')
-plot(term3bf,'g')
+plot(term2bf,'g')
  set(gca,'yscale','log')
 % set(gca,'xscale','log')
 xlabel('Separation (GP)')
