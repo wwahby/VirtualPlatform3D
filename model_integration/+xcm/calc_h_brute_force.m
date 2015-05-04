@@ -10,7 +10,7 @@ nt = Ntsvs-floor(lx/T);
 
 if (lx < 0) || (lx > lxmax)
     h = 0;
-elseif lmt < t
+elseif lmt <= t
     h = nt*w;
 elseif lmt > t+w
     h = (nt-1)*w;
