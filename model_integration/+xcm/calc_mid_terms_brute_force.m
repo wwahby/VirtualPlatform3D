@@ -2,11 +2,11 @@ function [term2, term3] = calc_mid_terms_brute_force(Lx, Nuc_1d, w_tsv)
 
 
 w_uc = Lx/Nuc_1d;
-forbidden_min = round(w_uc/2) - round(w_tsv/2);
-forbidden_max = forbidden_min + w_tsv;
+forbidden_min = round(w_uc/2 - w_tsv/2);
+forbidden_max = forbidden_min + w_tsv-1;
 
-T = Nuc_1d;
-t = forbidden_min;
+T = Lx/Nuc_1d;
+t = forbidden_min-1;
 
 r = @(x,start,width) (x >= start) && (x <= start + width);
 
@@ -81,13 +81,25 @@ for l_ind = 1:lmax+1
         for x1_ind = lx_ind:Nx
             x1 = x1_ind - 1;
             x1_uc = mod(x1,T);
-            gx = (x1_uc > t) && (x1_uc < t + w);
-
-            for y1_ind = ly_ind:Ny
-                y1 = y1_ind - 1;
-                y1_uc = mod(y1,T);
-                gy = (y1_uc > t) && (y1_uc < t + w);
-                term2(l_ind) = term2(l_ind) + gx*gy;
+            gx = (x1_uc >= forbidden_min) && (x1_uc <= forbidden_max);
+            x2 = x1 - lx;
+            x2_uc = mod(x2,T);
+            gx2 = (x2_uc >= forbidden_min) && (x2_uc <= forbidden_max) && (x2 >= 0);
+            
+            if ((gx ~= 0) || (gx2 ~=0))
+                for y1_ind = ly_ind:Ny
+                    y1 = y1_ind - 1;
+                    y1_uc = mod(y1,T);
+                    gy = (y1_uc >= forbidden_min) && (y1_uc <= forbidden_max);
+                    
+                    y2 = y1 - ly;
+                    y2_uc = mod(y2,T);
+                    gy2 = (y2_uc >= forbidden_min) && (y2_uc <= forbidden_max) && (y2 >=0);
+                    
+                    
+                    term2(l_ind) = term2(l_ind) + gx*gy;
+                    term3(l_ind) = term3(l_ind) + gx2*gy2;
+                end
             end
         end
     end
