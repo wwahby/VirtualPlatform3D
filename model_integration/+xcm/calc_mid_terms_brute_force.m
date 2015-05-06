@@ -72,8 +72,9 @@ w = w_tsv;
 for l_ind = 1:lmax+1
     l = l_ind - 1;
     lxmax = min(l,Lx);
+    lxmin = max(0,l-Nx+1);
 
-    for lx_ind = 1:lxmax+1
+    for lx_ind = (lxmin+1):(lxmax+1)
         lx = lx_ind - 1;
         ly = l - lx;
         ly_ind = ly + 1;
