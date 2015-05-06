@@ -9,8 +9,8 @@
 % Nuc_1d = 10;
 % w_tsv = 5;
 
-Ng = 40^2;
-Nuc_1d = 4;
+Ng = 100^2;
+Nuc_1d = 10;
 w_tsv = 6;
 
 S = 1;
@@ -56,6 +56,13 @@ Mt2dbf = xcm.Mt_2d_brute_force(Lx);
 [Mt2dc_bf_mult, Mt2d_bf_mult, term2bf_mult, term3bf_mult] = xcm.calc_Mt2d_brute_force_mult(Lx, Nuc_1d, w_tsv);
 %% Plots
 Mt2dc_constructed = Mt2d -2*term2bf + term4_alt;
+
+htest = [h zeros(1,length(Mt2d)-length(h))];
+term2_alt = 2*term3 - 2*w_tsv*Nuc_1d*htest;
+term2_alt(1) = term2_alt(1) + w_tsv^2*Nuc_1d^2;
+cor_con = 2*term2_alt - term4_alt;
+cor_con = 4*term2bf;
+Mt2dc_constructed = Mt2d - cor_con;
 % 
 % figure(1)
 % clf
@@ -204,17 +211,20 @@ xlabel('XC Length (GP)')
 ylabel('Site function')
 set(gca,'yscale','log')
 set(gca,'xscale','log')
-legend('2DBF','2DBFC','2D','2DC','2DCA','2DCC','2DMLT','location','s')
+legend('2DBF','2DBFC','2D','2DC','2DCA','2DCC','2DCMLT','2DMLT','location','s')
+grid on
 fixfigs(11,2,14,12)
 
+t3_4x = term3;
+t3_4x(2:end) = 2*t3_4x(2:end);
 figure(12)
 clf
 hold on
 plot(sfxc_bfc,'b')
 plot(dfxc_bfc,'r')
 plot(sfxc_bfc + dfxc_bfc,'k')
-plot(2*term3,'m')
-plot(2*term3 - term4_alt,'m--')
+plot(2*t3_4x,'m')
+plot(2*t3_4x - term4_alt,'color',[1 0.6 0])
 xlabel('Separation (GP)')
 ylabel('Site Function Corrections')
 set(gca,'yscale','log')
@@ -226,7 +236,9 @@ fixfigs(12,2,14,12)
 figure(13)
 clf
 hold on
-plot(abs((2*term3-term4_alt)-(sfxc_bfc+dfxc_bfc))./(sfxc_bfc+dfxc_bfc),'b')
+plot(abs((2*t3_4x-term4_alt)-(sfxc_bfc+dfxc_bfc))./(sfxc_bfc+dfxc_bfc),'b')
+plot(abs((2*t3_4x)-(sfxc_bfc+dfxc_bfc))./(sfxc_bfc+dfxc_bfc),'r')
+plot(abs((cor_con)-(sfxc_bfc+dfxc_bfc))./(sfxc_bfc+dfxc_bfc),'g')
 xlabel('Separation (GP)')
 ylabel('Relative Deviation in Site Function Corrections')
 %set(gca,'yscale','log')
