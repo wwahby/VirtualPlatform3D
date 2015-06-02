@@ -332,7 +332,7 @@ if (try_using_gnrs)
         width_fraction, pitch_orig, temp_K, mfp_defect, rho_interlayer, prob_backscattering, ...
         Ef, contact_resistance, epsrd, height_dielectric );
 
-    fprintf('   ...use_gnrs: %d\n',(use_gnr || use_gnr_rep));
+    fprintf('   ...use_gnrs: %d\tuse_gnr_rep: %d\n',use_gnr, use_gnr_rep);
     
     R_gnr_vec(n) = R_gnr;
     
