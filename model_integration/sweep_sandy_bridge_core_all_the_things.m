@@ -35,15 +35,28 @@ rent_exp_logic = 0.6;
 rent_exp_mem = 0.4;
 rent_exp_gpu = 0.55;
 
+
+%%
+rho_ag = 15.9e-9;
+rho_au = 24.4e-9;
+rho_cu = 17.2e-9;
+rho_w = 56.0e-9;
+rho_ni = 69.9e-9;
+%rho_co_al = 0e-9;
+rho_al = 26.5e-9;
+
+
 %% 
-tiers = [1 2 4 8];
-thicknesses = [1e-6 10e-6 100e-6];
+tiers = [1];
+thicknesses = [10e-6];
 force_thickness = 1;
-rel_permittivities = [1 3.9];
+rel_permittivities = [3.0];
 frequencies = fmax_core;
 heat_fluxes = [ h_air ];
 decap_ratios = [0.1];%[0.01 0.1 1];
-wire_resistivities = [17.2e-9];
+wire_resistivities = [rho_cu rho_al rho_ni rho_w];
+allow_graphene = [0];
+scaling_factor = [1];
 
 
 num_stacks = length(tiers);
@@ -53,26 +66,28 @@ num_freqs = length(frequencies);
 num_cooling_configs = length(heat_fluxes);
 num_decaps = length(decap_ratios);
 num_wire_resistivities = length(wire_resistivities);
-total_configs = num_stacks * num_perms * num_thicks * num_freqs * num_cooling_configs * num_decaps * num_wire_resistivities;
+num_wire_materials = length(allow_graphene);
+num_scaling_factors = length(scaling_factor);
+total_configs = num_stacks * num_perms * num_thicks * num_freqs * num_cooling_configs * num_decaps * num_wire_resistivities * num_wire_materials * num_scaling_factors;
 
-power = zeros(num_cooling_configs,num_decaps,num_thicks,num_stacks,num_perms,num_freqs,num_wire_resistivities);
-power_density = zeros(num_cooling_configs,num_decaps,num_thicks,num_stacks,num_perms,num_freqs,num_wire_resistivities);
+power = zeros(num_cooling_configs,num_decaps,num_thicks,num_stacks,num_perms,num_freqs,num_wire_resistivities,num_wire_materials,num_scaling_factors);
+power_density = zeros(num_cooling_configs,num_decaps,num_thicks,num_stacks,num_perms,num_freqs,num_wire_resistivities,num_wire_materials,num_scaling_factors);
 
-wire_power = zeros(num_cooling_configs,num_decaps,num_thicks,num_stacks,num_perms,num_freqs,num_wire_resistivities);
-rep_power = zeros(num_cooling_configs,num_decaps,num_thicks,num_stacks,num_perms,num_freqs,num_wire_resistivities);
-temp = zeros(num_cooling_configs,num_decaps,num_thicks,num_stacks,num_perms,num_freqs,num_wire_resistivities);
-thickness = zeros(num_cooling_configs,num_decaps,num_thicks,num_stacks,num_perms,num_freqs,num_wire_resistivities);
-npads = zeros(num_cooling_configs,num_decaps,num_thicks,num_stacks,num_perms,num_freqs,num_wire_resistivities);
-cap_density = zeros(num_cooling_configs,num_decaps,num_thicks,num_stacks,num_perms,num_freqs,num_wire_resistivities);
-Ltsv_m2 = zeros(num_cooling_configs,num_decaps,num_thicks,num_stacks,num_perms,num_freqs,num_wire_resistivities);
+wire_power = zeros(num_cooling_configs,num_decaps,num_thicks,num_stacks,num_perms,num_freqs,num_wire_resistivities,num_wire_materials,num_scaling_factors);
+rep_power = zeros(num_cooling_configs,num_decaps,num_thicks,num_stacks,num_perms,num_freqs,num_wire_resistivities,num_wire_materials,num_scaling_factors);
+temp = zeros(num_cooling_configs,num_decaps,num_thicks,num_stacks,num_perms,num_freqs,num_wire_resistivities,num_wire_materials,num_scaling_factors);
+thickness = zeros(num_cooling_configs,num_decaps,num_thicks,num_stacks,num_perms,num_freqs,num_wire_resistivities,num_wire_materials,num_scaling_factors);
+npads = zeros(num_cooling_configs,num_decaps,num_thicks,num_stacks,num_perms,num_freqs,num_wire_resistivities,num_wire_materials,num_scaling_factors);
+cap_density = zeros(num_cooling_configs,num_decaps,num_thicks,num_stacks,num_perms,num_freqs,num_wire_resistivities,num_wire_materials,num_scaling_factors);
+Ltsv_m2 = zeros(num_cooling_configs,num_decaps,num_thicks,num_stacks,num_perms,num_freqs,num_wire_resistivities,num_wire_materials,num_scaling_factors);
 
 
-ild_cell = cell(num_cooling_configs,num_decaps,num_thicks,num_stacks,num_perms,num_freqs,num_wire_resistivities);
-psn_cell = cell(num_cooling_configs,num_decaps,num_thicks,num_stacks,num_perms,num_freqs,num_wire_resistivities);
-power_cell = cell(num_cooling_configs,num_decaps,num_thicks,num_stacks,num_perms,num_freqs,num_wire_resistivities);
-wire_cell = cell(num_cooling_configs,num_decaps,num_thicks,num_stacks,num_perms,num_freqs,num_wire_resistivities);
-chip_cell = cell(num_cooling_configs,num_decaps,num_thicks,num_stacks,num_perms,num_freqs,num_wire_resistivities);
-tsv_cell = cell(num_cooling_configs,num_decaps,num_thicks,num_stacks,num_perms,num_freqs,num_wire_resistivities);
+ild_cell = cell(num_cooling_configs,num_decaps,num_thicks,num_stacks,num_perms,num_freqs,num_wire_resistivities,num_wire_materials,num_scaling_factors);
+psn_cell = cell(num_cooling_configs,num_decaps,num_thicks,num_stacks,num_perms,num_freqs,num_wire_resistivities,num_wire_materials,num_scaling_factors);
+power_cell = cell(num_cooling_configs,num_decaps,num_thicks,num_stacks,num_perms,num_freqs,num_wire_resistivities,num_wire_materials,num_scaling_factors);
+wire_cell = cell(num_cooling_configs,num_decaps,num_thicks,num_stacks,num_perms,num_freqs,num_wire_resistivities,num_wire_materials,num_scaling_factors);
+chip_cell = cell(num_cooling_configs,num_decaps,num_thicks,num_stacks,num_perms,num_freqs,num_wire_resistivities,num_wire_materials,num_scaling_factors);
+tsv_cell = cell(num_cooling_configs,num_decaps,num_thicks,num_stacks,num_perms,num_freqs,num_wire_resistivities,num_wire_materials,num_scaling_factors);
 
 t_sweep_start = cputime;
 cur_config = 0;
@@ -83,68 +98,84 @@ for cind = 1:num_cooling_configs
                 for pind = 1:num_perms
                     for freq_ind = 1:num_freqs
                         for wire_res_ind = 1:num_wire_resistivities
-                            cur_config = cur_config + 1;
-                            die_thickness = thicknesses(thind);
-                            num_layers_per_block = tiers(nind);
-                            epsrd = rel_permittivities(pind);
-                            fmax_core = frequencies(freq_ind);
-                            wire_resistivity = wire_resistivities(wire_res_ind);
+                            for wire_mat_ind = 1:num_wire_materials
+                                for scaling_ind = 1:num_scaling_factors
+                                    cur_config = cur_config + 1;
+                                    die_thickness = thicknesses(thind);
+                                    num_layers_per_block = tiers(nind);
+                                    epsrd = rel_permittivities(pind);
+                                    fmax_core = frequencies(freq_ind);
+                                    wire_resistivity = wire_resistivities(wire_res_ind);
 
-                            fprintf('\n===============================\n')
-                            fprintf('==   cooling: %d/%d \t=====\n',cind,num_cooling_configs);
-                            fprintf('==     decap: %d/%d \t=====\n',dind,num_decaps);
-                            fprintf('== thickness: %d/%d \t=====\n',thind,num_thicks);
-                            fprintf('==     Tiers: %d/%d \t=====\n',nind,num_stacks);
-                            fprintf('==     epsrd: %d/%d \t=====\n',pind,num_perms);
-                            fprintf('==      freq: %d/%d \t=====\n',freq_ind,num_freqs);
-                            fprintf('==      freq: %d/%d \t=====\n',wire_res_ind,num_wire_resistivities);
-                            fprintf('==   Overall: %d/%d \t=====\n',cur_config,total_configs);
-                            fprintf('===============================\n')
+                                    fprintf('\n===============================\n')
+                                    fprintf('==   cooling: %d/%d \t=====\n',cind,num_cooling_configs);
+                                    fprintf('==     decap: %d/%d \t=====\n',dind,num_decaps);
+                                    fprintf('== thickness: %d/%d \t=====\n',thind,num_thicks);
+                                    fprintf('==     Tiers: %d/%d \t=====\n',nind,num_stacks);
+                                    fprintf('==     epsrd: %d/%d \t=====\n',pind,num_perms);
+                                    fprintf('==      freq: %d/%d \t=====\n',freq_ind,num_freqs);
+                                    fprintf('==       rho: %d/%d \t=====\n',wire_res_ind,num_wire_resistivities);
+                                    fprintf('==       mat: %d/%d \t=====\n',wire_mat_ind,num_wire_materials);
+                                    fprintf('==     scale: %d/%d \t=====\n',scaling_ind,num_scaling_factors);
+                                    fprintf('==   Overall: %d/%d \t=====\n',cur_config,total_configs);
+                                    fprintf('===============================\n')
+                                    
+                                    %% Rescale dimensions if necessary
+                                    compression_factor = scaling_factor(scaling_ind); % linear scaling factor. 1 = actual 32nm design, 4.57 = equivalent 7nm SB
+                                    Ach_mm2_scaled = Ach_mm2_core/compression_factor^2;
+                                    gate_pitch_scaled = gate_pitch_core/compression_factor;
+                                    min_pitch_scaled = min_pitch_core/compression_factor;
+                                    w_trans_scaled = w_trans/compression_factor;
+                                    
 
-                            %% define parameters
+                                    %% define parameters
+                                    [core.chip, core.transistor, core.gate, core.tsv, core.wire, core.psn, core.heat] = generate_basic_processor_settings(rent_exp_logic,num_layers_per_block,Ng_core,Ach_mm2_scaled,gate_pitch_scaled,min_pitch_scaled,Vdd_core,fmax_core,w_trans_scaled);
+                                    %core.psn.mismatch_tolerance = 0.01;
+                                    %% Tweak wiring parameters
+            %                         core.wire.repeater_fraction = [0.3]; % 1 is default from gen_basic_proc_settings
+            %                         core.wire.routing_efficiency = [0.6]; % 0.4 is default from gen_basic_proc_settings
+                                    core.wire.repeater_fraction = [0.4]; % 1 is default from gen_basic_proc_settings
+                                    core.wire.routing_efficiency = [0.5]; % 0.4 is default from gen_basic_proc_settings
+                                    core.wire.repeater_max_area_fraction = 0.2; % (-) Fraction of chip area that can be consumed by repeater/buffer gates
+                                    core.wire.repeater_via_max_area_fraction = 0.05; % (-) Fraction of routable wire area that can be consumed by vias for repeater connections
+                                    core.gate.output_resistance = 8e3; % Ohm
+                                    core.transistor.capacitance = 1e-15*1e6*3*w_trans; % ITRS projection is 1fF/um of gate width. This is an estimate for pMOS transistor capacitance
+                                    core.wire.resistivity = wire_resistivity;
+                                    core.transistor.leakage_current_per_micron = 100e-9; %(A/um) % 32nm IOFF
 
-                            [core.chip, core.transistor, core.gate, core.tsv, core.wire, core.psn, core.heat] = generate_basic_processor_settings(rent_exp_logic,num_layers_per_block,Ng_core,Ach_mm2_core,gate_pitch_core,min_pitch_core,Vdd_core,fmax_core,w_trans);
-                            %core.psn.mismatch_tolerance = 0.01;
-                            %% Tweak wiring parameters
-    %                         core.wire.repeater_fraction = [0.3]; % 1 is default from gen_basic_proc_settings
-    %                         core.wire.routing_efficiency = [0.6]; % 0.4 is default from gen_basic_proc_settings
-                            core.wire.repeater_fraction = [0.5]; % 1 is default from gen_basic_proc_settings
-                            core.wire.routing_efficiency = [0.5]; % 0.4 is default from gen_basic_proc_settings
-                            core.wire.repeater_max_area_fraction = 0.3; % (-) Fraction of chip area that can be consumed by repeater/buffer gates
-                            core.wire.repeater_via_max_area_fraction = 0.05; % (-) Fraction of routable wire area that can be consumed by vias for repeater connections
-                            core.wire.resistivity = wire_resistivity;
+                                    core.wire.use_graphene = allow_graphene(wire_mat_ind);
+                                    simulation.force_thickness = force_thickness;
+                                    core.chip.thickness_nominal = die_thickness;
+                                    core.wire.dielectric_epsr = epsrd;
+                                    core.psn.decap_area_fraction = decap_ratios(dind);
 
-                            core.wire.use_graphene = 0;
-                            simulation.force_thickness = force_thickness;
-                            core.chip.thickness_nominal = die_thickness;
-                            core.wire.dielectric_epsr = epsrd;
-                            core.psn.decap_area_fraction = decap_ratios(dind);
+                                    core.heat.up = heat_fluxes(cind);        % above chip
 
-                            core.heat.up = heat_fluxes(cind);        % above chip
+                                    %% calculate block parameters
+                                    [core.chip, core.power, core.tsv, core.wire, core.repeater, core.psn] = codesign_block(core.chip,core.tsv,core.gate,core.transistor,core.wire,core.heat,core.psn,simulation);
 
-                            %% calculate block parameters
-                            [core.chip, core.power, core.tsv, core.wire, core.repeater, core.psn] = codesign_block(core.chip,core.tsv,core.gate,core.transistor,core.wire,core.heat,core.psn,simulation);
+                                    power(cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_mat_ind,scaling_ind) = core.power.total;
+                                    power_density(cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_mat_ind,scaling_ind) = core.power.density;
 
-                            power(cind,dind,thind,nind,pind,freq_ind,wire_res_ind) = core.power.total;
-                            power_density(cind,dind,thind,nind,pind,freq_ind,wire_res_ind) = core.power.density;
-
-                            wire_power(cind,dind,thind,nind,pind,freq_ind,wire_res_ind) = core.power.wiring;
-                            rep_power(cind,dind,thind,nind,pind,freq_ind,wire_res_ind) = core.power.repeater;
-                            temp(cind,dind,thind,nind,pind,freq_ind,wire_res_ind) = core.chip.temperature;
-                            thickness(cind,dind,thind,nind,pind,freq_ind,wire_res_ind) = core.chip.thickness;
-                            npads(cind,dind,thind,nind,pind,freq_ind,wire_res_ind) = core.psn.Npads;
+                                    wire_power(cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_mat_ind,scaling_ind) = core.power.wiring;
+                                    rep_power(cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_mat_ind,scaling_ind) = core.power.repeater;
+                                    temp(cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_mat_ind,scaling_ind) = core.chip.temperature;
+                                    thickness(cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_mat_ind,scaling_ind) = core.chip.thickness;
+                                    npads(cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_mat_ind,scaling_ind) = core.psn.Npads;
 
 
-                            ild_cell{cind,dind,thind,nind,pind,freq_ind,wire_res_ind} = core.chip.iidf;
-                            psn_cell{cind,dind,thind,nind,pind,freq_ind,wire_res_ind} = core.psn;
-                            power_cell{cind,dind,thind,nind,pind,freq_ind,wire_res_ind} = core.power;
-                            wire_cell{cind,dind,thind,nind,pind,freq_ind,wire_res_ind} = core.wire;
-                            chip_cell{cind,dind,thind,nind,pind,freq_ind,wire_res_ind} = core.chip;
-                            tsv_cell{cind,dind,thind,nind,pind,freq_ind,wire_res_ind} = core.tsv;
+                                    ild_cell{cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_mat_ind,scaling_ind} = core.chip.iidf;
+                                    psn_cell{cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_mat_ind,scaling_ind} = core.psn;
+                                    power_cell{cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_mat_ind,scaling_ind} = core.power;
+                                    wire_cell{cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_mat_ind,scaling_ind} = core.wire;
+                                    chip_cell{cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_mat_ind,scaling_ind} = core.chip;
+                                    tsv_cell{cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_mat_ind,scaling_ind} = core.tsv;
 
-                            if (simulation.skip_psn_loops == 0)
-                                Ltsv_m2(cind,dind,thind,nind,pind,freq_ind,wire_res_ind) = psn_cell{cind,dind,thind,nind,pind,freq_ind,wire_res_ind}.Ltsv/psn_cell{cind,dind,thind,nind,pind,freq_ind,wire_res_ind}.l_unit_cell^2;
-                                cap_density(cind,dind,thind,nind,pind,freq_ind,wire_res_ind) = psn_cell{cind,dind,thind,nind,pind,freq_ind,wire_res_ind}.cap_density;
+                                    if (simulation.skip_psn_loops == 0)
+                                        Ltsv_m2(cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_mat_ind,scaling_ind) = psn_cell{cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_mat_ind,scaling_ind}.Ltsv/psn_cell{cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_mat_ind,scaling_ind}.l_unit_cell^2;
+                                        cap_density(cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_mat_ind,scaling_ind) = psn_cell{cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_mat_ind,scaling_ind}.cap_density;
+                                    end
+                                end
                             end
                         end
                     end
@@ -193,7 +224,7 @@ fprintf('\nTotal time elapsed for parameter sweep: %.3g seconds\t(%.3g minutes)\
 % xlabel('Clock Frequency (GHz)')
 % ylabel('On-chip communication power fraction')
 % fixfigs(1,2,14,12)
-% %npads(cind,dind,thind,nind,pind,freq_ind,wire_res_ind);
+% %npads(cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_mat_ind,scaling_ind);
 
 %% Use these for tier and ILD sweep
 % 
@@ -390,28 +421,42 @@ fprintf('\nTotal time elapsed for parameter sweep: %.3g seconds\t(%.3g minutes)\
 % decap_ratios = [0.1];%[0.01 0.1 1];
 % wire_resistivities = [17.2e-9];
 
-num_ptsvs = zeros(num_stacks,2*num_perms);
-for nind = 1:num_stacks
-    for pind = 1:num_perms
-        th = 0;
-        for thind = [1 3]
-            th = th + 1;
-            num_ptsvs(nind,(pind-1)*2 + th) = npads(cind,dind,thind,nind,pind,freq_ind,wire_res_ind);           
-        end
-    end
-end
+% num_ptsvs = zeros(num_stacks,2*num_perms);
+% for nind = 1:num_stacks
+%     for pind = 1:num_perms
+%         th = 0;
+%         for thind = [1 3]
+%             th = th + 1;
+%             num_ptsvs(nind,(pind-1)*2 + th) = npads(cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_mat_ind,scaling_ind);           
+%         end
+%     end
+% end
+% 
+% figure(1)
+% clf
+% b = bar(num_ptsvs,1,'grouped');
+% colormap jet
+% set(gca,'xticklabel',{'1','2','4','8'})
+% ylim([1e0 1e4])
+% set(gca,'yscale','log')
+% xlabel('Number of tiers')
+% ylabel('Number of power delivery TSVs')
+% b(1).FaceColor = 'blue';
+% b(2).FaceColor = 'green';
+% b(3).FaceColor = 'yellow';
+% b(4).FaceColor = 'red';
+% fixfigs(1,2,14,12)
+
+%% GNRs in scaled and unscaled core
 
 figure(1)
 clf
-b = bar(num_ptsvs,1,'grouped');
-colormap jet
-set(gca,'xticklabel',{'1','2','4','8'})
-ylim([1e0 1e4])
-set(gca,'yscale','log')
-xlabel('Number of tiers')
-ylabel('Number of power delivery TSVs')
-b(1).FaceColor = 'blue';
-b(2).FaceColor = 'green';
-b(3).FaceColor = 'yellow';
-b(4).FaceColor = 'red';
+hold all
+for scaling_ind = 1:num_scaling_factors
+    for wire_mat_ind = 1:num_wire_materials
+        wire_cell{cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_mat_ind,scaling_ind}
+        plot(wire_cell{cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_mat_ind,scaling_ind}.pn*1e9);
+    end
+end
 fixfigs(1,2,14,12)
+        
