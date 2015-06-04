@@ -68,7 +68,7 @@ if (psn.power_tsv_width == -1)
 else
     w_tsv = psn.power_tsv_width;
 end
-pitch_tsv = psn.pitch_tsv;
+%pitch_tsv = psn.pitch_tsv;
 RPKG = psn.package_resistance;
 LPKG = psn.package_inductance;
 Ngrid = psn.Ngrid;

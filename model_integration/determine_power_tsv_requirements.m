@@ -9,7 +9,7 @@ eps0 = 8.854e-12; % (F/m) vacuum permittivity
 mu0 = 4*pi*1e-7; % (H/m) Vacuum permeability
 
 % disp('Evaluating power supply noise...')
-psn.pitch_tsv = tsv.pitch_m*10; % [FIX] Power TSVs aren't going to be on the same pitch as signal TSVs
+%psn.pitch_tsv = tsv.pitch_m*10; % [FIX] Power TSVs aren't going to be on the same pitch as signal TSVs
 psn_mismatch_tolerance = psn.mismatch_tolerance; % 5% mismatch is OK
 psn_iterations = 1;
 
