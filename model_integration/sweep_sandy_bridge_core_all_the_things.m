@@ -2,7 +2,8 @@
 simulation.use_joyner = 0;
 simulation.redo_wiring_after_repeaters = 0;
 simulation.topdown_WLARI = 1; % Use topdown simultaneous WLA and RI (0 = use standard bottom-up optimal WLA, followed by one pass of RI)
-simulation.skip_psn_loops = 0; % Skip PSN TSV homing for faster debug
+simulation.skip_psn_loops = 1; % Skip PSN TSV homing for faster debug
+simulation.skip_thermal = 1; % Skip thermal analysis for faster debug
 simulation.draw_thermal_map = 0; % Plot thermal profile of each chip
 simulation.print_thermal_data = 0; % Output max temp in each layer to console
 simulation.separate_wiring_tiers = 1; % 1 = Each logic plane will have its own wiring tiers between it and the next logic plane
@@ -54,9 +55,9 @@ rel_permittivities = [3.0];
 frequencies = fmax_core;
 heat_fluxes = [ h_air ];
 decap_ratios = [0.1];%[0.01 0.1 1];
-wire_resistivities = [rho_cu rho_al rho_ni rho_w];
-allow_graphene = [0];
-scaling_factor = [1];
+wire_resistivities = [rho_ag rho_cu rho_au rho_al rho_w rho_ni];
+wire_material_flags = {'00','01'}; % binary strings. bit1 = use_graphene, bit0 = use alt_em_mat
+scaling_factor = [1 32/7];
 
 
 num_stacks = length(tiers);
@@ -66,28 +67,28 @@ num_freqs = length(frequencies);
 num_cooling_configs = length(heat_fluxes);
 num_decaps = length(decap_ratios);
 num_wire_resistivities = length(wire_resistivities);
-num_wire_materials = length(allow_graphene);
+num_wire_flags = length(wire_material_flags);
 num_scaling_factors = length(scaling_factor);
-total_configs = num_stacks * num_perms * num_thicks * num_freqs * num_cooling_configs * num_decaps * num_wire_resistivities * num_wire_materials * num_scaling_factors;
+total_configs = num_stacks * num_perms * num_thicks * num_freqs * num_cooling_configs * num_decaps * num_wire_resistivities * num_wire_flags * num_scaling_factors;
 
-power = zeros(num_cooling_configs,num_decaps,num_thicks,num_stacks,num_perms,num_freqs,num_wire_resistivities,num_wire_materials,num_scaling_factors);
-power_density = zeros(num_cooling_configs,num_decaps,num_thicks,num_stacks,num_perms,num_freqs,num_wire_resistivities,num_wire_materials,num_scaling_factors);
+power = zeros(num_cooling_configs,num_decaps,num_thicks,num_stacks,num_perms,num_freqs,num_wire_resistivities,num_wire_flags,num_scaling_factors);
+power_density = zeros(num_cooling_configs,num_decaps,num_thicks,num_stacks,num_perms,num_freqs,num_wire_resistivities,num_wire_flags,num_scaling_factors);
 
-wire_power = zeros(num_cooling_configs,num_decaps,num_thicks,num_stacks,num_perms,num_freqs,num_wire_resistivities,num_wire_materials,num_scaling_factors);
-rep_power = zeros(num_cooling_configs,num_decaps,num_thicks,num_stacks,num_perms,num_freqs,num_wire_resistivities,num_wire_materials,num_scaling_factors);
-temp = zeros(num_cooling_configs,num_decaps,num_thicks,num_stacks,num_perms,num_freqs,num_wire_resistivities,num_wire_materials,num_scaling_factors);
-thickness = zeros(num_cooling_configs,num_decaps,num_thicks,num_stacks,num_perms,num_freqs,num_wire_resistivities,num_wire_materials,num_scaling_factors);
-npads = zeros(num_cooling_configs,num_decaps,num_thicks,num_stacks,num_perms,num_freqs,num_wire_resistivities,num_wire_materials,num_scaling_factors);
-cap_density = zeros(num_cooling_configs,num_decaps,num_thicks,num_stacks,num_perms,num_freqs,num_wire_resistivities,num_wire_materials,num_scaling_factors);
-Ltsv_m2 = zeros(num_cooling_configs,num_decaps,num_thicks,num_stacks,num_perms,num_freqs,num_wire_resistivities,num_wire_materials,num_scaling_factors);
+wire_power = zeros(num_cooling_configs,num_decaps,num_thicks,num_stacks,num_perms,num_freqs,num_wire_resistivities,num_wire_flags,num_scaling_factors);
+rep_power = zeros(num_cooling_configs,num_decaps,num_thicks,num_stacks,num_perms,num_freqs,num_wire_resistivities,num_wire_flags,num_scaling_factors);
+temp = zeros(num_cooling_configs,num_decaps,num_thicks,num_stacks,num_perms,num_freqs,num_wire_resistivities,num_wire_flags,num_scaling_factors);
+thickness = zeros(num_cooling_configs,num_decaps,num_thicks,num_stacks,num_perms,num_freqs,num_wire_resistivities,num_wire_flags,num_scaling_factors);
+npads = zeros(num_cooling_configs,num_decaps,num_thicks,num_stacks,num_perms,num_freqs,num_wire_resistivities,num_wire_flags,num_scaling_factors);
+cap_density = zeros(num_cooling_configs,num_decaps,num_thicks,num_stacks,num_perms,num_freqs,num_wire_resistivities,num_wire_flags,num_scaling_factors);
+Ltsv_m2 = zeros(num_cooling_configs,num_decaps,num_thicks,num_stacks,num_perms,num_freqs,num_wire_resistivities,num_wire_flags,num_scaling_factors);
 
 
-ild_cell = cell(num_cooling_configs,num_decaps,num_thicks,num_stacks,num_perms,num_freqs,num_wire_resistivities,num_wire_materials,num_scaling_factors);
-psn_cell = cell(num_cooling_configs,num_decaps,num_thicks,num_stacks,num_perms,num_freqs,num_wire_resistivities,num_wire_materials,num_scaling_factors);
-power_cell = cell(num_cooling_configs,num_decaps,num_thicks,num_stacks,num_perms,num_freqs,num_wire_resistivities,num_wire_materials,num_scaling_factors);
-wire_cell = cell(num_cooling_configs,num_decaps,num_thicks,num_stacks,num_perms,num_freqs,num_wire_resistivities,num_wire_materials,num_scaling_factors);
-chip_cell = cell(num_cooling_configs,num_decaps,num_thicks,num_stacks,num_perms,num_freqs,num_wire_resistivities,num_wire_materials,num_scaling_factors);
-tsv_cell = cell(num_cooling_configs,num_decaps,num_thicks,num_stacks,num_perms,num_freqs,num_wire_resistivities,num_wire_materials,num_scaling_factors);
+ild_cell = cell(num_cooling_configs,num_decaps,num_thicks,num_stacks,num_perms,num_freqs,num_wire_resistivities,num_wire_flags,num_scaling_factors);
+psn_cell = cell(num_cooling_configs,num_decaps,num_thicks,num_stacks,num_perms,num_freqs,num_wire_resistivities,num_wire_flags,num_scaling_factors);
+power_cell = cell(num_cooling_configs,num_decaps,num_thicks,num_stacks,num_perms,num_freqs,num_wire_resistivities,num_wire_flags,num_scaling_factors);
+wire_cell = cell(num_cooling_configs,num_decaps,num_thicks,num_stacks,num_perms,num_freqs,num_wire_resistivities,num_wire_flags,num_scaling_factors);
+chip_cell = cell(num_cooling_configs,num_decaps,num_thicks,num_stacks,num_perms,num_freqs,num_wire_resistivities,num_wire_flags,num_scaling_factors);
+tsv_cell = cell(num_cooling_configs,num_decaps,num_thicks,num_stacks,num_perms,num_freqs,num_wire_resistivities,num_wire_flags,num_scaling_factors);
 
 t_sweep_start = cputime;
 cur_config = 0;
@@ -98,7 +99,7 @@ for cind = 1:num_cooling_configs
                 for pind = 1:num_perms
                     for freq_ind = 1:num_freqs
                         for wire_res_ind = 1:num_wire_resistivities
-                            for wire_mat_ind = 1:num_wire_materials
+                            for wire_mat_ind = 1:num_wire_flags
                                 for scaling_ind = 1:num_scaling_factors
                                     cur_config = cur_config + 1;
                                     die_thickness = thicknesses(thind);
@@ -115,7 +116,7 @@ for cind = 1:num_cooling_configs
                                     fprintf('==     epsrd: %d/%d \t=====\n',pind,num_perms);
                                     fprintf('==      freq: %d/%d \t=====\n',freq_ind,num_freqs);
                                     fprintf('==       rho: %d/%d \t=====\n',wire_res_ind,num_wire_resistivities);
-                                    fprintf('==       mat: %d/%d \t=====\n',wire_mat_ind,num_wire_materials);
+                                    fprintf('==       mat: %d/%d \t=====\n',wire_mat_ind,num_wire_flags);
                                     fprintf('==     scale: %d/%d \t=====\n',scaling_ind,num_scaling_factors);
                                     fprintf('==   Overall: %d/%d \t=====\n',cur_config,total_configs);
                                     fprintf('===============================\n')
@@ -140,10 +141,21 @@ for cind = 1:num_cooling_configs
                                     core.wire.repeater_via_max_area_fraction = 0.05; % (-) Fraction of routable wire area that can be consumed by vias for repeater connections
                                     core.gate.output_resistance = 8e3; % Ohm
                                     core.transistor.capacitance = 1e-15*1e6*3*w_trans; % ITRS projection is 1fF/um of gate width. This is an estimate for pMOS transistor capacitance
-                                    core.wire.resistivity = wire_resistivity;
                                     core.transistor.leakage_current_per_micron = 100e-9; %(A/um) % 32nm IOFF
 
-                                    core.wire.use_graphene = allow_graphene(wire_mat_ind);
+                                    wire_flag_key = bin2dec(wire_material_flags(wire_mat_ind));
+                                    alt_met_flag = bitget(wire_flag_key,1);
+                                    graphene_flag = bitget(wire_flag_key,2);
+                                    core.wire.use_graphene = graphene_flag;
+                                    core.wire.use_em_resistant_metal = alt_met_flag;   % (-) Allow or disallow use of electromigration-resistant metals below a specified minimum pitch
+                                    core.wire.min_non_em_width = 50e-9; % (m) If use_em_resistant_metal is set to 1, Cu resistivity will be replaced with wire.alt_resistivity_em below this pitch
+                                    if(alt_met_flag == 1)
+                                        core.wire.alt_resistivity_em = wire_resistivity;
+                                        core.wire.resistivity = rho_cu;
+                                    else
+                                        core.wire.resistivity = wire_resistivity;
+                                    end
+                                    
                                     simulation.force_thickness = force_thickness;
                                     core.chip.thickness_nominal = die_thickness;
                                     core.wire.dielectric_epsr = epsrd;
@@ -448,15 +460,41 @@ fprintf('\nTotal time elapsed for parameter sweep: %.3g seconds\t(%.3g minutes)\
 % fixfigs(1,2,14,12)
 
 %% GNRs in scaled and unscaled core
+% 
+% figure(1)
+% clf
+% hold all
+% for scaling_ind = 1:num_scaling_factors
+%     for wire_mat_ind = 1:num_wire_flags
+%         wire_cell{cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_mat_ind,scaling_ind};
+%         plot(wire_cell{cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_mat_ind,scaling_ind}.pn*1e9);
+%     end
+% end
+% fixfigs(1,2,14,12)
 
+%% Impact of wire resistivity
 figure(1)
 clf
 hold all
-for scaling_ind = 1:num_scaling_factors
-    for wire_mat_ind = 1:num_wire_materials
-        wire_cell{cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_mat_ind,scaling_ind}
-        plot(wire_cell{cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_mat_ind,scaling_ind}.pn*1e9);
-    end
+pvec = zeros(1,num_wire_resistivities);
+for rhind = 1:num_wire_resistivities
+    pvec(rhind) = length(wire_cell{cind,dind,thind,nind,pind,freq_ind,wire_res_ind,1,1}.pn);
 end
+plot(wire_resistivities,pvec,'k-');
+
+pvec = zeros(1,num_wire_resistivities);
+for rhind = 1:num_wire_resistivities
+    pvec(rhind) = length(wire_cell{cind,dind,thind,nind,pind,freq_ind,wire_res_ind,1,2}.pn);
+end
+plot(wire_resistivities,pvec,'b-');
+
+pvec = zeros(1,num_wire_resistivities);
+for rhind = 1:num_wire_resistivities
+    pvec(rhind) = length(wire_cell{cind,dind,thind,nind,pind,freq_ind,wire_res_ind,1,2}.pn);
+end
+plot(wire_resistivities,pvec,'r--');
+
+
 fixfigs(1,2,14,12)
-        
+
+
