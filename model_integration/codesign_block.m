@@ -75,11 +75,14 @@ for i =1:chip.num_layers
 end
 %blk_num is for splitting the power maps of each die
 
+if(~simulation.skip_thermal)
+    [max_temp temp_vec] = get_stack_temperature(chip.num_layers,chip.thickness,wire,tsv,chip_width,chip_height,package_width,package_height,heat,simulation,map,blk_num,power_therm_vec);
 
-[max_temp temp_vec] = get_stack_temperature(chip.num_layers,chip.thickness,wire,tsv,chip_width,chip_height,package_width,package_height,heat,simulation,map,blk_num,power_therm_vec);
-
-chip.temperature_vec = temp_vec;
-chip.temperature = max_temp;
+    chip.temperature_vec = temp_vec;
+    chip.temperature = max_temp;
+else
+    fprintf('\tThermal analysis SKIPPED due to simulation flag!\n')
+end
 
 
 
