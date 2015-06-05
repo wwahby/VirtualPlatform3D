@@ -55,9 +55,10 @@ rel_permittivities = [3.0];
 frequencies = fmax_core;
 heat_fluxes = [ h_air ];
 decap_ratios = [0.1];%[0.01 0.1 1];
-wire_resistivities = [rho_ag rho_cu rho_au rho_al rho_w rho_ni];
+%wire_resistivities = [rho_ag rho_cu rho_au rho_al rho_w rho_ni];
+wire_resistivities = linspace(15e-9,70e-9,1e2);
 wire_material_flags = {'00','01'}; % binary strings. bit1 = use_graphene, bit0 = use alt_em_mat
-scaling_factor = [1 32/7];
+scaling_factor = [1 32/5];
 
 
 num_stacks = length(tiers);
@@ -99,7 +100,7 @@ for cind = 1:num_cooling_configs
                 for pind = 1:num_perms
                     for freq_ind = 1:num_freqs
                         for wire_res_ind = 1:num_wire_resistivities
-                            for wire_mat_ind = 1:num_wire_flags
+                            for wire_flag_ind = 1:num_wire_flags
                                 for scaling_ind = 1:num_scaling_factors
                                     cur_config = cur_config + 1;
                                     die_thickness = thicknesses(thind);
@@ -116,7 +117,7 @@ for cind = 1:num_cooling_configs
                                     fprintf('==     epsrd: %d/%d \t=====\n',pind,num_perms);
                                     fprintf('==      freq: %d/%d \t=====\n',freq_ind,num_freqs);
                                     fprintf('==       rho: %d/%d \t=====\n',wire_res_ind,num_wire_resistivities);
-                                    fprintf('==       mat: %d/%d \t=====\n',wire_mat_ind,num_wire_flags);
+                                    fprintf('==       mat: %d/%d \t=====\n',wire_flag_ind,num_wire_flags);
                                     fprintf('==     scale: %d/%d \t=====\n',scaling_ind,num_scaling_factors);
                                     fprintf('==   Overall: %d/%d \t=====\n',cur_config,total_configs);
                                     fprintf('===============================\n')
@@ -139,16 +140,16 @@ for cind = 1:num_cooling_configs
                                     core.wire.routing_efficiency = [0.5]; % 0.4 is default from gen_basic_proc_settings
                                     core.wire.repeater_max_area_fraction = 0.2; % (-) Fraction of chip area that can be consumed by repeater/buffer gates
                                     core.wire.repeater_via_max_area_fraction = 0.05; % (-) Fraction of routable wire area that can be consumed by vias for repeater connections
-                                    core.gate.output_resistance = 8e3; % Ohm
+                                    core.gate.output_resistance = 8e3*compression_factor; % Ohm
                                     core.transistor.capacitance = 1e-15*1e6*3*w_trans; % ITRS projection is 1fF/um of gate width. This is an estimate for pMOS transistor capacitance
                                     core.transistor.leakage_current_per_micron = 100e-9; %(A/um) % 32nm IOFF
 
-                                    wire_flag_key = bin2dec(wire_material_flags(wire_mat_ind));
+                                    wire_flag_key = bin2dec(wire_material_flags(wire_flag_ind));
                                     alt_met_flag = bitget(wire_flag_key,1);
                                     graphene_flag = bitget(wire_flag_key,2);
                                     core.wire.use_graphene = graphene_flag;
                                     core.wire.use_em_resistant_metal = alt_met_flag;   % (-) Allow or disallow use of electromigration-resistant metals below a specified minimum pitch
-                                    core.wire.min_non_em_width = 50e-9; % (m) If use_em_resistant_metal is set to 1, Cu resistivity will be replaced with wire.alt_resistivity_em below this pitch
+                                    core.wire.min_non_em_width = 25e-9; % (m) If use_em_resistant_metal is set to 1, Cu resistivity will be replaced with wire.alt_resistivity_em below this pitch
                                     if(alt_met_flag == 1)
                                         core.wire.alt_resistivity_em = wire_resistivity;
                                         core.wire.resistivity = rho_cu;
@@ -166,26 +167,26 @@ for cind = 1:num_cooling_configs
                                     %% calculate block parameters
                                     [core.chip, core.power, core.tsv, core.wire, core.repeater, core.psn] = codesign_block(core.chip,core.tsv,core.gate,core.transistor,core.wire,core.heat,core.psn,simulation);
 
-                                    power(cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_mat_ind,scaling_ind) = core.power.total;
-                                    power_density(cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_mat_ind,scaling_ind) = core.power.density;
+                                    power(cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind) = core.power.total;
+                                    power_density(cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind) = core.power.density;
 
-                                    wire_power(cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_mat_ind,scaling_ind) = core.power.wiring;
-                                    rep_power(cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_mat_ind,scaling_ind) = core.power.repeater;
-                                    temp(cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_mat_ind,scaling_ind) = core.chip.temperature;
-                                    thickness(cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_mat_ind,scaling_ind) = core.chip.thickness;
-                                    npads(cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_mat_ind,scaling_ind) = core.psn.Npads;
+                                    wire_power(cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind) = core.power.wiring;
+                                    rep_power(cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind) = core.power.repeater;
+                                    temp(cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind) = core.chip.temperature;
+                                    thickness(cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind) = core.chip.thickness;
+                                    npads(cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind) = core.psn.Npads;
 
 
-                                    ild_cell{cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_mat_ind,scaling_ind} = core.chip.iidf;
-                                    psn_cell{cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_mat_ind,scaling_ind} = core.psn;
-                                    power_cell{cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_mat_ind,scaling_ind} = core.power;
-                                    wire_cell{cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_mat_ind,scaling_ind} = core.wire;
-                                    chip_cell{cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_mat_ind,scaling_ind} = core.chip;
-                                    tsv_cell{cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_mat_ind,scaling_ind} = core.tsv;
+                                    ild_cell{cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind} = core.chip.iidf;
+                                    psn_cell{cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind} = core.psn;
+                                    power_cell{cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind} = core.power;
+                                    wire_cell{cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind} = core.wire;
+                                    chip_cell{cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind} = core.chip;
+                                    tsv_cell{cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind} = core.tsv;
 
                                     if (simulation.skip_psn_loops == 0)
-                                        Ltsv_m2(cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_mat_ind,scaling_ind) = psn_cell{cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_mat_ind,scaling_ind}.Ltsv/psn_cell{cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_mat_ind,scaling_ind}.l_unit_cell^2;
-                                        cap_density(cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_mat_ind,scaling_ind) = psn_cell{cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_mat_ind,scaling_ind}.cap_density;
+                                        Ltsv_m2(cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind) = psn_cell{cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind}.Ltsv/psn_cell{cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind}.l_unit_cell^2;
+                                        cap_density(cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind) = psn_cell{cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind}.cap_density;
                                     end
                                 end
                             end
@@ -477,24 +478,30 @@ figure(1)
 clf
 hold all
 pvec = zeros(1,num_wire_resistivities);
-for rhind = 1:num_wire_resistivities
-    pvec(rhind) = length(wire_cell{cind,dind,thind,nind,pind,freq_ind,wire_res_ind,1,1}.pn);
+for wire_res_ind = 1:num_wire_resistivities
+    pvec(wire_res_ind) = length(wire_cell{cind,dind,thind,nind,pind,freq_ind,wire_res_ind,1,1}.pn);
 end
-plot(wire_resistivities,pvec,'k-');
+plot(wire_resistivities*1e9,pvec,'k-');
 
 pvec = zeros(1,num_wire_resistivities);
-for rhind = 1:num_wire_resistivities
-    pvec(rhind) = length(wire_cell{cind,dind,thind,nind,pind,freq_ind,wire_res_ind,1,2}.pn);
+for wire_res_ind = 1:num_wire_resistivities
+    pvec(wire_res_ind) = length(wire_cell{cind,dind,thind,nind,pind,freq_ind,wire_res_ind,1,2}.pn);
 end
-plot(wire_resistivities,pvec,'b-');
+plot(wire_resistivities*1e9,pvec,'b-');
 
 pvec = zeros(1,num_wire_resistivities);
-for rhind = 1:num_wire_resistivities
-    pvec(rhind) = length(wire_cell{cind,dind,thind,nind,pind,freq_ind,wire_res_ind,1,2}.pn);
+for wire_res_ind = 1:num_wire_resistivities
+    pvec(wire_res_ind) = length(wire_cell{cind,dind,thind,nind,pind,freq_ind,wire_res_ind,2,2}.pn);
 end
-plot(wire_resistivities,pvec,'r--');
-
-
+plot(wire_resistivities*1e9,pvec,'r--');
 fixfigs(1,2,14,12)
 
+wire_res_ind = 2;
+intel_pitch_no_pow = [112.5 112.5 112.5 168.8 225 337.6 450.1 566.5];
+figure(2)
+clf
+hold on
+plot(intel_pitch_no_pow,'k')
+plot(wire_cell{cind,dind,thind,nind,pind,freq_ind,wire_res_ind,1,1}.pn*1e9)
+fixfigs(2,2,14,12)
 
