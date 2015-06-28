@@ -1,7 +1,7 @@
 function [wire repeater] = wlatdri(chip,gate,wire,simulation)
 
 bottom_layer_underfilled = 1;
-min_fill_factor = 0.97; % minimum utilization of available bottom layer area
+min_bot_fill_factor = simulation.wla_min_bot_fill_factor; % minimum utilization of available bottom layer area
 top_fill_factor = wire.routing_efficiency(1);
 if(length(wire.routing_efficiency) == 1) % if we only have one entry for routing efficiency we need to preserve the nominal value for all the underlying layers
     wire.routing_efficiency = [wire.routing_efficiency(1) wire.routing_efficiency]; % create a separate entry for first layer
@@ -98,7 +98,7 @@ while( (bottom_layer_underfilled) && (bin_gen <= max_wla_attempts) )
     end
     
     best_top_ff = wire.routing_efficiency(1);
-    bottom_layer_underfilled = (max_ff < min_fill_factor);
+    bottom_layer_underfilled = (max_ff < min_bot_fill_factor);
     
     if(bottom_layer_underfilled)
 %         fprintf('WLA: M0 underfilled! Adjusting top layer fill factor and rerunning...\n')
