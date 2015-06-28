@@ -1,15 +1,25 @@
 %% Simulation parameters
+simulation.skip_psn_loops = 1; % Skip PSN TSV homing for faster debug
+simulation.skip_thermal = 1; % Skip thermal analysis for faster debug
+
 simulation.use_joyner = 0;
 simulation.redo_wiring_after_repeaters = 0;
 simulation.topdown_WLARI = 1; % Use topdown simultaneous WLA and RI (0 = use standard bottom-up optimal WLA, followed by one pass of RI)
-simulation.skip_psn_loops = 1; % Skip PSN TSV homing for faster debug
-simulation.skip_thermal = 1; % Skip thermal analysis for faster debug
-simulation.draw_thermal_map = 0; % Plot thermal profile of each chip
-simulation.print_thermal_data = 0; % Output max temp in each layer to console
 simulation.separate_wiring_tiers = 1; % 1 = Each logic plane will have its own wiring tiers between it and the next logic plane
                                       % 0 = All metal layers for entire device will be routed on top of entire 3D stack
-simulation.wla_max_attempts = 15;
-simulation.wla_min_top_fill_factor = 0.01;
+
+simulation.draw_thermal_map = 0; % Plot thermal profile of each chip
+simulation.print_thermal_data = 0; % Output max temp in each layer to console
+
+simulation.wla_max_attempts = 30; % 15 is default
+simulation.wla_min_bot_fill_factor = 0.90; % 0.97 is default
+simulation.wla_min_top_fill_factor = 0.01; % 0.01 is default
+
+simulation.freq_binsearch = 0;
+simulation.freq_binsearch_target = 90;
+simulation.freq_binsearch_raw_tol = 0.05;
+simulation.freq_binsearch_max_gens = 10;
+
 
 %% Logic core parameters
 compression_factor = 1; % linear scaling factor. 1 = actual 32nm design, 4.57 = equivalent 7nm SB
@@ -17,13 +27,13 @@ Ng_core = 86e6/4; %86M transistors, assume 2in NAND -> /4 to get total NAND gate
 Ach_mm2_core = 18.5/(compression_factor^2);
 gate_pitch_core = 465e-9*2/compression_factor;
 min_pitch_core = 112.5e-9/compression_factor;
-fmax_core = 3.6e9;
+fmax_core = 3.5e9;
 w_trans = 32e-9/compression_factor;
 Vdd_core = 1.25;
 
 %% Thermal parameters
 
-r_air = 1/1.825; %K/W for a 1cm^2 HS
+r_air = 1/1.825; %K/W for a 1cm^2 HS % alt, 0.6
 r_water = 1/4.63; %K/W for a 1cm^2 HS
 A_hs = (1e-2)^2; % 1 cm^2
 
@@ -45,26 +55,32 @@ rho_w = 56.0e-9;
 rho_ni = 69.9e-9;
 %rho_co_al = 0e-9;
 rho_al = 26.5e-9;
+rho_all_mets = [rho_ag rho_cu rho_au rho_al rho_w rho_ni];
 
 
 %% 
-tiers = [1];
-thicknesses = [10e-6];
+tiers = [1 2 4 8];
+thicknesses = logspace(-6,-4,51);
 force_thickness = 1;
 rel_permittivities = [3.0];
-frequencies = fmax_core;
-heat_fluxes = [ h_air ];
+frequencies = fmax_core; % if simulation.freq_binsearch is set, (1) is min freq and (2) is max freq
+heat_fluxes = [ h_air];
 decap_ratios = [0.1];%[0.01 0.1 1];
 %wire_resistivities = [rho_ag rho_cu rho_au rho_al rho_w rho_ni];
-wire_resistivities = linspace(15e-9,70e-9,1e2);
-wire_material_flags = {'00','01'}; % binary strings. bit1 = use_graphene, bit0 = use alt_em_mat
-scaling_factor = [1 32/5];
+wire_resistivities = [rho_cu];
+wire_material_flags = {'00'}; % binary strings. bit1 = use_graphene, bit0 = use alt_em_mat
+scaling_factor = [1];
 
 
 num_stacks = length(tiers);
 num_perms = length(rel_permittivities);
 num_thicks = length(thicknesses);
-num_freqs = length(frequencies);
+
+if (simulation.freq_binsearch == 1)
+    num_freqs = 1; % skip freq loops
+else
+    num_freqs = length(frequencies);
+end
 num_cooling_configs = length(heat_fluxes);
 num_decaps = length(decap_ratios);
 num_wire_resistivities = length(wire_resistivities);
@@ -74,7 +90,7 @@ total_configs = num_stacks * num_perms * num_thicks * num_freqs * num_cooling_co
 
 power = zeros(num_cooling_configs,num_decaps,num_thicks,num_stacks,num_perms,num_freqs,num_wire_resistivities,num_wire_flags,num_scaling_factors);
 power_density = zeros(num_cooling_configs,num_decaps,num_thicks,num_stacks,num_perms,num_freqs,num_wire_resistivities,num_wire_flags,num_scaling_factors);
-
+freq = zeros(num_cooling_configs,num_decaps,num_thicks,num_stacks,num_perms,num_freqs,num_wire_resistivities,num_wire_flags,num_scaling_factors);
 wire_power = zeros(num_cooling_configs,num_decaps,num_thicks,num_stacks,num_perms,num_freqs,num_wire_resistivities,num_wire_flags,num_scaling_factors);
 rep_power = zeros(num_cooling_configs,num_decaps,num_thicks,num_stacks,num_perms,num_freqs,num_wire_resistivities,num_wire_flags,num_scaling_factors);
 temp = zeros(num_cooling_configs,num_decaps,num_thicks,num_stacks,num_perms,num_freqs,num_wire_resistivities,num_wire_flags,num_scaling_factors);
@@ -163,12 +179,47 @@ for cind = 1:num_cooling_configs
                                     core.psn.decap_area_fraction = decap_ratios(dind);
 
                                     core.heat.up = heat_fluxes(cind);        % above chip
+                                    
+                                    %% If we're searching for frequencies below a certain temperature
+                                    if (simulation.freq_binsearch == 1)
+                                        fmin = frequencies(1);
+                                        fmax = frequencies(2);
+                                        max_gens = simulation.freq_binsearch_max_gens;
+                                        target_max_value = simulation.freq_binsearch_target;
+                                        target_cur_value = target_max_value*2; % start with something invalid so we run it at least once
+                                        abs_err = abs(target_max_value - target_cur_value);
+                                        tolerance = simulation.freq_binsearch_raw_tol;
+                                        left = fmin;
+                                        right = fmax;
 
-                                    %% calculate block parameters
-                                    [core.chip, core.power, core.tsv, core.wire, core.repeater, core.psn] = codesign_block(core.chip,core.tsv,core.gate,core.transistor,core.wire,core.heat,core.psn,simulation);
+                                        num_gens = 0;
+                                        time_bin_start = cputime;
+                                        while ((abs_err > tolerance) && (num_gens < max_gens))
+                                            mid = 1/2*(left+right);
+                                            core.chip.clock_period = 1/mid;
+                                            [core.chip, core.power, core.tsv, core.wire, core.repeater, core.psn] = codesign_block(core.chip,core.tsv,core.gate,core.transistor,core.wire,core.heat,core.psn,simulation);
+                                            target_cur_value = core.chip.temperature;
+                                            abs_err = abs(target_max_value - target_cur_value);
 
+                                            if (target_cur_value > target_max_value)
+                                                right = mid;
+                                            elseif (target_cur_value < target_max_value)
+                                                left = mid;
+                                            else
+                                                left = 1/2*(left + mid);
+                                                right = 1/2*(right + mid);
+                                            end
+
+                                            num_gens = num_gens + 1;
+                                            fprintf('Run %d: \t Freq: %.3g \t Temp: %.4d\n\n',num_gens, mid, target_cur_value);
+                                        end
+                                    else
+                                        %% calculate block parameters
+                                        [core.chip, core.power, core.tsv, core.wire, core.repeater, core.psn] = codesign_block(core.chip,core.tsv,core.gate,core.transistor,core.wire,core.heat,core.psn,simulation);
+                                    end
                                     power(cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind) = core.power.total;
                                     power_density(cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind) = core.power.density;
+                                    freq(cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind) = 1/core.chip.clock_period;
 
                                     wire_power(cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind) = core.power.wiring;
                                     rep_power(cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind) = core.power.repeater;
@@ -203,41 +254,41 @@ fprintf('\nTotal time elapsed for parameter sweep: %.3g seconds\t(%.3g minutes)\
 
 
 %% Power vs tier thickness (tier thickness sweep only)
-% 
-% figure(1)
-% clf
-% hold on
-% linecol = [ 0 0 0; 0 0 1; 0 1 0; 1 0 0];
-% for nind = 1:num_stacks
-%     plvec = zeros(1,num_thicks);
-%     plvec(1:end) = wire_power(cind,dind,:,nind,pind,freq_ind,wire_res_ind) + rep_power(cind,dind,:,nind,pind,freq_ind,wire_res_ind);
-%     plot(thicknesses/1e-6,plvec,'linestyle','-','color',linecol(nind,:),'linewidth',2);
-% end
-% set(gca,'xscale','log')
-% h = xlabel('Tier thickness (microns)');
-% ylabel('On-chip communication power (W)')
-% fixfigs(1,2,14,12)
 
-% %% Communication power fraction
-% figure(1)
-% clf
-% hold on
-% col = [0 0 0; 0 0 1; 0 1 0 ; 1 0 0];
-% for nind = 1:num_stacks
-%     pvec = zeros(1,num_freqs);
-%     pow_vec = zeros(1,num_freqs);
-%     comm_pow_vec = zeros(1,num_freqs);
-%     pow_vec(1:end) = power(1,1,1,nind,1,:,1);
-%     comm_pow_vec(1:end) = wire_power(1,1,1,nind,1,:,1) + rep_power(1,1,1,nind,1,:,1);
-%     comm_pow_frac_vec = comm_pow_vec./pow_vec;
-%     plot(frequencies/1e9,comm_pow_frac_vec,'linestyle','-','color',col(nind,:)) ;
-% end
-% xlim([1 10])
-% ylim([0 1])
-% xlabel('Clock Frequency (GHz)')
-% ylabel('On-chip communication power fraction')
-% fixfigs(1,2,14,12)
-% %npads(cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_mat_ind,scaling_ind);
+figure(4)
+clf
+hold on
+linecol = [ 0 0 0; 0 0 1; 0 1 0; 1 0 0];
+for nind = 1:num_stacks
+    plvec = zeros(1,num_thicks);
+    plvec(1:end) = wire_power(cind,dind,:,nind,pind,freq_ind,wire_res_ind) + rep_power(cind,dind,:,nind,pind,freq_ind,wire_res_ind);
+    plot(thicknesses/1e-6,plvec,'linestyle','-','color',linecol(nind,:),'linewidth',2);
+end
+set(gca,'xscale','log')
+h = xlabel('Tier thickness (microns)');
+ylabel('On-chip comm. power (W)')
+fixfigs(4,2,14,12)
+
+%% Communication power fraction
+figure(1)
+clf
+hold on
+col = [0 0 0; 0 0 1; 0 1 0 ; 1 0 0];
+for nind = 1:num_stacks
+    pvec = zeros(1,num_freqs);
+    pow_vec = zeros(1,num_freqs);
+    comm_pow_vec = zeros(1,num_freqs);
+    pow_vec(1:end) = power(1,1,1,nind,1,:,1);
+    comm_pow_vec(1:end) = wire_power(1,1,1,nind,1,:,1) + rep_power(1,1,1,nind,1,:,1);
+    comm_pow_frac_vec = comm_pow_vec./pow_vec;
+    plot(frequencies/1e9,comm_pow_frac_vec,'linestyle','-','color',col(nind,:)) ;
+end
+xlim([1 10])
+ylim([0 1])
+xlabel('Clock Frequency (GHz)')
+ylabel('On-chip communication power fraction')
+fixfigs(1,2,14,12)
+%npads(cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_mat_ind,scaling_ind);
 
 %% Use these for tier and ILD sweep
 % 
@@ -474,34 +525,275 @@ fprintf('\nTotal time elapsed for parameter sweep: %.3g seconds\t(%.3g minutes)\
 % fixfigs(1,2,14,12)
 
 %% Impact of wire resistivity
+% figure(1)
+% clf
+% hold all
+% pvec = zeros(1,num_wire_resistivities);
+% for wire_res_ind = 1:num_wire_resistivities
+%     pvec(wire_res_ind) = length(wire_cell{cind,dind,thind,nind,pind,freq_ind,wire_res_ind,1,1}.pn);
+% end
+% plot(wire_resistivities*1e9,pvec,'k-');
+% 
+% pvec = zeros(1,num_wire_resistivities);
+% for wire_res_ind = 1:num_wire_resistivities
+%     pvec(wire_res_ind) = length(wire_cell{cind,dind,thind,nind,pind,freq_ind,wire_res_ind,1,2}.pn);
+% end
+% plot(wire_resistivities*1e9,pvec,'b-');
+% 
+% pvec = zeros(1,num_wire_resistivities);
+% for wire_res_ind = 1:num_wire_resistivities
+%     pvec(wire_res_ind) = length(wire_cell{cind,dind,thind,nind,pind,freq_ind,wire_res_ind,2,2}.pn);
+% end
+% plot(wire_resistivities*1e9,pvec,'r--');
+% fixfigs(1,2,14,12)
+% 
+% wire_res_ind = 2;
+% intel_pitch_no_pow = [112.5 112.5 112.5 168.8 225 337.6 450.1 566.5];
+% figure(2)
+% clf
+% hold on
+% plot(intel_pitch_no_pow,'k')
+% plot(wire_cell{cind,dind,thind,nind,pind,freq_ind,wire_res_ind,1,1}.pn*1e9)
+% fixfigs(2,2,14,12)
+
+
+%% Power efficiency vs frequency
+% % Inputs
+% % tiers = [1 2 4 8];
+% % thicknesses = [10e-6];
+% % force_thickness = 1;
+% % rel_permittivities = 3.0;
+% % frequencies = linspace(0.1e9, 5e9, 1e2);
+% % heat_fluxes = [ h_air ];
+% % decap_ratios = [0.1];%[0.01 0.1 1];
+% % %wire_resistivities = [rho_ag rho_cu rho_au rho_al rho_w rho_ni];
+% % wire_resistivities = [rho_cu];
+% % wire_material_flags = {'00'}; % binary strings. bit1 = use_graphene, bit0 = use alt_em_mat
+% % scaling_factor = [1];
+% 
+% % Plots
+% figure(1)
+% clf
+% hold on
+% for nind = 1:num_stacks
+%     colors = [ 0 0 0 ; 0 0 1; 0 1 0 ; 1 0 0 ];
+%     pow_tot = zeros(1,num_freqs);
+%     pow_wire = zeros(1,num_freqs);
+%     pow_rep = zeros(1,num_freqs);
+%     
+%     pow_tot(1,:) = power(cind,dind,thind,nind,pind,:,wire_res_ind,wire_flag_ind,scaling_ind);
+%     pow_wire(1,:) = wire_power(cind,dind,thind,nind,pind,:,wire_res_ind,wire_flag_ind,scaling_ind);
+%     pow_rep(1,:) = rep_power(cind,dind,thind,nind,pind,:,wire_res_ind,wire_flag_ind,scaling_ind);
+%     pow_comm = pow_wire + pow_rep;
+%     
+%     
+%     pow_logic = pow_tot - (pow_wire + pow_rep);
+%     pow_eff = pow_logic./pow_tot;
+%     pow_comm_ratio = pow_comm./pow_tot;
+%     pow_log_ratio = 1 - pow_comm_ratio;
+%     
+%     plot(frequencies/1e9,pow_comm_ratio,'color',colors(nind,:))
+%     xlim([0.5 5])
+%     xlabel('Clock Frequency (GHz)')
+%     ylabel('On-chip Communication Power Fraction')
+%     %set(gca,'xscale','log')
+%     fixfigs(1,2,14,12)
+% end
+%     
+%     
+% %     
+% % power(cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind) = core.power.total;
+% % power_density(cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind) = core.power.density;
+% % 
+% % wire_power(cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind) = core.power.wiring;
+% % rep_power(cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind) = core.power.repeater;
+
+
+%%  Max frequency vs ILD
+% % Inputs
+% tiers = [1 2 4 8];
+% thicknesses = [10e-6];
+% force_thickness = 1;
+% rel_permittivities = linspace(1,4,41);
+% frequencies = [3e8 1e10]; % if simulation.freq_binsearch is set, (1) is min freq and (2) is max freq
+% heat_fluxes = [ h_air h_water];
+% decap_ratios = [0.1];%[0.01 0.1 1];
+% %wire_resistivities = [rho_ag rho_cu rho_au rho_al rho_w rho_ni];
+% wire_resistivities = [rho_cu];
+% wire_material_flags = {'00'}; % binary strings. bit1 = use_graphene, bit0 = use alt_em_mat
+% scaling_factor = [1];
+
+
+% Plots
+% figure(1)
+% clf
+% hold on
+% 
+% for nind = 1:num_stacks
+%     colors = [ 0 0 0 ; 0 0 1; 0 1 0 ; 1 0 0 ];
+%     fr_vec1 = zeros(1,num_perms);
+%     fr_vec2 = zeros(1,num_perms);
+%     cind = 1;
+%     fr_vec1(1,:) = freq(cind,dind,thind,nind,:,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind)/1e9;
+%     cind = 2;
+%     fr_vec2(1,:) = freq(cind,dind,thind,nind,:,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind)/1e9;
+%     
+%     plot(rel_permittivities,fr_vec1,'color',colors(nind,:),'linestyle','-')
+%     plot(rel_permittivities,fr_vec2,'color',colors(nind,:),'linestyle','--')
+% end
+% xlabel('ILD Relative Permittivity')
+% ylabel('Maximum Frequency')
+% %set(gca,'yscale','log')
+% fixfigs(1,2,14,12)
+% 
+% figure(2)
+% clf
+% hold on
+% p_ave_vec = zeros(1,num_stacks);
+% p_ave_vec2 = zeros(1,num_stacks);
+% comm_pow_ave_vec = zeros(1,num_stacks);
+% comm_pow_ave_vec2 = zeros(1,num_stacks);
+% %pfrac_vec = zeros(1,num_stacks);
+% %pfrac_vec2 = zeros(1,num_stacks);
+% for nind = 1:num_stacks
+%     colors = [ 0 0 0 ; 0 0 1; 0 1 0 ; 1 0 0 ];
+%     cind = 1;
+%     pow_vec = zeros(1,num_perms);
+%     comm_pow_vec = zeros(1,num_perms);
+%     pow_vec(1,:) = power(cind,dind,thind,nind,:,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind);
+%     comm_pow_vec(1:end) = wire_power(cind,dind,thind,nind,:,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind) + rep_power(cind,dind,thind,nind,:,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind);
+%     p_ave_vec(nind) = mean(pow_vec);
+%     comm_pow_ave_vec(nind) = mean(comm_pow_vec);
+%     
+%     
+%     cind = 2;
+%     pow_vec2 = zeros(1,num_perms);
+%     comm_pow_vec2 = zeros(1,num_perms);
+%     pow_vec2(1,:) = power(cind,dind,thind,nind,:,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind);
+%     comm_pow_vec2(1:end) = wire_power(cind,dind,thind,nind,:,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind) + rep_power(cind,dind,thind,nind,:,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind);
+%     p_ave_vec2(nind) = mean(pow_vec2);
+%     comm_pow_ave_vec2(nind) = mean(comm_pow_vec2);
+%     
+%     
+%     %plot(rel_permittivities,comm_pow_vec./pow_vec,'color',colors(nind,:))
+%     plot(rel_permittivities,pow_vec,'color',colors(nind,:),'linestyle','-')
+%     plot(rel_permittivities,pow_vec2,'color',colors(nind,:),'linestyle','--')
+% end
+% xlabel('ILD Relative Permittivity')
+% ylabel('Power (W)')
+% %set(gca,'xscale','log')
+% fixfigs(2,2,14,12)
+% 
+% 
+% pfrac_vec = comm_pow_ave_vec./p_ave_vec;
+% pfrac_vec2 = comm_pow_ave_vec2./p_ave_vec2;
+% 
+% figure(3)
+% clf
+% hold on
+% plot(tiers,p_ave_vec,'r')
+% plot(tiers,p_ave_vec2,'b')
+% xlabel('Tiers')
+% ylabel('Power (W)')
+% fixfigs(3,2,14,12)
+% 
+% 
+% pmat = [p_ave_vec ; p_ave_vec2]';
+% figure(4)
+% b = bar(pmat,1,'grouped');
+% colormap jet
+% set(gca,'xticklabel',{'1','2','4','8'})
+% %ylim([1e0 1e4])
+% %set(gca,'yscale','log')
+% xlabel('Number of tiers')
+% ylabel('Power (W)')
+% b(1).FaceColor = 'blue';
+% % b(2).FaceColor = 'green';
+% b(2).FaceColor = 'yellow';
+% %b(2).FaceColor = 'red';
+% fixfigs(4,2,14,12)
+% 
+% pmat = [pfrac_vec ; pfrac_vec2]';
+% figure(5)
+% b = bar(pmat,1,'grouped');
+% colormap jet
+% set(gca,'xticklabel',{'1','2','4','8'})
+% %ylim([1e0 1e4])
+% %set(gca,'yscale','log')
+% xlabel('Number of tiers')
+% ylabel('Comm Power Fraction')
+% b(1).FaceColor = 'blue';
+% % b(2).FaceColor = 'green';
+% b(2).FaceColor = 'yellow';
+% %b(2).FaceColor = 'red';
+% fixfigs(5,2,14,12)
+% 
+% 
+% % Plots
+% figure(6)
+% clf
+% hold on
+% inds = [1 14 28 41];
+% for nind = 1:num_stacks
+%     colors = [ 0 0 0 ; 0 0 1; 0 1 0 ; 1 0 0 ];
+%     fr_vec1 = zeros(1,num_perms);
+%     fr_vec2 = zeros(1,num_perms);
+%     pow_vec = zeros(1,num_perms);
+%     pow_vec2 = zeros(1,num_perms);
+%     cind = 1;
+%     fr_vec1(1,:) = freq(cind,dind,thind,nind,:,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind);
+%     pow_vec(1,:) = power(cind,dind,thind,nind,:,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind);
+%     epc_vec = pow_vec./fr_vec1;
+%     
+%     cind = 2;
+%     fr_vec2(1,:) = freq(cind,dind,thind,nind,:,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind);
+%     pow_vec2(1,:) = power(cind,dind,thind,nind,:,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind);
+%     epc_vec2 = pow_vec2./fr_vec2;
+%     
+%     
+%     plot(rel_permittivities,epc_vec*1e9,'color',colors(nind,:),'linestyle','-')
+%     plot(rel_permittivities,epc_vec2*1e9,'color',colors(nind,:),'linestyle','--')
+% end
+% xlabel('ILD Relative Permittivity')
+% ylabel('Energy per cycle (nJ)')
+% %set(gca,'yscale','log')
+% fixfigs(6,2,14,12)
+% 
+% 
+% epc_mat = zeros(4,num_stacks);
+
+%% Power consumption vs power density
+
+% % Inputs
+% tiers = 1:8;
+% thicknesses = [10e-6];
+% force_thickness = 1;
+% rel_permittivities = [3.0];
+% frequencies = fmax_core; % if simulation.freq_binsearch is set, (1) is min freq and (2) is max freq
+% heat_fluxes = [ h_air];
+% decap_ratios = [0.1];%[0.01 0.1 1];
+% %wire_resistivities = [rho_ag rho_cu rho_au rho_al rho_w rho_ni];
+% wire_resistivities = [rho_cu];
+% wire_material_flags = {'00'}; % binary strings. bit1 = use_graphene, bit0 = use alt_em_mat
+% scaling_factor = [1];
+
+
+pvec = zeros(1,num_stacks);
+pdens_vec = zeros(1,num_stacks);
+pvec(1,:) = power(cind,dind,thind,:,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind);
+pdens_vec(1,:) = power_density(cind,dind,thind,:,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind)/100^2;
+
 figure(1)
 clf
-hold all
-pvec = zeros(1,num_wire_resistivities);
-for wire_res_ind = 1:num_wire_resistivities
-    pvec(wire_res_ind) = length(wire_cell{cind,dind,thind,nind,pind,freq_ind,wire_res_ind,1,1}.pn);
-end
-plot(wire_resistivities*1e9,pvec,'k-');
-
-pvec = zeros(1,num_wire_resistivities);
-for wire_res_ind = 1:num_wire_resistivities
-    pvec(wire_res_ind) = length(wire_cell{cind,dind,thind,nind,pind,freq_ind,wire_res_ind,1,2}.pn);
-end
-plot(wire_resistivities*1e9,pvec,'b-');
-
-pvec = zeros(1,num_wire_resistivities);
-for wire_res_ind = 1:num_wire_resistivities
-    pvec(wire_res_ind) = length(wire_cell{cind,dind,thind,nind,pind,freq_ind,wire_res_ind,2,2}.pn);
-end
-plot(wire_resistivities*1e9,pvec,'r--');
+[ax, h1, h2] = plotyy(tiers,pvec,tiers,pdens_vec);
+set(ax(1),'ycolor','k')
+set(ax(2),'ycolor','k')
+ax(1).FontSize = 12;
+ax(2).FontSize = 12;
+%ax(1).YLabel.String = 'Power (W)';
+%ax(2).YLabel.String = 'Power Density (W/cm^2)';
+xlabel('Number of tiers')
 fixfigs(1,2,14,12)
 
-wire_res_ind = 2;
-intel_pitch_no_pow = [112.5 112.5 112.5 168.8 225 337.6 450.1 566.5];
-figure(2)
-clf
-hold on
-plot(intel_pitch_no_pow,'k')
-plot(wire_cell{cind,dind,thind,nind,pind,freq_ind,wire_res_ind,1,1}.pn*1e9)
-fixfigs(2,2,14,12)
+
 
