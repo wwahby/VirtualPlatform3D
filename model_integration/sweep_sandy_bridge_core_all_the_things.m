@@ -7,15 +7,17 @@ simulation.redo_wiring_after_repeaters = 0;
 simulation.topdown_WLARI = 1; % Use topdown simultaneous WLA and RI (0 = use standard bottom-up optimal WLA, followed by one pass of RI)
 simulation.separate_wiring_tiers = 1; % 1 = Each logic plane will have its own wiring tiers between it and the next logic plane
                                       % 0 = All metal layers for entire device will be routed on top of entire 3D stack
-
+                                      
 simulation.draw_thermal_map = 0; % Plot thermal profile of each chip
 simulation.print_thermal_data = 0; % Output max temp in each layer to console
 
-simulation.wla_max_attempts = 30; % 15 is default
-simulation.wla_min_bot_fill_factor = 0.90; % 0.97 is default
+simulation.wla_max_attempts = 15; % 15 is default
+simulation.wla_min_bot_fill_factor = 0.91; % 0.97 is default
 simulation.wla_min_top_fill_factor = 0.01; % 0.01 is default
 
 simulation.freq_binsearch = 0;
+simulation.freq_binsearch_min = 1e7;
+simulation.freq_binsearch_max = 1e11;
 simulation.freq_binsearch_target = 90;
 simulation.freq_binsearch_raw_tol = 0.05;
 simulation.freq_binsearch_max_gens = 10;
@@ -182,8 +184,8 @@ for cind = 1:num_cooling_configs
                                     
                                     %% If we're searching for frequencies below a certain temperature
                                     if (simulation.freq_binsearch == 1)
-                                        fmin = frequencies(1);
-                                        fmax = frequencies(2);
+                                        fmin = simulation.freq_binsearch_min;
+                                        fmax = simulation.freq_binsearch_max;
                                         max_gens = simulation.freq_binsearch_max_gens;
                                         target_max_value = simulation.freq_binsearch_target;
                                         target_cur_value = target_max_value*2; % start with something invalid so we run it at least once
@@ -776,24 +778,24 @@ fixfigs(1,2,14,12)
 % wire_resistivities = [rho_cu];
 % wire_material_flags = {'00'}; % binary strings. bit1 = use_graphene, bit0 = use alt_em_mat
 % scaling_factor = [1];
-
-
-pvec = zeros(1,num_stacks);
-pdens_vec = zeros(1,num_stacks);
-pvec(1,:) = power(cind,dind,thind,:,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind);
-pdens_vec(1,:) = power_density(cind,dind,thind,:,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind)/100^2;
-
-figure(1)
-clf
-[ax, h1, h2] = plotyy(tiers,pvec,tiers,pdens_vec);
-set(ax(1),'ycolor','k')
-set(ax(2),'ycolor','k')
-ax(1).FontSize = 12;
-ax(2).FontSize = 12;
-%ax(1).YLabel.String = 'Power (W)';
-%ax(2).YLabel.String = 'Power Density (W/cm^2)';
-xlabel('Number of tiers')
-fixfigs(1,2,14,12)
+% 
+% 
+% pvec = zeros(1,num_stacks);
+% pdens_vec = zeros(1,num_stacks);
+% pvec(1,:) = power(cind,dind,thind,:,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind);
+% pdens_vec(1,:) = power_density(cind,dind,thind,:,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind)/100^2;
+% 
+% figure(1)
+% clf
+% [ax, h1, h2] = plotyy(tiers,pvec,tiers,pdens_vec);
+% set(ax(1),'ycolor','k')
+% set(ax(2),'ycolor','k')
+% ax(1).FontSize = 12;
+% ax(2).FontSize = 12;
+% %ax(1).YLabel.String = 'Power (W)';
+% %ax(2).YLabel.String = 'Power Density (W/cm^2)';
+% xlabel('Number of tiers')
+% fixfigs(1,2,14,12)
 
 
 
