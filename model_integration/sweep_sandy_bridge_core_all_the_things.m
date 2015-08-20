@@ -1,6 +1,6 @@
 %% Simulation parameters
 simulation.skip_psn_loops = 1; % Skip PSN TSV homing for faster debug
-simulation.skip_thermal = 1; % Skip thermal analysis for faster debug
+simulation.skip_thermal = 0; % Skip thermal analysis for faster debug
 
 simulation.use_joyner = 0;
 simulation.redo_wiring_after_repeaters = 0;
@@ -15,11 +15,12 @@ simulation.wla_max_attempts = 15; % 15 is default
 simulation.wla_min_bot_fill_factor = 0.91; % 0.97 is default
 simulation.wla_min_top_fill_factor = 0.01; % 0.01 is default
 
-simulation.freq_binsearch = 0;
+simulation.freq_binsearch = 1;
 simulation.freq_binsearch_min = 1e7;
 simulation.freq_binsearch_max = 1e11;
+simulation.freq_binsearch_initial_guess = 1e10;
 simulation.freq_binsearch_target = 90;
-simulation.freq_binsearch_raw_tol = 0.05;
+simulation.freq_binsearch_raw_tol = 0.25;
 simulation.freq_binsearch_max_gens = 10;
 
 
@@ -61,8 +62,8 @@ rho_all_mets = [rho_ag rho_cu rho_au rho_al rho_w rho_ni];
 
 
 %% 
-tiers = [1 2 4 8];
-thicknesses = logspace(-6,-4,51);
+tiers = [1];
+thicknesses = 10e-6;
 force_thickness = 1;
 rel_permittivities = [3.0];
 frequencies = fmax_core; % if simulation.freq_binsearch is set, (1) is min freq and (2) is max freq
@@ -184,37 +185,7 @@ for cind = 1:num_cooling_configs
                                     
                                     %% If we're searching for frequencies below a certain temperature
                                     if (simulation.freq_binsearch == 1)
-                                        fmin = simulation.freq_binsearch_min;
-                                        fmax = simulation.freq_binsearch_max;
-                                        max_gens = simulation.freq_binsearch_max_gens;
-                                        target_max_value = simulation.freq_binsearch_target;
-                                        target_cur_value = target_max_value*2; % start with something invalid so we run it at least once
-                                        abs_err = abs(target_max_value - target_cur_value);
-                                        tolerance = simulation.freq_binsearch_raw_tol;
-                                        left = fmin;
-                                        right = fmax;
-
-                                        num_gens = 0;
-                                        time_bin_start = cputime;
-                                        while ((abs_err > tolerance) && (num_gens < max_gens))
-                                            mid = 1/2*(left+right);
-                                            core.chip.clock_period = 1/mid;
-                                            [core.chip, core.power, core.tsv, core.wire, core.repeater, core.psn] = codesign_block(core.chip,core.tsv,core.gate,core.transistor,core.wire,core.heat,core.psn,simulation);
-                                            target_cur_value = core.chip.temperature;
-                                            abs_err = abs(target_max_value - target_cur_value);
-
-                                            if (target_cur_value > target_max_value)
-                                                right = mid;
-                                            elseif (target_cur_value < target_max_value)
-                                                left = mid;
-                                            else
-                                                left = 1/2*(left + mid);
-                                                right = 1/2*(right + mid);
-                                            end
-
-                                            num_gens = num_gens + 1;
-                                            fprintf('Run %d: \t Freq: %.3g \t Temp: %.4d\n\n',num_gens, mid, target_cur_value);
-                                        end
+                                        core = find_thermally_limited_max_frequency(core, simulation);
                                     else
                                         %% calculate block parameters
                                         [core.chip, core.power, core.tsv, core.wire, core.repeater, core.psn] = codesign_block(core.chip,core.tsv,core.gate,core.transistor,core.wire,core.heat,core.psn,simulation);
