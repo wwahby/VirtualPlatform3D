@@ -1,8 +1,8 @@
 % Add VP3D to path for simulation setup
 addpath C:\Users\wsw\Documents\GitHub\VirtualPlatform3D\model_integration
 
-area = (100e-3)^2; %m2
-power = 100; % W
+area = (sqrt(2)*1e-3)^2; %m2
+power = 2e-3; % W
 
 wire.rho_vec = 16.8e-9; % Cu
 wire.permeability_rel = 1; % nonmagnetic
