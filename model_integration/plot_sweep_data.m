@@ -73,37 +73,37 @@ scaling_factors = sweep.scaling_factors;
 % wire_resistivities = [rho_cu];
 % wire_material_flags = {'00'}; % binary strings. bit1 = use_graphene, bit0 = use alt_em_mat
 % scaling_factor = [1];
-
+% 
 % Plots
-figure(1)
-clf
-hold on
-for nind = 1:num_stacks
-    colors = [ 0 0 0 ; 0 0 1; 0 1 0 ; 1 0 0 ];
-    pow_tot = zeros(1,num_freqs);
-    pow_wire = zeros(1,num_freqs);
-    pow_rep = zeros(1,num_freqs);
-    
-    pow_tot(1,:) = power(cind,dind,thind,nind,pind,:,wire_res_ind,wire_flag_ind,scaling_ind);
-    pow_wire(1,:) = wire_power(cind,dind,thind,nind,pind,:,wire_res_ind,wire_flag_ind,scaling_ind);
-    pow_rep(1,:) = rep_power(cind,dind,thind,nind,pind,:,wire_res_ind,wire_flag_ind,scaling_ind);
-    pow_comm = pow_wire + pow_rep;
-    
-    
-    pow_logic = pow_tot - (pow_wire + pow_rep);
-    pow_eff = pow_logic./pow_tot;
-    pow_comm_ratio = pow_comm./pow_tot;
-    pow_log_ratio = 1 - pow_comm_ratio;
-    
-    plot(frequencies/1e9,pow_comm_ratio,'color',colors(nind,:))
-    xlim([0.5 5])
-    xlabel('Clock Frequency (GHz)')
-    ylabel('On-chip Communication Power Fraction')
-    %set(gca,'xscale','log')
-    fixfigs(1,2,14,12)
-end
-    
-    
+% figure(1)
+% clf
+% hold on
+% for nind = 1:num_stacks
+%     colors = [ 0 0 0 ; 0 0 1; 0 1 0 ; 1 0 0 ];
+%     pow_tot = zeros(1,num_freqs);
+%     pow_wire = zeros(1,num_freqs);
+%     pow_rep = zeros(1,num_freqs);
+%     
+%     pow_tot(1,:) = power(cind,dind,thind,nind,pind,:,wire_res_ind,wire_flag_ind,scaling_ind);
+%     pow_wire(1,:) = wire_power(cind,dind,thind,nind,pind,:,wire_res_ind,wire_flag_ind,scaling_ind);
+%     pow_rep(1,:) = rep_power(cind,dind,thind,nind,pind,:,wire_res_ind,wire_flag_ind,scaling_ind);
+%     pow_comm = pow_wire + pow_rep;
+%     
+%     
+%     pow_logic = pow_tot - (pow_wire + pow_rep);
+%     pow_eff = pow_logic./pow_tot;
+%     pow_comm_ratio = pow_comm./pow_tot;
+%     pow_log_ratio = 1 - pow_comm_ratio;
+%     
+%     plot(frequencies/1e9,pow_comm_ratio,'color',colors(nind,:))
+%     xlim([0.5 5])
+%     xlabel('Clock Frequency (GHz)')
+%     ylabel('On-chip Communication Power Fraction')
+%     %set(gca,'xscale','log')
+%     fixfigs(1,2,14,12)
+% end
+%     
+%     
 %     
 % power(cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind) = core.power.total;
 % power_density(cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind) = core.power.density;
@@ -127,142 +127,141 @@ end
 % scaling_factor = [1];
 
 
+figure(1)
+clf
+hold on
+
+for nind = 1:num_stacks
+    colors = [ 0 0 0 ; 0 0 1; 0 1 0 ; 1 0 0 ];
+    fr_vec1 = zeros(1,num_perms);
+    fr_vec2 = zeros(1,num_perms);
+    cind = 1;
+    fr_vec1(1,:) = freq(cind,dind,thind,nind,:,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind)/1e9;
+    cind = 2;
+    fr_vec2(1,:) = freq(cind,dind,thind,nind,:,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind)/1e9;
+    
+    plot(rel_permittivities,fr_vec1,'color',colors(nind,:),'linestyle','-')
+    plot(rel_permittivities,fr_vec2,'color',colors(nind,:),'linestyle','--')
+end
+xlabel('ILD Relative Permittivity')
+ylabel('Maximum Frequency')
+%set(gca,'yscale','log')
+fixfigs(1,2,14,12)
+
+figure(2)
+clf
+hold on
+p_ave_vec = zeros(1,num_stacks);
+p_ave_vec2 = zeros(1,num_stacks);
+comm_pow_ave_vec = zeros(1,num_stacks);
+comm_pow_ave_vec2 = zeros(1,num_stacks);
+%pfrac_vec = zeros(1,num_stacks);
+%pfrac_vec2 = zeros(1,num_stacks);
+for nind = 1:num_stacks
+    colors = [ 0 0 0 ; 0 0 1; 0 1 0 ; 1 0 0 ];
+    cind = 1;
+    pow_vec = zeros(1,num_perms);
+    comm_pow_vec = zeros(1,num_perms);
+    pow_vec(1,:) = power(cind,dind,thind,nind,:,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind);
+    comm_pow_vec(1:end) = wire_power(cind,dind,thind,nind,:,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind) + rep_power(cind,dind,thind,nind,:,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind);
+    p_ave_vec(nind) = mean(pow_vec);
+    comm_pow_ave_vec(nind) = mean(comm_pow_vec);
+    
+    
+    cind = 2;
+    pow_vec2 = zeros(1,num_perms);
+    comm_pow_vec2 = zeros(1,num_perms);
+    pow_vec2(1,:) = power(cind,dind,thind,nind,:,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind);
+    comm_pow_vec2(1:end) = wire_power(cind,dind,thind,nind,:,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind) + rep_power(cind,dind,thind,nind,:,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind);
+    p_ave_vec2(nind) = mean(pow_vec2);
+    comm_pow_ave_vec2(nind) = mean(comm_pow_vec2);
+    
+    
+    %plot(rel_permittivities,comm_pow_vec./pow_vec,'color',colors(nind,:))
+    plot(rel_permittivities,pow_vec,'color',colors(nind,:),'linestyle','-')
+    plot(rel_permittivities,pow_vec2,'color',colors(nind,:),'linestyle','--')
+end
+xlabel('ILD Relative Permittivity')
+ylabel('Power (W)')
+%set(gca,'xscale','log')
+fixfigs(2,2,14,12)
+
+
+pfrac_vec = comm_pow_ave_vec./p_ave_vec;
+pfrac_vec2 = comm_pow_ave_vec2./p_ave_vec2;
+
+figure(3)
+clf
+hold on
+plot(tiers,p_ave_vec,'r')
+plot(tiers,p_ave_vec2,'b')
+xlabel('Tiers')
+ylabel('Power (W)')
+fixfigs(3,2,14,12)
+
+
+pmat = [p_ave_vec ; p_ave_vec2]';
+figure(4)
+b = bar(pmat,1,'grouped');
+colormap jet
+set(gca,'xticklabel',{'1','2','4','8'})
+%ylim([1e0 1e4])
+%set(gca,'yscale','log')
+xlabel('Number of tiers')
+ylabel('Power (W)')
+b(1).FaceColor = 'blue';
+% b(2).FaceColor = 'green';
+b(2).FaceColor = 'yellow';
+%b(2).FaceColor = 'red';
+fixfigs(4,2,14,12)
+
+pmat = [pfrac_vec ; pfrac_vec2]';
+figure(5)
+b = bar(pmat,1,'grouped');
+colormap jet
+set(gca,'xticklabel',{'1','2','4','8'})
+%ylim([1e0 1e4])
+%set(gca,'yscale','log')
+xlabel('Number of tiers')
+ylabel('Comm Power Fraction')
+b(1).FaceColor = 'blue';
+% b(2).FaceColor = 'green';
+b(2).FaceColor = 'yellow';
+%b(2).FaceColor = 'red';
+fixfigs(5,2,14,12)
+
+
 % Plots
-% figure(1)
-% clf
-% hold on
-% 
-% for nind = 1:num_stacks
-%     colors = [ 0 0 0 ; 0 0 1; 0 1 0 ; 1 0 0 ];
-%     fr_vec1 = zeros(1,num_perms);
-%     fr_vec2 = zeros(1,num_perms);
-%     cind = 1;
-%     fr_vec1(1,:) = freq(cind,dind,thind,nind,:,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind)/1e9;
-%     cind = 2;
-%     fr_vec2(1,:) = freq(cind,dind,thind,nind,:,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind)/1e9;
-%     
-%     plot(rel_permittivities,fr_vec1,'color',colors(nind,:),'linestyle','-')
-%     plot(rel_permittivities,fr_vec2,'color',colors(nind,:),'linestyle','--')
-% end
-% xlabel('ILD Relative Permittivity')
-% ylabel('Maximum Frequency')
-% %set(gca,'yscale','log')
-% fixfigs(1,2,14,12)
-% 
-% figure(2)
-% clf
-% hold on
-% p_ave_vec = zeros(1,num_stacks);
-% p_ave_vec2 = zeros(1,num_stacks);
-% comm_pow_ave_vec = zeros(1,num_stacks);
-% comm_pow_ave_vec2 = zeros(1,num_stacks);
-% %pfrac_vec = zeros(1,num_stacks);
-% %pfrac_vec2 = zeros(1,num_stacks);
-% for nind = 1:num_stacks
-%     colors = [ 0 0 0 ; 0 0 1; 0 1 0 ; 1 0 0 ];
-%     cind = 1;
-%     pow_vec = zeros(1,num_perms);
-%     comm_pow_vec = zeros(1,num_perms);
-%     pow_vec(1,:) = power(cind,dind,thind,nind,:,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind);
-%     comm_pow_vec(1:end) = wire_power(cind,dind,thind,nind,:,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind) + rep_power(cind,dind,thind,nind,:,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind);
-%     p_ave_vec(nind) = mean(pow_vec);
-%     comm_pow_ave_vec(nind) = mean(comm_pow_vec);
-%     
-%     
-%     cind = 2;
-%     pow_vec2 = zeros(1,num_perms);
-%     comm_pow_vec2 = zeros(1,num_perms);
-%     pow_vec2(1,:) = power(cind,dind,thind,nind,:,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind);
-%     comm_pow_vec2(1:end) = wire_power(cind,dind,thind,nind,:,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind) + rep_power(cind,dind,thind,nind,:,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind);
-%     p_ave_vec2(nind) = mean(pow_vec2);
-%     comm_pow_ave_vec2(nind) = mean(comm_pow_vec2);
-%     
-%     
-%     %plot(rel_permittivities,comm_pow_vec./pow_vec,'color',colors(nind,:))
-%     plot(rel_permittivities,pow_vec,'color',colors(nind,:),'linestyle','-')
-%     plot(rel_permittivities,pow_vec2,'color',colors(nind,:),'linestyle','--')
-% end
-% xlabel('ILD Relative Permittivity')
-% ylabel('Power (W)')
-% %set(gca,'xscale','log')
-% fixfigs(2,2,14,12)
-% 
-% 
-% pfrac_vec = comm_pow_ave_vec./p_ave_vec;
-% pfrac_vec2 = comm_pow_ave_vec2./p_ave_vec2;
-% 
-% figure(3)
-% clf
-% hold on
-% plot(tiers,p_ave_vec,'r')
-% plot(tiers,p_ave_vec2,'b')
-% xlabel('Tiers')
-% ylabel('Power (W)')
-% fixfigs(3,2,14,12)
-% 
-% 
-% pmat = [p_ave_vec ; p_ave_vec2]';
-% figure(4)
-% b = bar(pmat,1,'grouped');
-% colormap jet
-% set(gca,'xticklabel',{'1','2','4','8'})
-% %ylim([1e0 1e4])
-% %set(gca,'yscale','log')
-% xlabel('Number of tiers')
-% ylabel('Power (W)')
-% b(1).FaceColor = 'blue';
-% % b(2).FaceColor = 'green';
-% b(2).FaceColor = 'yellow';
-% %b(2).FaceColor = 'red';
-% fixfigs(4,2,14,12)
-% 
-% pmat = [pfrac_vec ; pfrac_vec2]';
-% figure(5)
-% b = bar(pmat,1,'grouped');
-% colormap jet
-% set(gca,'xticklabel',{'1','2','4','8'})
-% %ylim([1e0 1e4])
-% %set(gca,'yscale','log')
-% xlabel('Number of tiers')
-% ylabel('Comm Power Fraction')
-% b(1).FaceColor = 'blue';
-% % b(2).FaceColor = 'green';
-% b(2).FaceColor = 'yellow';
-% %b(2).FaceColor = 'red';
-% fixfigs(5,2,14,12)
-% 
-% 
-% % Plots
-% figure(6)
-% clf
-% hold on
-% inds = [1 14 28 41];
-% for nind = 1:num_stacks
-%     colors = [ 0 0 0 ; 0 0 1; 0 1 0 ; 1 0 0 ];
-%     fr_vec1 = zeros(1,num_perms);
-%     fr_vec2 = zeros(1,num_perms);
-%     pow_vec = zeros(1,num_perms);
-%     pow_vec2 = zeros(1,num_perms);
-%     cind = 1;
-%     fr_vec1(1,:) = freq(cind,dind,thind,nind,:,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind);
-%     pow_vec(1,:) = power(cind,dind,thind,nind,:,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind);
-%     epc_vec = pow_vec./fr_vec1;
-%     
-%     cind = 2;
-%     fr_vec2(1,:) = freq(cind,dind,thind,nind,:,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind);
-%     pow_vec2(1,:) = power(cind,dind,thind,nind,:,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind);
-%     epc_vec2 = pow_vec2./fr_vec2;
-%     
-%     
-%     plot(rel_permittivities,epc_vec*1e9,'color',colors(nind,:),'linestyle','-')
-%     plot(rel_permittivities,epc_vec2*1e9,'color',colors(nind,:),'linestyle','--')
-% end
-% xlabel('ILD Relative Permittivity')
-% ylabel('Energy per cycle (nJ)')
-% %set(gca,'yscale','log')
-% fixfigs(6,2,14,12)
-% 
-% 
+figure(6)
+clf
+hold on
+inds = [1 14 28 41];
+for nind = 1:num_stacks
+    colors = [ 0 0 0 ; 0 0 1; 0 1 0 ; 1 0 0 ];
+    fr_vec1 = zeros(1,num_perms);
+    fr_vec2 = zeros(1,num_perms);
+    pow_vec = zeros(1,num_perms);
+    pow_vec2 = zeros(1,num_perms);
+    cind = 1;
+    fr_vec1(1,:) = freq(cind,dind,thind,nind,:,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind);
+    pow_vec(1,:) = power(cind,dind,thind,nind,:,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind);
+    epc_vec = pow_vec./fr_vec1;
+    
+    cind = 2;
+    fr_vec2(1,:) = freq(cind,dind,thind,nind,:,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind);
+    pow_vec2(1,:) = power(cind,dind,thind,nind,:,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind);
+    epc_vec2 = pow_vec2./fr_vec2;
+    
+    
+    plot(rel_permittivities,epc_vec*1e9,'color',colors(nind,:),'linestyle','-')
+    plot(rel_permittivities,epc_vec2*1e9,'color',colors(nind,:),'linestyle','--')
+end
+xlabel('ILD Relative Permittivity')
+ylabel('Energy per cycle (nJ)')
+%set(gca,'yscale','log')
+fixfigs(6,2,14,12)
+
+
 % epc_mat = zeros(4,num_stacks);
 
 %% Power consumption vs power density

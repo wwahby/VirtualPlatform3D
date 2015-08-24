@@ -1,5 +1,5 @@
 function sweep_data = sweep_design(design, sweep, simulation)
-
+t_sweep_start = cputime;
 %% Unpack design settings
 
 rent_exp = design.rent_exp;
@@ -176,3 +176,6 @@ for cind = 1:num_cooling_configs
         end
     end
 end
+
+t_sweep_stop = cputime;
+fprintf('\nTotal time elapsed for parameter sweep: %.3g seconds\t(%.3g minutes)\n\n',(t_sweep_stop-t_sweep_start),(t_sweep_stop-t_sweep_start)/60);
