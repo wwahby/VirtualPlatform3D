@@ -29,7 +29,6 @@ rent_exp_logic = 0.6;
 rent_exp_mem = 0.4;
 rent_exp_gpu = 0.55;
 
-
 %% Logic core parameters
 design.compression_factor = 1; % linear scaling factor. 1 = actual 32nm design, 4.57 = equivalent 7nm SB
 design.Ng_core = 86e6/4; %86M transistors, assume 2in NAND -> /4 to get total NAND gates
@@ -59,24 +58,20 @@ rho_ni = 69.9e-9;
 rho_al = 26.5e-9;
 rho_all_mets = [rho_ag rho_cu rho_au rho_al rho_w rho_ni];
 
-
 %% Sweep settings
 sweep.tiers = [1 2 3 4];
 sweep.thicknesses = 10e-6;
 sweep.force_thickness = 1;
-sweep.rel_permittivities = [1 2 3 4];
+sweep.rel_permittivities = [3];
 sweep.frequencies = design.fmax;
-sweep.heat_fluxes = [ h_air h_water];
+sweep.heat_fluxes = [ h_air ];
 sweep.decap_ratios = [0.1]; % Fraction of die area used for decoupling capacitors
 sweep.wire_resistivities = [rho_cu];
 sweep.wire_material_flags = {'00'}; % binary strings. bit1 = use_graphene, bit0 = use alt_em_mat
-sweep.scaling_factors = [1];
+sweep.scaling_factors = [32/32 32/22 32/14 32/10 32/7 32/5];
 
 %% Run the parameter sweep
-
 sweep_data = sweep_design(design, sweep, simulation);
 
 %% plot stuff!
 plot_sweep_data( sweep, sweep_data, simulation )
-
-

@@ -1,7 +1,6 @@
 function sweep_data = sweep_design(design, sweep, simulation)
 t_sweep_start = cputime;
 %% Unpack design settings
-
 rent_exp = design.rent_exp;
 Ng_core = design.Ng_core;
 Ach_mm2 = design.Ach_mm2;
@@ -22,7 +21,6 @@ wire_resistivities = sweep.wire_resistivities;
 wire_material_flags = sweep.wire_material_flags;
 scaling_factors = sweep.scaling_factors;
 
-
 %% Initialize sweep variables
 num_stacks = length(tiers);
 num_perms = length(rel_permittivities);
@@ -40,8 +38,6 @@ num_wire_flags = length(wire_material_flags);
 num_scaling_factors = length(scaling_factors);
 total_configs = num_stacks * num_perms * num_thicks * num_freqs * num_cooling_configs * num_decaps * num_wire_resistivities * num_wire_flags * num_scaling_factors;
 
-
-
 sweep_data.power = zeros(num_cooling_configs,num_decaps,num_thicks,num_stacks,num_perms,num_freqs,num_wire_resistivities,num_wire_flags,num_scaling_factors);
 sweep_data.power_density = zeros(num_cooling_configs,num_decaps,num_thicks,num_stacks,num_perms,num_freqs,num_wire_resistivities,num_wire_flags,num_scaling_factors);
 sweep_data.freq = zeros(num_cooling_configs,num_decaps,num_thicks,num_stacks,num_perms,num_freqs,num_wire_resistivities,num_wire_flags,num_scaling_factors);
@@ -53,15 +49,12 @@ sweep_data.npads = zeros(num_cooling_configs,num_decaps,num_thicks,num_stacks,nu
 sweep_data.cap_density = zeros(num_cooling_configs,num_decaps,num_thicks,num_stacks,num_perms,num_freqs,num_wire_resistivities,num_wire_flags,num_scaling_factors);
 sweep_data.Ltsv_m2 = zeros(num_cooling_configs,num_decaps,num_thicks,num_stacks,num_perms,num_freqs,num_wire_resistivities,num_wire_flags,num_scaling_factors);
 
-
 sweep_data.ild_cell = cell(num_cooling_configs,num_decaps,num_thicks,num_stacks,num_perms,num_freqs,num_wire_resistivities,num_wire_flags,num_scaling_factors);
 sweep_data.psn_cell = cell(num_cooling_configs,num_decaps,num_thicks,num_stacks,num_perms,num_freqs,num_wire_resistivities,num_wire_flags,num_scaling_factors);
 sweep_data.power_cell = cell(num_cooling_configs,num_decaps,num_thicks,num_stacks,num_perms,num_freqs,num_wire_resistivities,num_wire_flags,num_scaling_factors);
 sweep_data.wire_cell = cell(num_cooling_configs,num_decaps,num_thicks,num_stacks,num_perms,num_freqs,num_wire_resistivities,num_wire_flags,num_scaling_factors);
 sweep_data.chip_cell = cell(num_cooling_configs,num_decaps,num_thicks,num_stacks,num_perms,num_freqs,num_wire_resistivities,num_wire_flags,num_scaling_factors);
 sweep_data.tsv_cell = cell(num_cooling_configs,num_decaps,num_thicks,num_stacks,num_perms,num_freqs,num_wire_resistivities,num_wire_flags,num_scaling_factors);
-
-
 
 %% Parameter sweep
 cur_config = 0;
@@ -101,15 +94,13 @@ for cind = 1:num_cooling_configs
                                     min_pitch_scaled = min_pitch/compression_factor;
                                     w_trans_scaled = w_trans/compression_factor;
                                     
-
                                     %% define parameters
                                     [core.chip, core.transistor, core.gate, core.tsv, core.wire, core.psn, core.heat] = generate_basic_processor_settings(rent_exp,num_layers_per_block,Ng_core,Ach_mm2_scaled,gate_pitch_scaled,min_pitch_scaled,Vdd,fmax,w_trans_scaled);
-                                    %core.psn.mismatch_tolerance = 0.01;
+
                                     %% Tweak wiring parameters
                                     core.gate.output_resistance = 8e3*compression_factor; % Ohm
                                     core.transistor.capacitance = 1e-15*1e6*3*w_trans; % ITRS projection is 1fF/um of gate width. This is an estimate for pMOS transistor capacitance
 
-                                    
                                     %core.wire.repeater_fraction = [0.3]; % 1 is default from gen_basic_proc_settings
                                     %core.wire.routing_efficiency = [0.6]; % 0.4 is default from gen_basic_proc_settings
                                     %core.wire.repeater_fraction = [0.4]; % 1 is default from gen_basic_proc_settings
@@ -154,7 +145,6 @@ for cind = 1:num_cooling_configs
                                     sweep_data.temp(cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind) = core.chip.temperature;
                                     sweep_data.thickness(cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind) = core.chip.thickness;
                                     sweep_data.npads(cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind) = core.psn.Npads;
-
 
                                     sweep_data.ild_cell{cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind} = core.chip.iidf;
                                     sweep_data.psn_cell{cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind} = core.psn;
