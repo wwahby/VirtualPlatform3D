@@ -3,7 +3,7 @@ clear all
 
 %% Simulation parameters
 simulation.skip_psn_loops = 1; % Skip PSN TSV homing for faster debug
-simulation.skip_thermal = 0; % Skip thermal analysis for faster debug
+simulation.skip_thermal = 1; % Skip thermal analysis for faster debug
 
 simulation.use_joyner = 0;
 simulation.redo_wiring_after_repeaters = 0;
@@ -18,7 +18,7 @@ simulation.wla_max_attempts = 15; % 15 is default
 simulation.wla_min_bot_fill_factor = 0.91; % 0.97 is default
 simulation.wla_min_top_fill_factor = 0.01; % 0.01 is default
 
-simulation.freq_binsearch = 1;
+simulation.freq_binsearch = 0;
 simulation.freq_binsearch_initial_guess = 1e9;
 simulation.freq_binsearch_target = 90;
 simulation.freq_binsearch_raw_tol = 0.25;
@@ -67,8 +67,8 @@ sweep.frequencies = design.fmax;
 sweep.heat_fluxes = [ h_air ];
 sweep.decap_ratios = [0.1]; % Fraction of die area used for decoupling capacitors
 sweep.wire_resistivities = [rho_cu];
-sweep.wire_material_flags = {'00'}; % binary strings. bit1 = use_graphene, bit0 = use alt_em_mat
-sweep.scaling_factors = [32/32 32/22 32/14 32/10 32/7 32/5];
+sweep.wire_material_flags = {'00', '10'}; % binary strings. bit1 = use_graphene, bit0 = use alt_em_mat
+sweep.scaling_factors = [32/22 32/14 32/10 32/7 32/5];
 
 %% Run the parameter sweep
 sweep_data = sweep_design(design, sweep, simulation);

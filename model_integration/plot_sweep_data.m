@@ -69,6 +69,8 @@ clf
 hold on
 for nind = 1:num_stacks
     colors = [ 0 0 0 ; 0 0 1; 0 1 0 ; 1 0 0 ];
+    
+    wire_flag_ind = 1;
     pow_tot = zeros(1,num_scaling_factors);
     pow_wire = zeros(1,num_scaling_factors);
     pow_rep = zeros(1,num_scaling_factors);
@@ -89,17 +91,39 @@ for nind = 1:num_stacks
     
     figure(2)
     plot(pow_tot, 'color', colors(nind,:) )
+    
+    wire_flag_ind = 2;
+    pow_tot = zeros(1,num_scaling_factors);
+    pow_wire = zeros(1,num_scaling_factors);
+    pow_rep = zeros(1,num_scaling_factors);
+    
+    pow_tot(1,:) = power(cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_flag_ind,:);
+    pow_wire(1,:) = wire_power(cind,dind,thind,nind,pind,:,wire_res_ind,wire_flag_ind,:);
+    pow_rep(1,:) = rep_power(cind,dind,thind,nind,pind,:,wire_res_ind,wire_flag_ind,:);
+    pow_comm = pow_wire + pow_rep;
+    
+    
+    pow_logic = pow_tot - (pow_wire + pow_rep);
+    pow_eff = pow_logic./pow_tot;
+    pow_comm_ratio = pow_comm./pow_tot;
+    pow_log_ratio = 1 - pow_comm_ratio;
+    
+    figure(1)
+    plot(pow_comm_ratio,'color',colors(nind,:),'linestyle','--')
+    
+    figure(2)
+    plot(pow_tot, 'color', colors(nind,:),'linestyle','--' )
 end
 figure(1)
 set(gca,'Xtick',1:num_scaling_factors)
-set(gca,'XtickLabel', {'32nm', '22nm', '14nm', '10nm', '7nm', '5nm'} )
+set(gca,'XtickLabel', {'22nm', '14nm', '10nm', '7nm', '5nm'} )
 xlabel('Process Node')
 ylabel('On-chip Communication Power Fraction')
 fixfigs(1,2,14,12)
 
 figure(2)
 set(gca,'Xtick',1:num_scaling_factors)
-set(gca,'XtickLabel', {'32nm', '22nm', '14nm', '10nm', '7nm', '5nm'} )
+set(gca,'XtickLabel', {'22nm', '14nm', '10nm', '7nm', '5nm'} )
 xlabel('Process Node')
 ylabel('Power Consumption (W)')
 fixfigs(2,2,14,12)
