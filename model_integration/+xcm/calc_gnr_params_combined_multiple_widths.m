@@ -29,7 +29,7 @@ h_vert = height_dielectric;
 d_m = 0.35e-9; % (m) interlayer separation in GNR
 
 Rq = 12.9e3; % (Ohm) Quantum resistance of a single-layer GNR
-Rc = contact_resistance; % (Ohm) Contact resustance between contact pads and GNR XC
+Rc = contact_resistance; % (Ohm) Contact resistance between contact pads and GNR XC
 vf = 8e5; % (m/s) Fermi velocity in graphene
 %mfp_defect = 1000e-9; % (m) MFP from defect scattering in graphene on SiO2 (100-300nm realistic, 1um ideal)
 %prob_backscattering = 0.0; % (-) Backscattering probability ( 0 for ballistic, 0.2 realistic)
@@ -68,8 +68,8 @@ for wind = 1:num_widths
     gnr_width_nm = gnr_width*1e9;
     mfp_defect_nm = mfp_defect * 1e9;
 
-    [ Nch, Rsheet, leff] = xcm.sheetres_single_mGNR_ld1u_mod( Ef,gnr_width_nm,prob_backscattering,Temp_K,mfp_defect_nm);   
-
+    [ Nch, Rsheet, leff] = xcm.sheetres_single_mGNR_ld1u_mod( Ef,gnr_width_nm,prob_backscattering,Temp_K,mfp_defect_nm);
+    
     lambda_eff = leff*1e-9;
     mfp_eff_vec(wind) = leff;
     Rsheet_vec(wind) = Rsheet;
