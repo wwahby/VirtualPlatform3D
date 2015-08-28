@@ -6,7 +6,6 @@ Ng_core = design.Ng_core;
 Ach_mm2 = design.Ach_mm2;
 gate_pitch = design.gate_pitch;
 min_pitch = design.min_pitch;
-Vdd = design.Vdd;
 w_trans = design.w_trans;
 
 %% Unpack sweep settings
@@ -96,6 +95,9 @@ for cind = 1:num_cooling_configs
                                     gate_pitch_scaled = gate_pitch/compression_factor;
                                     min_pitch_scaled = min_pitch/compression_factor;
                                     w_trans_scaled = w_trans/compression_factor;
+                                    
+                                    % Let Vdd scale with scaling_ind
+                                    Vdd = xcm.get_nth_or_last( sweep.Vdd, scaling_ind);
                                     
                                     %% define parameters
                                     [core.chip, core.transistor, core.gate, core.tsv, core.wire, core.psn, core.heat] = generate_basic_processor_settings(rent_exp,num_layers_per_block,Ng_core,Ach_mm2_scaled,gate_pitch_scaled,min_pitch_scaled,Vdd,fmax,w_trans_scaled);

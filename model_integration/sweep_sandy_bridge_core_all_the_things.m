@@ -37,7 +37,6 @@ design.gate_pitch = 465e-9*2/design.compression_factor;
 design.min_pitch = 112.5e-9/design.compression_factor;
 design.fmax = 3.5e9;
 design.w_trans = 32e-9/design.compression_factor;
-design.Vdd = 1.25;
 design.rent_exp = rent_exp_logic;
 
 %% Thermal parameters
@@ -69,6 +68,8 @@ sweep.decap_ratios = [0.1]; % Fraction of die area used for decoupling capacitor
 sweep.wire_resistivities = [rho_cu];
 sweep.wire_material_flags = {'00', '10'}; % binary strings. bit1 = use_graphene, bit0 = use alt_em_mat
 sweep.scaling_factors = [32/22 32/14 32/10 32/7 32/5];
+sweep.Vdd = [ 1.0, 0.95, 0.90, 0.85, 0.80]; % Vdd used at each scaling node. If Vdd is constant (or stops scaling after a certain node) you can just have a single entry (or only the first few entries until it stops changing)
+
 
 %% Run the parameter sweep
 sweep_data = sweep_design(design, sweep, simulation);
