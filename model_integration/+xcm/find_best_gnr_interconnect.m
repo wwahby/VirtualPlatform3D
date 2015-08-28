@@ -12,7 +12,7 @@ min_width = width_fraction*min_pitch;
 
 last_valid_width = -1; % start with invalid width
 
-% First check that the GNR delay is better than Cu at copper dimensions
+% First check that GNRs can meet delay constraint at original size
 [delay_top delay_side R_top R_top_alt R_side L_vec C_gnr_vec C_gnr_raw_vec Nch_vec mfp_eff_vec ] = ...
     xcm.calc_gnr_params_combined_multiple_widths( ...
         num_layers, gnr_width, gnr_space, gnr_length, temp_K, mfp_defect, rho_interlayer, prob_backscattering, ...
@@ -110,9 +110,10 @@ R = best_R;
 C = best_C;
 C_pul = best_C_pul;
 
-if(gnr_pitch >= pitch_orig)
-    use_gnr = 0;
-end
+%% [WW] 2015-08-25 -- commenting this out as pitch is not the parameter we care about most
+% if(gnr_pitch >= pitch_orig)
+%     use_gnr = 0;
+% end
 
 
 
