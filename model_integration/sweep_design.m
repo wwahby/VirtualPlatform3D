@@ -160,10 +160,17 @@ for cind = 1:num_cooling_configs
                                     sweep_data.chip_cell{cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind} = core.chip;
                                     sweep_data.tsv_cell{cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind} = core.tsv;
 
+                                    % Get L and C density for the power supply network
                                     if (simulation.skip_psn_loops == 0)
-                                        sweep_data.Ltsv_m2(cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind) = psn_cell{cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind}.Ltsv/psn_cell{cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind}.l_unit_cell^2;
-                                        sweep_data.cap_density(cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind) = psn_cell{cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind}.cap_density;
+                                        psn_inductance_density_m2 = sweep_data.psn_cell{cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind}.Ltsv/sweep_data.psn_cell{cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind}.l_unit_cell^2;
+                                        psn_capacitance_density_m2 = sweep_data.psn_cell{cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind}.cap_density;
+                                    else
+                                        psn_inductance_density_m2 = 0;
+                                        psn_capacitance_density_m2 = 0;
                                     end
+                                    
+                                    sweep_data.Ltsv_m2(cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind) = psn_inductance_density_m2;
+                                    sweep_data.cap_density(cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind) = psn_capacitance_density_m2;
                                 end
                             end
                         end
