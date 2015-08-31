@@ -10,7 +10,7 @@ vf=8e5; %% Fermi velocity in m/s
 kT=0.0258*q*T/300; %% Thermal energy in Joules
 %%% calculate the number of conduction channels 
 %%% Only Ef+20kT is considered as the upper bound
-deltaE=2./W; %% width is in nm
+deltaE=2./(W*1e9); %% width is in m
 Nmax_pos = floor((Ef+20*0.0258*T/300)./deltaE-1/3);
 Nmax_neg = floor((Ef+20*0.0258*T/300)./deltaE+1/3);
 
@@ -25,7 +25,7 @@ end
 
 %% Discretized method -- slightly faster, but not faster **enough** to switch over.
 
-Esub = h*vf./(2*W*1e-9) * abs(Narr+1/3); %% sub-band energy in Joules
+Esub = h*vf./(2*W) * abs(Narr+1/3); %% sub-band energy in Joules
 Nch_pre = 1./(1+exp((Esub-Ef*q)./kT) );
 
 %% outputs
