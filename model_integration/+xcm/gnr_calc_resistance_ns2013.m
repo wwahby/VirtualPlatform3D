@@ -26,5 +26,3 @@ R_tc = R_tc_seg * N_segs;
 
 R_sc_pul = R_sc/length;
 R_tc_pul = R_tc/length;
-
-R_tc_vec(N_segs) = R_tc;
