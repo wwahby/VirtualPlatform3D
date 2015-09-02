@@ -1,4 +1,4 @@
-function [Rnet Reff] = calc_gnr_resistance_kumar(num_layers,gnr_width,gnr_length,temp,defect_mfp,rho_interlayer,prob_backscattering,Ef,contact_resistance)
+function [Rnet, Reff] = calc_gnr_resistance_kumar(num_layers, gnr_width, gnr_length, temp, defect_mfp, rho_interlayer, prob_backscattering, Ef, contact_resistance, num_segments)
 % Calculates the effective resistance of a graphene nanoribbon interconnect
 % GNR Model - Kumar 2012
 % INPUTS
@@ -21,14 +21,14 @@ function [Rnet Reff] = calc_gnr_resistance_kumar(num_layers,gnr_width,gnr_length
 
 T = temp; % (K) Temperature
 
-M = 2e1; % number of segments to break XC into
+M = num_segments; % number of segments to break XC into. Typ 20-50ish
 N = num_layers; % number of layers of graphene in GNR
 
 L = gnr_length; % (m) length of GNR XC
 W = gnr_width; % (m) width of GNR XC
 
 rho_c = rho_interlayer; %(Ohm*m) c-axis resistivity of GNR - Between 3e-3 and 3e-1 Ohm*m
-Ef = Ef; % (eV) Fermi energy of the bottom GNR layer
+%Ef = Ef; % (eV) Fermi energy of the bottom GNR layer
 d_m = 0.35e-9; % (m) interlayer separation in GNR
 
 Rq = 12.9e3; % (Ohm) Quantum resistance of a single-layer GNR

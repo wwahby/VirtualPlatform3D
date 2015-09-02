@@ -100,8 +100,9 @@ for wind = 1:num_widths
 
     R_top = r_tc ;
     R_side = r_sc ;
+    num_segments = 20; % Number of segments to use for GNR resistance calculation
 
-    [Rnet Reff] = xcm.calc_gnr_resistance_kumar(num_layers,gnr_width,gnr_length,Temp_K,mfp_defect,rho_interlayer,prob_backscattering,Ef,contact_resistance);
+    [Rnet Reff] = xcm.calc_gnr_resistance_kumar(num_layers,gnr_width,gnr_length,Temp_K,mfp_defect,rho_interlayer,prob_backscattering,Ef,contact_resistance, num_segments);
 
     R_top = Reff;
     R_top_alt_vec(wind) = r_tc;
