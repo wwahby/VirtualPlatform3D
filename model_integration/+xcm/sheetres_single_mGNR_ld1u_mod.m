@@ -59,7 +59,7 @@ mu = sigma_net*1e-05./(q*ns_tot); %%% cm^2/Vs
 leff = 12.9./(res_pu.*Nch)*1e3;%%% nm
 Rsheet = res_pu.*W; %% in ohms   
 
-fprintf('Nch: %.3g \t Rsh: %.3g \t leff: %.3g\n', Nch, Rsheet, leff)
+%fprintf('Nch: %.3g \t Rsh: %.3g \t leff: %.3g\n', Nch, Rsheet, leff)
 
 
 %% Discretized method -- slightly faster, but not faster **enough** to switch over.
