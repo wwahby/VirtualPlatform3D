@@ -1,4 +1,4 @@
-function [C_top, C_side] = gnr_get_capacitance_ns2015(epsr_dielectric, h1, h2, num_layers, Ef, width, temp)
+function [C_top, C_side] = gnr_get_capacitance_ns2015(epsr_dielectric, h1, h2, num_layers, Ef, gnr_width, temp)
     % Get quantum capacitance for a graphene nanoribbon
     % Uses the method described in Nishad and Sharma 2015
     %.
@@ -22,11 +22,11 @@ function [C_top, C_side] = gnr_get_capacitance_ns2015(epsr_dielectric, h1, h2, n
     eps0 = 8.854e-12; % (F/m) Vacuum permittivity
 
     epsd = epsr_dielectric;% * eps0;
-    w = width;
+    w = gnr_width;
     delta = 0.35e-9; % (m) Interlayer spacing in MLGNRs
 
     %% Quantum capacitance element
-    Nch = xcm.gnr_get_num_channels( Ef, width, temp );
+    Nch = xcm.gnr_get_num_channels( Ef, gnr_width, temp );
     Cq_el = 4*q^2*Nch / (h*vf);
 
     %% Capacitance elements
