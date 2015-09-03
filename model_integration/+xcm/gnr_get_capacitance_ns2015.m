@@ -1,4 +1,4 @@
-function [C_top, C_side] = gnr_get_capacitance_ns2015(epsr_dielectric, h1, h2, num_layers, Ef, gnr_width, temp)
+function [C_top, C_side, Ctot_lumped, Cc_lumped, Ctot_lumped_no_coupling] = gnr_get_capacitance_ns2015(epsr_dielectric, h1, h2, num_layers, Ef, gnr_width, temp)
     % Get quantum capacitance for a graphene nanoribbon
     % Uses the method described in Nishad and Sharma 2015
     %.
@@ -31,12 +31,12 @@ function [C_top, C_side] = gnr_get_capacitance_ns2015(epsr_dielectric, h1, h2, n
 
     %% Capacitance elements
     % Upper and lower capacitances
-    C_10 = epsd * calc_M( tanh(pi*w/4/h1) );
-    C_N0 = epsd * calc_M( tanh(pi*w/4/h2) );
+    C_10 = epsd*eps0 * calc_M( tanh(pi*w/4/h1) );
+    C_N0 = epsd*eps0 * calc_M( tanh(pi*w/4/h2) );
 
     % Internal capacitances
     k_diel = 1; % (-) relative permittivity of medium between the graphene sheets (assuming vacuum per NS2015)
-    C_int = k_diel * (w/delta + 4*log(2)/pi);
+    C_int = k_diel*eps0 * (w/delta + 4*log(2)/pi);
 
     %% Capacitance matrices
 
@@ -56,6 +56,8 @@ function [C_top, C_side] = gnr_get_capacitance_ns2015(epsr_dielectric, h1, h2, n
 
     C_top = C(1,1);
     C_side = sum(sum(C));
+    
+    [Ctot_lumped, Cc_lumped, Ctot_lumped_no_coupling] = calc_lumped_capacitance(epsr_dielectric, Cq_el, C_N0, gnr_width, gnr_width);
 
 
 end
@@ -75,3 +77,19 @@ function M = calc_M(gamma)
         M = 0;
     end
 end
+
+
+function [Ctot, Cc, Ctot_no_coupling] = calc_lumped_capacitance(epsr_dielectric, Cq, Ce, gnr_width, gnr_space)
+     % not based on NS2015 paper. Simple lumped element formulae to include
+     % impact of coupling capacitances to the side.
+    eps0 = 8.854e-12; % (F/m) Vacuum Permittivity
+    
+    Cc = epsr_dielectric*eps0/4 * calc_M( sqrt(1 - (1+2*gnr_width/gnr_space)^-2) );
+    CA = (1/(Cq + Ce) + 1/Cc )^(-1);
+    
+    Ctot = (1/Cq + 1/(2*CA + Ce))^-1;
+    
+    CA2 = (1/(Cq + Ce) )^(-1);
+    Ctot_no_coupling = (1/Cq + 1/(2*CA2 + Ce))^-1;
+end
+
