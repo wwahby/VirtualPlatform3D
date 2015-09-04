@@ -1,4 +1,4 @@
-function tau_rc = gnr_calc_delay_rc_NS(R_source, C_source, C_load, R_contact, epsr_dielectric, space_vertical, gnr_width, gnr_length, mfp_eff, num_layers, rho_interlayer, Ef, temp_K)
+function delay_rc = gnr_calc_delay_rc_NS(R_source, C_source, C_load, R_contact, epsr_dielectric, space_vertical, gnr_width, gnr_length, mfp_eff, num_layers, rho_interlayer, Ef, temp_K)
 
 
 Rq = 12.9e3; % (Ohm) Quantum resistance of one GNR layer
@@ -20,5 +20,5 @@ Nsegs_NS = 4; % NS2013 resistance calculation is most accurate for 4 segments. N
 R_gnr = R_tc; % top-contacted GNR resistance (ignoring parasitic resistances at interfaces)
 C_gnr = C_top*gnr_length;
 
-tau_rc = xcm.calc_delay_elmore( R_source, C_source, C_load, Rp, R_gnr, C_gnr);
-%tau_rc = 0.69*( R_source*(C_source + C_load) + Rp*C_load + R_gnr*C_load + (R_source + Rp/2)*C_gnr) + 0.38*R_gnr*C_gnr;
+delay_rc = xcm.calc_delay_elmore( R_source, C_source, C_load, Rp, R_gnr, C_gnr);
+%delay_rc = 0.69*( R_source*(C_source + C_load) + Rp*C_load + R_gnr*C_load + (R_source + Rp/2)*C_gnr) + 0.38*R_gnr*C_gnr;
