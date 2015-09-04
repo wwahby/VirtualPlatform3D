@@ -1,4 +1,4 @@
-function delay_rc = gnr_calc_delay_rc_NS(R_source, C_source, C_load, R_contact, epsr_dielectric, space_vertical, gnr_width, gnr_length, mfp_eff, num_layers, rho_interlayer, Ef, temp_K)
+function [delay_rc, R_gnr, C_gnr] = gnr_calc_delay_rc_NS(R_source, C_source, C_load, R_contact, epsr_dielectric, space_vertical, gnr_width, gnr_length, mfp_eff, num_layers, rho_interlayer, Ef, temp_K)
 
 
 Rq = 12.9e3; % (Ohm) Quantum resistance of one GNR layer
