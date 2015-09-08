@@ -92,27 +92,27 @@ for nind = 1:num_stacks
     figure(2)
     plot(pow_tot, 'color', colors(nind,:) )
     
-    wire_flag_ind = 2;
-    pow_tot = zeros(1,num_scaling_factors);
-    pow_wire = zeros(1,num_scaling_factors);
-    pow_rep = zeros(1,num_scaling_factors);
-    
-    pow_tot(1,:) = power(cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_flag_ind,:);
-    pow_wire(1,:) = wire_power(cind,dind,thind,nind,pind,:,wire_res_ind,wire_flag_ind,:);
-    pow_rep(1,:) = rep_power(cind,dind,thind,nind,pind,:,wire_res_ind,wire_flag_ind,:);
-    pow_comm = pow_wire + pow_rep;
-    
-    
-    pow_logic = pow_tot - (pow_wire + pow_rep);
-    pow_eff = pow_logic./pow_tot;
-    pow_comm_ratio = pow_comm./pow_tot;
-    pow_log_ratio = 1 - pow_comm_ratio;
-    
-    figure(1)
-    plot(pow_comm_ratio,'color',colors(nind,:),'linestyle','--')
-    
-    figure(2)
-    plot(pow_tot, 'color', colors(nind,:),'linestyle','--' )
+%     wire_flag_ind = 2;
+%     pow_tot = zeros(1,num_scaling_factors);
+%     pow_wire = zeros(1,num_scaling_factors);
+%     pow_rep = zeros(1,num_scaling_factors);
+%     
+%     pow_tot(1,:) = power(cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_flag_ind,:);
+%     pow_wire(1,:) = wire_power(cind,dind,thind,nind,pind,:,wire_res_ind,wire_flag_ind,:);
+%     pow_rep(1,:) = rep_power(cind,dind,thind,nind,pind,:,wire_res_ind,wire_flag_ind,:);
+%     pow_comm = pow_wire + pow_rep;
+%     
+%     
+%     pow_logic = pow_tot - (pow_wire + pow_rep);
+%     pow_eff = pow_logic./pow_tot;
+%     pow_comm_ratio = pow_comm./pow_tot;
+%     pow_log_ratio = 1 - pow_comm_ratio;
+%     
+%     figure(1)
+%     plot(pow_comm_ratio,'color',colors(nind,:),'linestyle','--')
+%     
+%     figure(2)
+%     plot(pow_tot, 'color', colors(nind,:),'linestyle','--' )
 end
 figure(1)
 set(gca,'Xtick',1:num_scaling_factors)
