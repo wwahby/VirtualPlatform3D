@@ -26,6 +26,10 @@ C_load = C_source; % (F)
 R_contact_gnr = 4.3e3; % (Ohms)
 epsr_dielectric = 1.85; % (-)
 
+%% SB Test case Driver/Load Parameters
+% R_source = 8e3;
+% C_source = 1e-15 * 1e6 * Wp;
+% C_load = C_source;
 
 %% Interconnect parameters
 xc_width = 9.5e-9; % (m)
