@@ -1,10 +1,15 @@
 function [width_rc, delay_rc, width_rep, delay_rep, width_cu, delay_cu, width_cu_rep, delay_cu_rep] = find_narrowest_gnr_interconnects(delay_target, delay_tolerance, guess_init, repeater_fraction, R_source, C_source, C_load, R_contact_gnr, epsr_dielectric, space_vertical, xc_length, mfp_eff_gnr, num_layers_gnr, rho_interlayer_gnr, Ef_gnr, temp_K)
     
-    delay_func = @(wire_width) calc_gnr_delay(R_source, C_source, C_load, R_contact_gnr, epsr_dielectric, space_vertical, wire_width, xc_length, mfp_eff_gnr, num_layers_gnr, rho_interlayer_gnr, Ef_gnr, temp_K);
-    [width_rc, delay_rc] = xcm.find_smallest_width_for_wire( delay_func, delay_target, guess_init, delay_tolerance);
-    
-    delay_func = @(wire_width) calc_gnr_repeatered_delay(R_source, C_source, C_load, R_contact_gnr, epsr_dielectric, space_vertical, wire_width, xc_length, mfp_eff_gnr, num_layers_gnr, rho_interlayer_gnr, Ef_gnr, temp_K, repeater_fraction);
-    [width_rep, delay_rep] = xcm.find_smallest_width_for_wire( delay_func, delay_target, guess_init, delay_tolerance);
+%     delay_func = @(wire_width) calc_gnr_delay(R_source, C_source, C_load, R_contact_gnr, epsr_dielectric, space_vertical, wire_width, xc_length, mfp_eff_gnr, num_layers_gnr, rho_interlayer_gnr, Ef_gnr, temp_K);
+%     [width_rc, delay_rc] = xcm.find_smallest_width_for_wire( delay_func, delay_target, guess_init, delay_tolerance);
+%     
+%     delay_func = @(wire_width) calc_gnr_repeatered_delay(R_source, C_source, C_load, R_contact_gnr, epsr_dielectric, space_vertical, wire_width, xc_length, mfp_eff_gnr, num_layers_gnr, rho_interlayer_gnr, Ef_gnr, temp_K, repeater_fraction);
+%     [width_rep, delay_rep] = xcm.find_smallest_width_for_wire( delay_func, delay_target, guess_init, delay_tolerance);
+%     
+    width_rc = 0;
+    width_rep = 0;
+    delay_rc = 0;
+    delay_rep = 0;
     
     resistivity_bulk_cu = 17e-9;
     mfp_electron_cu = 39e-9;
@@ -13,9 +18,21 @@ function [width_rc, delay_rc, width_rep, delay_rep, width_cu, delay_cu, width_cu
     R_contact_cu = 100; % random guess for contact resistance of cu to cu
     cu_wire_aspect_ratio = 2;
     
-    delay_func = @(wire_width) calc_cu_delay(R_source, C_source, C_load, R_contact_cu, resistivity_bulk_cu, wire_width, cu_wire_aspect_ratio*wire_width, xc_length, mfp_electron_cu, specularity_coeff, reflection_coeff, epsr_dielectric, wire_width, space_vertical);
-    [width_cu, delay_cu] = xcm.find_smallest_width_for_wire( delay_func, delay_target, guess_init, delay_tolerance);
-    
+    try
+        delay_func = @(wire_width) calc_cu_delay(R_source, C_source, C_load, R_contact_cu, resistivity_bulk_cu, wire_width, cu_wire_aspect_ratio*wire_width, xc_length, mfp_electron_cu, specularity_coeff, reflection_coeff, epsr_dielectric, wire_width, space_vertical);
+        [width_cu, delay_cu] = xcm.find_smallest_width_for_wire( delay_func, delay_target, guess_init, delay_tolerance);
+    catch ME
+        if strcmp(ME.identifier, 'XCM:WireWidthFinder:WidthNotFound')
+            fprintf('Warning! Unrepeatered Cu wire not capable of meeting delay target!\n')
+            % set cu rc outputs to invalid values
+            width_cu = -1;
+            delay_cu = -1;
+        else
+            rethrow(ME)
+        end
+    end
+            
+        
     delay_func = @(wire_width) calc_cu_repeatered_delay(R_source, C_source, C_load, R_contact_cu, resistivity_bulk_cu, wire_width, cu_wire_aspect_ratio*wire_width, xc_length, mfp_electron_cu, specularity_coeff, reflection_coeff, epsr_dielectric, wire_width, space_vertical, repeater_fraction);
     [width_cu_rep, delay_cu_rep] = xcm.find_smallest_width_for_wire( delay_func, delay_target, guess_init, delay_tolerance);
 end
@@ -46,6 +63,7 @@ function delay_cu_rc = calc_cu_delay(R_source, C_source, C_load, R_contact_cu, r
 
 	[tau_rc_cu, R_wire_cu, C_wire_cu, rho_cu, C_wire_cu_pul] = xcm.calc_cu_wire_rc_const(resistivity_bulk_cu, xc_width, cu_wire_height, xc_length, mfp_electron_cu, specularity_coeff, reflection_coeff, epsr_dielectric, xc_space, space_vertical);
 	delay_cu_rc = xcm.calc_delay_elmore( R_source, C_source, C_load, R_contact_cu, R_wire_cu, C_wire_cu);
+    %delay_cu_rc = tau_rc_cu;
     
 end
 
