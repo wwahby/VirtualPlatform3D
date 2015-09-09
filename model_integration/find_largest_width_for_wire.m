@@ -1,4 +1,4 @@
-function [width, delay] = find_largest_width_for_wire( wire_length, delay_target, guess_init, delay_tolerance)
+function [width, delay] = find_largest_width_for_wire( delay_func, delay_target, guess_init, delay_tolerance)
 
 search_factor = 10;
 absolute_min_bound = -inf;
@@ -6,15 +6,17 @@ absolute_max_bound = inf;
 max_gens_init = 10;
 max_gens_bin = 10;
 is_increasing = false;
-wire_delay_func = @(wire_width) delay_func( wire_width, wire_length, wire_width, wire_width);
+% use this for testing the function
+%delay_func = @(wire_width) test_delay_func( wire_width, wire_length, wire_width, wire_width);
 [width, delay] = misc.positive_magnitude_binary_search( ...
-                wire_delay_func, is_increasing, delay_target, guess_init, delay_tolerance, ...
+                delay_func, is_increasing, delay_target, guess_init, delay_tolerance, ...
                 search_factor, absolute_min_bound, absolute_max_bound, ...
                 max_gens_init, max_gens_bin );
-            
 end
 
-function delay = delay_func(xc_width, xc_length, xc_space, space_vertical)
+
+function delay = test_delay_func(xc_width, xc_length, xc_space, space_vertical)
+% Test function, not necessary to use this normally
 
 %% ITRS2010 9.5nm node params
 
@@ -49,6 +51,11 @@ horiz_space = xc_space;
 R_contact_cu = 100; % random guess for contact resistance of cu to cu
 cu_aspect_ratio = 2;
 cu_wire_height = cu_aspect_ratio * xc_width;
+
+% Use these for similar values as SB case
+% R_source = 8e3;
+% C_source = 1e-15*1e6*Wmin_p;
+% C_load = 1e-15*1e6*Wmin_p;
 
 %%
 [tau_rc_cu, R_wire_cu, C_wire_cu, rho_cu, C_wire_cu_pul] = xcm.calc_cu_wire_rc_const( ...

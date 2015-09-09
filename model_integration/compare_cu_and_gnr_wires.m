@@ -31,7 +31,7 @@ epsr_dielectric = 1.85; % (-)
 xc_width = 9.5e-9; % (m)
 gnr_widths = [2.5e-9, 5e-9, 10e-9, 20e-9];
 xc_length_min = 1e-9;
-xc_length_max = 10e-6;
+xc_length_max = 1000e-6;
 xc_space = xc_width; % (m)
 space_vertical = 20e-9;
 
