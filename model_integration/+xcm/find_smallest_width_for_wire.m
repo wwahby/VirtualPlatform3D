@@ -1,4 +1,4 @@
-function [width, delay] = find_largest_width_for_wire( delay_func, delay_target, guess_init, delay_tolerance)
+function [width, delay] = find_smallest_width_for_wire( delay_func, delay_target, guess_init, delay_tolerance)
 % Finds the largest width that a wire can be and still meet a given delay
 % target.
 %
