@@ -3,8 +3,9 @@ function [width, delay] = find_largest_width_for_wire( delay_func, delay_target,
 % target.
 %
 % == INPUTS ==
-% delay_func:       handle to a function that takes wire width (m) as an input and
-%                       returns wire delay
+% delay_func:       handle to a function that takes wire width (m) as the sole input and
+%                       returns wire delay. Delay func should already
+%                       incorporate the impact of wire length
 % delay_target:     (s) Target for wire delay
 % guess_init:       (m) Initial guess for wire width
 % delay_tolerance:  (-) Maximum fractional error that can be tolerated in
@@ -21,11 +22,18 @@ max_gens_init = 10;
 max_gens_bin = 10;
 is_increasing = false;
 % use this for testing the function
-%delay_func = @(wire_width) test_delay_func( wire_width, wire_length, wire_width, wire_width);
+% wire_length = 100e-6;
+% delay_func = @(wire_width) test_delay_func( wire_width, wire_length, wire_width, wire_width);
+
 [width, delay] = misc.positive_magnitude_binary_search( ...
                 delay_func, is_increasing, delay_target, guess_init, delay_tolerance, ...
                 search_factor, absolute_min_bound, absolute_max_bound, ...
                 max_gens_init, max_gens_bin );
+            
+% [FIX] Need to include some exception handling to deal with the case where
+% we can't find an appropriate wire width.
+% We should gather exceptions from the search functions and return a single
+% exception which indicates that the wire could not meet the delay target
 end
 
 
@@ -67,9 +75,9 @@ cu_aspect_ratio = 2;
 cu_wire_height = cu_aspect_ratio * xc_width;
 
 % Use these for similar values as SB case
-% R_source = 8e3;
-% C_source = 1e-15*1e6*Wmin_p;
-% C_load = 1e-15*1e6*Wmin_p;
+R_source = 8e3;
+C_source = 1e-15*1e6*Wmin_p;
+C_load = 1e-15*1e6*Wmin_p;
 
 %%
 [tau_rc_cu, R_wire_cu, C_wire_cu, rho_cu, C_wire_cu_pul] = xcm.calc_cu_wire_rc_const( ...
