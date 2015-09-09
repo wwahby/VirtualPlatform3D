@@ -63,6 +63,7 @@ function [min_bound, max_bound, input_init, output_init, within_tol] = find_sear
     %search_factor = 10; % amount to multiply or divide by at each generation
 
     keep_going = true;
+    sign_flipped = false;
     within_tol = false;
     cur_input = guess_init;
 
@@ -75,6 +76,7 @@ function [min_bound, max_bound, input_init, output_init, within_tol] = find_sear
     while(keep_going)
 
         cur_output = func(cur_input);
+        
         abs_err = abs(target - cur_output);
         rel_err = abs(abs_err/target);
         within_tol = (rel_err <= tolerance);
@@ -101,7 +103,7 @@ function [min_bound, max_bound, input_init, output_init, within_tol] = find_sear
 
         if ( gen_init > 0) % the second run is the first one where we'll know if we can stop
             if ( dir_sign ~= prev_dir_sign)
-                keep_going = false;
+                sign_flipped = true;
                 min_bound = min(prev_input, cur_input);
                 max_bound = max(prev_input, cur_input);
             end
@@ -117,19 +119,27 @@ function [min_bound, max_bound, input_init, output_init, within_tol] = find_sear
             throw(ME)
         end
         
-        keep_going = keep_going && (~within_tol) && (gen_init < max_gens) && input_within_bounds;
+        keep_going = (~sign_flipped) && (~within_tol) && (gen_init < max_gens) && input_within_bounds;
 
-        %fprintf('Initial Search Gen %d: \t Input: %.3g \t Output: %.4d\n\n', gen_init, cur_input, cur_val);
+        % Debug print -- can be commented out most of the time
+        %fprintf('Initial Search Gen %d: \t Input: %.3g \t Output: %.4d\n\n', gen_init, cur_input, cur_output);
+        
         if (keep_going)
             prev_input = cur_input;
             cur_input = prefactor*prev_input;
             gen_init = gen_init + 1;
+        elseif (~sign_flipped) % haven't found bounds yet
+            msgID = 'ModifiedSearch:InitialSearch:BoundsNotFound';
+            msgtext = sprintf('Could not find appropriate bounds for search variable within %d search generations! Try increasing max_gens.', max_gens);
+            ME = MException(msgID, msgtext);
+            throw(ME);
         end
     end
     
     input_init = cur_input;
     output_init = cur_output;
 end
+
 
 %% Binary search
 function [input, output] = binary_search( func, is_increasing, target, min_bound, max_bound, tolerance, max_gens)
