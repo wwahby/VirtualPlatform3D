@@ -21,19 +21,34 @@ absolute_max_bound = inf;
 max_gens_init = 10;
 max_gens_bin = 10;
 is_increasing = false;
+
 % use this for testing the function
-% wire_length = 100e-6;
+% wire_length = 1000e-6;
 % delay_func = @(wire_width) test_delay_func( wire_width, wire_length, wire_width, wire_width);
 
-[width, delay] = misc.positive_magnitude_binary_search( ...
-                delay_func, is_increasing, delay_target, guess_init, delay_tolerance, ...
-                search_factor, absolute_min_bound, absolute_max_bound, ...
-                max_gens_init, max_gens_bin );
-            
-% [FIX] Need to include some exception handling to deal with the case where
-% we can't find an appropriate wire width.
-% We should gather exceptions from the search functions and return a single
-% exception which indicates that the wire could not meet the delay target
+try
+    [width, delay] = misc.positive_magnitude_binary_search( ...
+                    delay_func, is_increasing, delay_target, guess_init, delay_tolerance, ...
+                    search_factor, absolute_min_bound, absolute_max_bound, ...
+                    max_gens_init, max_gens_bin );
+catch ME
+    % If we couldn't find a proper wire width, throw an exception
+    if strcmp(ME.identifier, 'ModifiedSearch:InitialSearch:OutOfBounds')
+        % some stuff
+        msgid = 'XCM:WireWidthFinder:WidthNotFound';
+        msgtxt = 'Wire width not found within search bounds! Try increasing search interval (absolute_min/max_bounds).';
+        ME2 = MException(msgid, msgtxt);
+        throw(ME2)
+    elseif strcmp(ME.identifier, 'ModifiedSearch:InitialSearch:BoundsNotFound')
+        % some other stuff
+        msgid = 'XCM:WireWidthFinder:WidthNotFound';
+        msgtxt = 'Wire width search interval could not be defined during initial search! \nDelay target may be unreachable, or max_gens_init may be set too low. ';
+        ME2 = MException(msgid, msgtxt);
+        throw(ME2)
+    else % If something else went wrong, just rethrow the exception
+        rethrow(ME)
+    end
+end
 end
 
 
@@ -75,9 +90,9 @@ cu_aspect_ratio = 2;
 cu_wire_height = cu_aspect_ratio * xc_width;
 
 % Use these for similar values as SB case
-R_source = 8e3;
-C_source = 1e-15*1e6*Wmin_p;
-C_load = 1e-15*1e6*Wmin_p;
+% R_source = 8e3;
+% C_source = 1e-15*1e6*Wmin_p;
+% C_load = 1e-15*1e6*Wmin_p;
 
 %%
 [tau_rc_cu, R_wire_cu, C_wire_cu, rho_cu, C_wire_cu_pul] = xcm.calc_cu_wire_rc_const( ...
