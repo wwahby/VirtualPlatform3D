@@ -1,4 +1,18 @@
 function [width, delay] = find_largest_width_for_wire( delay_func, delay_target, guess_init, delay_tolerance)
+% Finds the largest width that a wire can be and still meet a given delay
+% target.
+%
+% == INPUTS ==
+% delay_func:       handle to a function that takes wire width (m) as an input and
+%                       returns wire delay
+% delay_target:     (s) Target for wire delay
+% guess_init:       (m) Initial guess for wire width
+% delay_tolerance:  (-) Maximum fractional error that can be tolerated in
+%                       final delay. E.g. 0.01 = 1% error.
+%
+% == OUTPUTS ==
+% width:    (m) Wire width which satisfies delay criteria
+% delay:    (s) Actual wire delay corresponding to width
 
 search_factor = 10;
 absolute_min_bound = -inf;
