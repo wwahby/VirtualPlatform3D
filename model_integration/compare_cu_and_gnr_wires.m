@@ -26,12 +26,16 @@ C_load = C_source; % (F)
 R_contact_gnr = 4.3e3; % (Ohms)
 epsr_dielectric = 1.85; % (-)
 
+%% SB Test case Driver/Load Parameters
+% R_source = 8e3;
+% C_source = 1e-15 * 1e6 * Wp;
+% C_load = C_source;
 
 %% Interconnect parameters
 xc_width = 9.5e-9; % (m)
 gnr_widths = [2.5e-9, 5e-9, 10e-9, 20e-9];
 xc_length_min = 1e-9;
-xc_length_max = 10e-6;
+xc_length_max = 1000e-6;
 xc_space = xc_width; % (m)
 space_vertical = 20e-9;
 
@@ -46,7 +50,7 @@ temp_K = 300;
 
 %% Cu parameters
 resistivity_bulk_cu = 17e-9;
-mfp_electron_cu = 29e-9;
+mfp_electron_cu = 39e-9;
 specularity_coeff = 0.55;
 reflection_coeff = 0.45;
 horiz_space = xc_space;
@@ -253,4 +257,16 @@ plot(num_layers_vec, gnr_delay_vec_layers*1e12, 'r-')
 xlabel('GNR Layers')
 ylabel('Delay (ps)')
 fixfigs(7,3,14,12)
-    
+
+
+%%
+delay_target = 1e-9;
+delay_tolerance = 0.01;
+guess_init = 100e-9;
+repeater_fraction = 0.4;
+xc_length = 8e-3;
+
+R_source = 8e3;
+C_source = 1e-15 * 1e6 * Wp;
+C_load = C_source;
+[width_rc, delay_rc, width_rep, delay_rep, width_cu, delay_cu, width_cu_rep, delay_cu_rep] = xcm.find_narrowest_gnr_interconnects(delay_target, delay_tolerance, guess_init, repeater_fraction, R_source, C_source, C_load, R_contact_gnr, epsr_dielectric, space_vertical, xc_length, mfp_eff_gnr, num_layers_gnr, rho_interlayer_gnr, Ef_gnr, temp_K)

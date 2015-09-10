@@ -1,5 +1,5 @@
 %function [Ln_vec pn_vec A_wires A_vias_wiring A_vias_repeaters A_layer repeater_num repeater_size tau_rc_vec tau_rep_vec] = wla_topdown_with_repeaters(Iidf,gate_pitch,min_pitch,layers_per_tier,routing_efficiency_vec,layer_area,rho_m,epsr_d,Beta,Tclk,Rc,Ro,Co,repeater_fraction)
-function [wire repeater] = wlatdri_cu_gnr(chip,gate,wire)
+function [wire, repeater] = wlatdri_cu_gnr(chip,gate,wire)
 
 % Simple wire layer assignment algorithm, including via blockage
 % Assign wires to layers to satisfy timing and areal constraints as
@@ -179,14 +179,14 @@ while (Lm >= 0 && n < max_layers)
     
     
     
-    [width_cu pitch_cu delay_cu R_cu C_cu C_pul_cu rho_cu] = xcm.find_best_cu_wire( ...
+    [width_cu, pitch_cu, delay_cu, R_cu, C_cu, C_pul_cu, rho_cu] = xcm.find_best_cu_wire( ...
         delay_max, width_guess, min_pitch, resistivity_bulk, wire_length, width_fraction, ...
         aspect_ratio, electron_mfp, specularity_coeff, reflection_coeff, epsr_dielectric );
     
     material_norep = 1; % Cu
 
     % Calculate repeatered wire parameters
-    [width_cu_rep pitch_cu_rep delay_cu_rep R_cu_rep C_cu_rep C_pul_cu_rep rho_cu_rep] = xcm.find_best_cu_wire_with_repeaters( ...
+    [width_cu_rep, pitch_cu_rep, delay_cu_rep, R_cu_rep, C_cu_rep, C_pul_cu_rep, rho_cu_rep] = xcm.find_best_cu_wire_with_repeaters( ...
         delay_max, repeater_fraction_n, Ro, Co, width_guess, min_pitch, resistivity_bulk, ...
         wire_length, width_fraction, aspect_ratio, electron_mfp, specularity_coeff, ...
         reflection_coeff, epsr_dielectric );
@@ -207,7 +207,7 @@ while (Lm >= 0 && n < max_layers)
             
             resistivity_bulk = rho_m_alt_em;
             
-        	[width_met pitch_met delay_met R_met C_met C_pul_met rho_met] = xcm.find_best_cu_wire( ...
+        	[width_met, pitch_met, delay_met, R_met, C_met, C_pul_met, rho_met] = xcm.find_best_cu_wire( ...
                 delay_max, width_guess, min_pitch, resistivity_bulk, wire_length, width_fraction, ...
                 aspect_ratio, electron_mfp, specularity_coeff, reflection_coeff, epsr_dielectric );
             
@@ -218,7 +218,7 @@ while (Lm >= 0 && n < max_layers)
             
             resistivity_bulk = rho_m_alt_em;
             
-            [width_met_rep pitch_met_rep delay_met_rep R_met_rep C_met_rep C_pul_met_rep rho_met_rep] = xcm.find_best_cu_wire_with_repeaters( ...
+            [width_met_rep, pitch_met_rep, delay_met_rep, R_met_rep, C_met_rep, C_pul_met_rep, rho_met_rep] = xcm.find_best_cu_wire_with_repeaters( ...
                 delay_max, repeater_fraction_n, Ro, Co, width_guess, min_pitch, resistivity_bulk, ...
                 wire_length, width_fraction, aspect_ratio, electron_mfp, specularity_coeff, ...
                  reflection_coeff, epsr_dielectric );
@@ -277,124 +277,124 @@ while (Lm >= 0 && n < max_layers)
 
     
     %% Can we do better with graphene?
-% If we can, try using GNRs for lower metal levels
-% Don't bother checking GNR params if we're already at the minimum
-% allowable pitch
-try_using_gnrs = (wire.use_graphene && (pn_vec(n) > min_pitch));
+    % If we can, try using GNRs for lower metal levels
+    % Don't bother checking GNR params if we're already at the minimum
+    % allowable pitch
+    try_using_gnrs = (wire.use_graphene && (pn_vec(n) > min_pitch));
 
-if (try_using_gnrs)
-    width_fraction = wire.width_fraction;
-    width_cu = pn_vec(n)*width_fraction; % width of actual Cu wires
-    % Max allowable delay
-    delay_max = Beta_n * Tclk;
-    
-    % Cu wire delay
-    if (use_repeaters)
-        delay_cu = tau_rep;
+    if (try_using_gnrs)
+        width_fraction = wire.width_fraction;
+        width_cu = pn_vec(n)*width_fraction; % width of actual Cu wires
+        % Max allowable delay
+        delay_max = Beta_n * Tclk;
+
+        % Cu wire delay
+        if (use_repeaters)
+            delay_cu = tau_rep;
+        else
+            delay_cu = tau_rc;
+        end
+
+        % GNR delay
+        % [FIX] Should allow user to set these -- add to wire object?
+        num_layers = 5;
+        gnr_length = Ln_m(Ln); % (m)
+        temp_K = chip.temperature+273; % (K) %[FIX] temp not known at this point...
+        mfp_defect = 1000e-9; % (m)
+        rho_interlayer = 3e-3; % (Ohm cm)
+        prob_backscattering = 0.0; % (-)
+        Ef = 0.2; % (eV)
+        contact_resistance = 0;
+        epsrd = epsr_d;
+        height_dielectric = 500e-9; % (m)
+
+        % Only consider graphene wires that are smaller than cu wires for now
+        % [FIX] Need a better way of picking potential gnr widths
+    %     gnr_widths = [ (4:2:20)*1e-9 (25e-9:10e-9:width_cu) ];
+    %     gnr_pitches = gnr_widths/wire.width_fraction;
+    %     gnr_spaces = gnr_pitches - gnr_widths;
+    %     
+    %     [delay_top_vec delay_side_vec R_top_vec R_top_alt_vec R_side_vec L_vec C_gnr_vec C_gnr_raw_vec Nch_vec mfp_eff_vec ] = ...
+    %         xcm.calc_gnr_params_combined_multiple_widths( ...
+    %         num_layers, gnr_widths, gnr_spaces, gnr_length, temp_K, mfp_defect, rho_interlayer, prob_backscattering, ...
+    %         Ef, contact_resistance, epsrd, height_dielectric );
+
+        pitch_orig = pn_vec(n);
+
+        fprintf('WLA Attempt %d: Layer %d attempting GNR insertion...\n',wire.wla_attempts,n);
+        [use_gnr, gnr_width, gnr_pitch, gnr_delay, R_gnr, C_gnr, C_pul_gnr] = xcm.find_best_gnr_interconnect( ...
+            num_layers, gnr_length, delay_max, min_pitch, width_fraction, pitch_orig, ...
+            temp_K, mfp_defect, rho_interlayer, prob_backscattering, Ef, ...
+            contact_resistance, epsrd, height_dielectric );
+
+        [use_gnr_rep, gnr_width_rep, gnr_pitch_rep, gnr_delay_rep, R_gnr_rep, C_gnr_rep, C_pul_gnr_rep] = xcm.find_best_gnr_interconnect_with_repeaters( ...
+            num_layers, gnr_length, delay_max, repeater_fraction_n, Ro, Co, min_pitch, ...
+            width_fraction, pitch_orig, temp_K, mfp_defect, rho_interlayer, prob_backscattering, ...
+            Ef, contact_resistance, epsrd, height_dielectric );
+
+        fprintf('   ...use_gnrs: %d\tuse_gnr_rep: %d\n',use_gnr, use_gnr_rep);
+
+        R_gnr_vec(n) = R_gnr;
+
+        tau_gnr = R_gnr * C_gnr;
+        gnr_wires_benefit_from_repeaters = (tau_gnr > 7*Ro*Co);
+        gnr_rep_pitch_better = (gnr_pitch_rep < gnr_pitch);
+        use_gnr_rep = use_gnr_rep && gnr_wires_benefit_from_repeaters && repeater_area_ok && repeater_via_area_ok && gnr_rep_pitch_better;
+        %fprintf('use_gnr_rep: %d \t gnrs_need_reps: %d \t rep_A_ok: %d \t rep_vias_ok: %d \t gnr_rep_pitch_better: %d\n',use_gnr_rep,gnr_wires_benefit_from_repeaters,repeater_area_ok,repeater_via_area_ok,gnr_rep_pitch_better);
+
+        if(use_gnr_rep == 1)
+            material_vec(n) = 2; % GNR
+            use_repeaters = 1;
+            pn_vec(n) = gnr_pitch_rep;
+            tau_rc_gnr_vec(n) = R_gnr * C_gnr;
+            tau_rep_gnr_vec(n) = R_gnr_rep * C_gnr_rep;
+            R_int_vec(n) = R_gnr;
+            C_pul_vec(n) = C_gnr_rep/gnr_length;
+
+            % Update R_int, C_int so we can figure out how many repeaters we
+            % need per wire as a function of length
+            % For now just assume that resistance scales linearly with length
+            % (not quite true)
+            R_int = @(pn,Ln) R_gnr_rep/gnr_length*Ln_m(Ln); % Yes, no dependence on pn
+            C_int = @(Ln) C_gnr_rep/gnr_length*Ln_m(Ln);
+
+        elseif(use_gnr == 1)
+            material_vec(n) = 2; % GNR
+            use_repeaters = 0;
+            pn_vec(n) = gnr_pitch;
+            tau_rc_gnr_vec(n) = tau_gnr;
+            R_int_vec(n) = R_gnr;
+            C_pul_vec(n) = C_gnr/gnr_length;
+        else
+            material_vec(n) = material_metal; % Cu
+            tau_rc_gnr_vec(n) = tau_gnr;
+            R_int_vec(n) = R_cu;
+        end
+
+
+
+    %     % find smallest graphene pitch that beats copper
+    %     last_valid_gnr_ind = find( (delay_top_vec < delay_cu), 1, 'first');
+    %     if (~isempty(last_valid_gnr_ind))
+    %         width_gnr = gnr_widths(last_valid_gnr_ind);
+    %         delay_gnr = delay_top_vec(last_valid_gnr_ind);
+    %         pitch_gnr = gnr_pitches(last_valid_gnr_ind);
+    % 
+    %         pn_vec(n) = pitch_gnr; % assuming GNR width fraction is 0.5 for now
+    %         tau_rc_gnr_vec(n) = delay_gnr;
+    % 
+    %         % Use graphene, no repeaters yet
+    %         material_vec(n) = 2; % GNR
+    %         use_repeaters = 0;
+    %         %tau_rc_gnr =  % Need to update the delay for the wire
+    %     else
+    %         material_vec(n) = 1; % Cu
+    %         tau_rc_gnr_vec(n) = delay_top_vec(end);
+    %     end
     else
-        delay_cu = tau_rc;
+        material_vec(n) = material_metal;
     end
-    
-    % GNR delay
-    % [FIX] Should allow user to set these -- add to wire object?
-    num_layers = 5;
-    gnr_length = Ln_m(Ln); % (m)
-    temp_K = chip.temperature+273; % (K) %[FIX] temp not known at this point...
-    mfp_defect = 1000e-9; % (m)
-    rho_interlayer = 3e-3; % (Ohm cm)
-    prob_backscattering = 0.0; % (-)
-    Ef = 0.2; % (eV)
-    contact_resistance = 0;
-    epsrd = epsr_d;
-    height_dielectric = 500e-9; % (m)
-    
-    % Only consider graphene wires that are smaller than cu wires for now
-    % [FIX] Need a better way of picking potential gnr widths
-%     gnr_widths = [ (4:2:20)*1e-9 (25e-9:10e-9:width_cu) ];
-%     gnr_pitches = gnr_widths/wire.width_fraction;
-%     gnr_spaces = gnr_pitches - gnr_widths;
-%     
-%     [delay_top_vec delay_side_vec R_top_vec R_top_alt_vec R_side_vec L_vec C_gnr_vec C_gnr_raw_vec Nch_vec mfp_eff_vec ] = ...
-%         xcm.calc_gnr_params_combined_multiple_widths( ...
-%         num_layers, gnr_widths, gnr_spaces, gnr_length, temp_K, mfp_defect, rho_interlayer, prob_backscattering, ...
-%         Ef, contact_resistance, epsrd, height_dielectric );
 
-    pitch_orig = pn_vec(n);
-    
-    fprintf('WLA Attempt %d: Layer %d attempting GNR insertion...\n',wire.wla_attempts,n);
-    [use_gnr gnr_width gnr_pitch gnr_delay R_gnr C_gnr C_pul_gnr] = xcm.find_best_gnr_interconnect( ...
-        num_layers, gnr_length, delay_max, min_pitch, width_fraction, pitch_orig, ...
-        temp_K, mfp_defect, rho_interlayer, prob_backscattering, Ef, ...
-        contact_resistance, epsrd, height_dielectric );
-    
-    [use_gnr_rep gnr_width_rep gnr_pitch_rep gnr_delay_rep R_gnr_rep C_gnr_rep C_pul_gnr_rep] = xcm.find_best_gnr_interconnect_with_repeaters( ...
-        num_layers, gnr_length, delay_max, repeater_fraction_n, Ro, Co, min_pitch, ...
-        width_fraction, pitch_orig, temp_K, mfp_defect, rho_interlayer, prob_backscattering, ...
-        Ef, contact_resistance, epsrd, height_dielectric );
-
-    fprintf('   ...use_gnrs: %d\tuse_gnr_rep: %d\n',use_gnr, use_gnr_rep);
-    
-    R_gnr_vec(n) = R_gnr;
-    
-    tau_gnr = R_gnr * C_gnr;
-    gnr_wires_benefit_from_repeaters = (tau_gnr > 7*Ro*Co);
-    gnr_rep_pitch_better = (gnr_pitch_rep < gnr_pitch);
-    use_gnr_rep = use_gnr_rep && gnr_wires_benefit_from_repeaters && repeater_area_ok && repeater_via_area_ok && gnr_rep_pitch_better;
-    %fprintf('use_gnr_rep: %d \t gnrs_need_reps: %d \t rep_A_ok: %d \t rep_vias_ok: %d \t gnr_rep_pitch_better: %d\n',use_gnr_rep,gnr_wires_benefit_from_repeaters,repeater_area_ok,repeater_via_area_ok,gnr_rep_pitch_better);
-    
-    if(use_gnr_rep == 1)
-        material_vec(n) = 2; % GNR
-        use_repeaters = 1;
-        pn_vec(n) = gnr_pitch_rep;
-        tau_rc_gnr_vec(n) = R_gnr * C_gnr;
-        tau_rep_gnr_vec(n) = R_gnr_rep * C_gnr_rep;
-        R_int_vec(n) = R_gnr;
-        C_pul_vec(n) = C_gnr_rep/gnr_length;
-        
-        % Update R_int, C_int so we can figure out how many repeaters we
-        % need per wire as a function of length
-        % For now just assume that resistance scales linearly with length
-        % (not quite true)
-        R_int = @(pn,Ln) R_gnr_rep/gnr_length*Ln_m(Ln); % Yes, no dependence on pn
-        C_int = @(Ln) C_gnr_rep/gnr_length*Ln_m(Ln);
-        
-    elseif(use_gnr == 1)
-        material_vec(n) = 2; % GNR
-        use_repeaters = 0;
-        pn_vec(n) = gnr_pitch;
-        tau_rc_gnr_vec(n) = tau_gnr;
-        R_int_vec(n) = R_gnr;
-        C_pul_vec(n) = C_gnr/gnr_length;
-    else
-        material_vec(n) = material_metal; % Cu
-        tau_rc_gnr_vec(n) = tau_gnr;
-        R_int_vec(n) = R_cu;
-    end
-        
-
-    
-%     % find smallest graphene pitch that beats copper
-%     last_valid_gnr_ind = find( (delay_top_vec < delay_cu), 1, 'first');
-%     if (~isempty(last_valid_gnr_ind))
-%         width_gnr = gnr_widths(last_valid_gnr_ind);
-%         delay_gnr = delay_top_vec(last_valid_gnr_ind);
-%         pitch_gnr = gnr_pitches(last_valid_gnr_ind);
-% 
-%         pn_vec(n) = pitch_gnr; % assuming GNR width fraction is 0.5 for now
-%         tau_rc_gnr_vec(n) = delay_gnr;
-% 
-%         % Use graphene, no repeaters yet
-%         material_vec(n) = 2; % GNR
-%         use_repeaters = 0;
-%         %tau_rc_gnr =  % Need to update the delay for the wire
-%     else
-%         material_vec(n) = 1; % Cu
-%         tau_rc_gnr_vec(n) = delay_top_vec(end);
-%     end
-else
-    material_vec(n) = material_metal;
-end
-    
 
     %% Now we need to figure out the smallest wire we can route on this tier
     % This is a straightforward application of several factors
@@ -510,7 +510,7 @@ wire.rho_vec = rho_vec;
 wire.C_pul_vec = C_pul_vec;
 wire.width = wire_width_vec;
 
-[Cxc Cn] = xcm.calc_wiring_capacitance_from_area(wire);
+[Cxc, Cn] = xcm.calc_wiring_capacitance_from_area(wire);
 wire.capacitance_total = Cxc;
 wire.capacitance_per_tier = Cn;
 
