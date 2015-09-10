@@ -36,6 +36,8 @@ num_decaps = length(sweep.decap_ratios);
 num_wire_resistivities = length(sweep.wire_resistivities);
 num_wire_flags = length(sweep.wire_material_flags);
 num_scaling_factors = length(sweep.scaling_factors);
+num_barrier_thicknesses = length(sweep.barrier_thicknesses);
+num_barrier_resistivities = length(sweep.barrier_resistivities);
 
 cind = num_cooling_configs;
 dind = num_decaps;
@@ -46,6 +48,8 @@ freq_ind = num_freqs;
 wire_res_ind = num_wire_resistivities;
 wire_flag_ind = num_wire_flags;
 scaling_ind = num_scaling_factors;
+bar_thick_ind = num_barrier_thicknesses;
+bar_res_ind = num_barrier_resistivities;
 
 tiers = sweep.tiers;
 thicknesses = sweep.thicknesses;
@@ -57,6 +61,8 @@ decap_ratios = sweep.decap_ratios;
 wire_resistivities = sweep.wire_resistivities;
 wire_material_flags = sweep.wire_material_flags;
 scaling_factors = sweep.scaling_factors;
+barrier_thicknesses = sweep.barrier_thicknesses;
+barrier_resistivities = sweep.barrier_resistivities;
 
 
 %% Power vs scaling for different 3d configurations
@@ -70,15 +76,15 @@ hold on
 colors = [ 0 0 0 ; 0 0 1; 0 1 0 ; 1 0 0 ];
 linestyles = {'-', '--', ':'};
 for nind = 1:num_stacks
-    for wire_res_ind = 1:num_wire_resistivities
+    for bar_thick_ind = 1:num_barrier_thicknesses
         wire_flag_ind = 1;
         pow_tot = zeros(1,num_scaling_factors);
         pow_wire = zeros(1,num_scaling_factors);
         pow_rep = zeros(1,num_scaling_factors);
 
-        pow_tot(1,:) = power(cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_flag_ind,:);
-        pow_wire(1,:) = wire_power(cind,dind,thind,nind,pind,:,wire_res_ind,wire_flag_ind,:);
-        pow_rep(1,:) = rep_power(cind,dind,thind,nind,pind,:,wire_res_ind,wire_flag_ind,:);
+        pow_tot(1,:) = power(cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_flag_ind,:,bar_thick_ind,bar_res_ind);
+        pow_wire(1,:) = wire_power(cind,dind,thind,nind,pind,:,wire_res_ind,wire_flag_ind,:,bar_thick_ind,bar_res_ind);
+        pow_rep(1,:) = rep_power(cind,dind,thind,nind,pind,:,wire_res_ind,wire_flag_ind,:,bar_thick_ind,bar_res_ind);
         pow_comm = pow_wire + pow_rep;
 
 
@@ -88,10 +94,10 @@ for nind = 1:num_stacks
         pow_log_ratio = 1 - pow_comm_ratio;
 
         figure(1)
-        plot(pow_comm_ratio,'color',colors(nind,:), 'linestyle', linestyles{wire_res_ind})
+        plot(pow_comm_ratio,'color',colors(nind,:), 'linestyle', linestyles{bar_thick_ind})
 
         figure(2)
-        plot(pow_tot, 'color', colors(nind,:), 'linestyle', linestyles{wire_res_ind})
+        plot(pow_tot, 'color', colors(nind,:), 'linestyle', linestyles{bar_thick_ind})
     end
 end
 figure(1)
@@ -113,19 +119,21 @@ fixfigs(2,2,14,12)
 figure(3)
 clf
 hold on
-for nind = 1:num_stacks
-    num_metal_levels = zeros(1, num_scaling_factors);
-    
-    for scaling_ind = 1:num_scaling_factors
-        num_metal_levels(1,scaling_ind) = length(wire_cell{cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind}.pn);
+for bar_thick_ind = 1:num_barrier_thicknesses
+    for nind = 1:num_stacks
+        num_metal_levels = zeros(1, num_scaling_factors);
+
+        for scaling_ind = 1:num_scaling_factors
+            num_metal_levels(1,scaling_ind) = length(wire_cell{cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind,bar_thick_ind,bar_res_ind}.pn);
+        end
+
+        plot(num_metal_levels, 'color', colors(nind,:), 'linestyle', linestyles{bar_thick_ind})
     end
-    
-    plot(num_metal_levels, 'color', colors(nind,:))
 end
 set(gca,'Xtick',1:num_scaling_factors)
 set(gca,'XtickLabel', {'22nm', '14nm', '10nm', '7nm', '5nm'} )
-xlabel('Number of metal levels')
-ylabel('On-chip Communication Power Fraction')
+xlabel('Process Node')
+ylabel('Number of Metal Levels')
 fixfigs(3,2,14,12)
 
 
@@ -153,9 +161,9 @@ fixfigs(3,2,14,12)
 %     pow_wire = zeros(1,num_freqs);
 %     pow_rep = zeros(1,num_freqs);
 %     
-%     pow_tot(1,:) = power(cind,dind,thind,nind,pind,:,wire_res_ind,wire_flag_ind,scaling_ind);
-%     pow_wire(1,:) = wire_power(cind,dind,thind,nind,pind,:,wire_res_ind,wire_flag_ind,scaling_ind);
-%     pow_rep(1,:) = rep_power(cind,dind,thind,nind,pind,:,wire_res_ind,wire_flag_ind,scaling_ind);
+%     pow_tot(1,:) = power(cind,dind,thind,nind,pind,:,wire_res_ind,wire_flag_ind,scaling_ind,bar_thick_ind,bar_res_ind);
+%     pow_wire(1,:) = wire_power(cind,dind,thind,nind,pind,:,wire_res_ind,wire_flag_ind,scaling_ind,bar_thick_ind,bar_res_ind);
+%     pow_rep(1,:) = rep_power(cind,dind,thind,nind,pind,:,wire_res_ind,wire_flag_ind,scaling_ind,bar_thick_ind,bar_res_ind);
 %     pow_comm = pow_wire + pow_rep;
 %     
 %     
@@ -174,11 +182,11 @@ fixfigs(3,2,14,12)
 %     
 %     
 %     
-% power(cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind) = core.power.total;
-% power_density(cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind) = core.power.density;
+% power(cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind,bar_thick_ind,bar_res_ind) = core.power.total;
+% power_density(cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind,bar_thick_ind,bar_res_ind) = core.power.density;
 % 
-% wire_power(cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind) = core.power.wiring;
-% rep_power(cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind) = core.power.repeater;
+% wire_power(cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind,bar_thick_ind,bar_res_ind) = core.power.wiring;
+% rep_power(cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind,bar_thick_ind,bar_res_ind) = core.power.repeater;
 
 
 %%  Max frequency vs ILD
@@ -204,9 +212,9 @@ fixfigs(3,2,14,12)
 %     fr_vec1 = zeros(1,num_perms);
 %     fr_vec2 = zeros(1,num_perms);
 %     cind = 1;
-%     fr_vec1(1,:) = freq(cind,dind,thind,nind,:,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind)/1e9;
+%     fr_vec1(1,:) = freq(cind,dind,thind,nind,:,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind,bar_thick_ind,bar_res_ind)/1e9;
 %     cind = 2;
-%     fr_vec2(1,:) = freq(cind,dind,thind,nind,:,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind)/1e9;
+%     fr_vec2(1,:) = freq(cind,dind,thind,nind,:,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind,bar_thick_ind,bar_res_ind)/1e9;
 %     
 %     plot(rel_permittivities,fr_vec1,'color',colors(nind,:),'linestyle','-')
 %     plot(rel_permittivities,fr_vec2,'color',colors(nind,:),'linestyle','--')
@@ -227,16 +235,16 @@ fixfigs(3,2,14,12)
 %     cind = 1;
 %     pow_vec = zeros(1,num_perms);
 %     comm_pow_vec = zeros(1,num_perms);
-%     pow_vec(1,:) = power(cind,dind,thind,nind,:,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind);
-%     comm_pow_vec(1:end) = wire_power(cind,dind,thind,nind,:,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind) + rep_power(cind,dind,thind,nind,:,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind);
+%     pow_vec(1,:) = power(cind,dind,thind,nind,:,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind,bar_thick_ind,bar_res_ind);
+%     comm_pow_vec(1:end) = wire_power(cind,dind,thind,nind,:,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind,bar_thick_ind,bar_res_ind) + rep_power(cind,dind,thind,nind,:,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind,bar_thick_ind,bar_res_ind);
 %     p_ave_vec(nind) = mean(pow_vec);
 %     comm_pow_ave_vec(nind) = mean(comm_pow_vec);
 %     
 %     cind = 2;
 %     pow_vec2 = zeros(1,num_perms);
 %     comm_pow_vec2 = zeros(1,num_perms);
-%     pow_vec2(1,:) = power(cind,dind,thind,nind,:,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind);
-%     comm_pow_vec2(1:end) = wire_power(cind,dind,thind,nind,:,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind) + rep_power(cind,dind,thind,nind,:,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind);
+%     pow_vec2(1,:) = power(cind,dind,thind,nind,:,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind,bar_thick_ind,bar_res_ind);
+%     comm_pow_vec2(1:end) = wire_power(cind,dind,thind,nind,:,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind,bar_thick_ind,bar_res_ind) + rep_power(cind,dind,thind,nind,:,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind,bar_thick_ind,bar_res_ind);
 %     p_ave_vec2(nind) = mean(pow_vec2);
 %     comm_pow_ave_vec2(nind) = mean(comm_pow_vec2);
 %     
@@ -299,13 +307,13 @@ fixfigs(3,2,14,12)
 %     pow_vec = zeros(1,num_perms);
 %     pow_vec2 = zeros(1,num_perms);
 %     cind = 1;
-%     fr_vec1(1,:) = freq(cind,dind,thind,nind,:,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind);
-%     pow_vec(1,:) = power(cind,dind,thind,nind,:,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind);
+%     fr_vec1(1,:) = freq(cind,dind,thind,nind,:,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind,bar_thick_ind,bar_res_ind);
+%     pow_vec(1,:) = power(cind,dind,thind,nind,:,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind,bar_thick_ind,bar_res_ind);
 %     epc_vec = pow_vec./fr_vec1;
 %     
 %     cind = 2;
-%     fr_vec2(1,:) = freq(cind,dind,thind,nind,:,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind);
-%     pow_vec2(1,:) = power(cind,dind,thind,nind,:,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind);
+%     fr_vec2(1,:) = freq(cind,dind,thind,nind,:,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind,bar_thick_ind,bar_res_ind);
+%     pow_vec2(1,:) = power(cind,dind,thind,nind,:,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind,bar_thick_ind,bar_res_ind);
 %     epc_vec2 = pow_vec2./fr_vec2;
 %     
 %     plot(rel_permittivities,epc_vec*1e9,'color',colors(nind,:),'linestyle','-')
@@ -335,8 +343,8 @@ fixfigs(3,2,14,12)
 % 
 % pvec = zeros(1,num_stacks);
 % pdens_vec = zeros(1,num_stacks);
-% pvec(1,:) = power(cind,dind,thind,:,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind);
-% pdens_vec(1,:) = power_density(cind,dind,thind,:,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind)/100^2;
+% pvec(1,:) = power(cind,dind,thind,:,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind,bar_thick_ind,bar_res_ind);
+% pdens_vec(1,:) = power_density(cind,dind,thind,:,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind,bar_thick_ind,bar_res_ind)/100^2;
 % 
 % figure(1)
 % clf

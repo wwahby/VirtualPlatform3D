@@ -1,4 +1,4 @@
-function [width, pitch, delay, R, C, C_pul, rho] = find_best_cu_wire(delay_max, width_guess, min_pitch, resistivity_bulk, wire_length, width_fraction, aspect_ratio, electron_mfp, specularity_coeff, reflection_coeff, epsr_dielectric)
+function [width, pitch, delay, R, C, C_pul, rho, R_cu, R_barrier] = find_best_cu_wire(delay_max, width_guess, min_pitch, resistivity_bulk, barrier_thickness, resistivity_barrier, wire_length, width_fraction, aspect_ratio, electron_mfp, specularity_coeff, reflection_coeff, epsr_dielectric)
 
 % initialize binary search parameters
 max_gens = 32; % maximum number of binary search generations to run
@@ -19,16 +19,27 @@ height = aspect_ratio * width;
 horiz_space = width*(1/width_fraction - 1);
 vert_space = height;
     
-[tau_rc_cu, R_wire, C_wire, rho_cu, C_wire_pul] = xcm.calc_cu_wire_rc_const( ...
-    resistivity_bulk, width, height, wire_length, ...
-    electron_mfp, specularity_coeff, reflection_coeff, ...
-    epsr_dielectric, horiz_space, vert_space );
+% [tau_rc_cu, R_wire, C_wire, rho_cu, C_wire_pul] = xcm.calc_cu_wire_rc_const( ...
+%     resistivity_bulk, width, height, wire_length, ...
+%     electron_mfp, specularity_coeff, reflection_coeff, ...
+%     epsr_dielectric, horiz_space, vert_space );
+
+[tau_rc_cu, R_wire, C_wire, rho_cu, C_wire_pul, R_cu, R_barrier] = ...
+    xcm.calc_cu_wire_rc_const( ...
+        resistivity_bulk, width, height, ...
+        barrier_thickness, resistivity_barrier, wire_length, ...
+        electron_mfp, specularity_coeff, reflection_coeff, ...
+        epsr_dielectric, horiz_space, vert_space );
+
+
 
 delay_cu = 1.1*tau_rc_cu; % Yeah this is a bit weird -- following Venkatesan.
 pass = (delay_cu <= delay_max);
 if(pass)
     last_valid_width = width; % save current value
     best_R = R_wire;
+    best_R_cu = R_cu;
+    best_R_barrier = R_barrier;
     best_C = C_wire;
     best_rho = rho_cu;
     best_C_pul = C_wire_pul;
@@ -42,10 +53,17 @@ else
         horiz_space = width*(1/width_fraction - 1);
         vert_space = height;
 
-        [tau_rc_cu, R_wire, C_wire, rho_cu, C_wire_pul] = xcm.calc_cu_wire_rc_const( ...
-            resistivity_bulk, width, height, wire_length, ...
-            electron_mfp, specularity_coeff, reflection_coeff, ...
-            epsr_dielectric, horiz_space, vert_space );
+%         [tau_rc_cu, R_wire, C_wire, rho_cu, C_wire_pul] = xcm.calc_cu_wire_rc_const( ...
+%             resistivity_bulk, width, height, wire_length, ...
+%             electron_mfp, specularity_coeff, reflection_coeff, ...
+%             epsr_dielectric, horiz_space, vert_space );
+        
+        [tau_rc_cu, R_wire, C_wire, rho_cu, C_wire_pul, R_cu, R_barrier] = ...
+            xcm.calc_cu_wire_rc_const( ...
+                resistivity_bulk, width, height, ...
+                barrier_thickness, resistivity_barrier, wire_length, ...
+                electron_mfp, specularity_coeff, reflection_coeff, ...
+                epsr_dielectric, horiz_space, vert_space );
 
 
         delay_cu = 1.1*tau_rc_cu; % Yeah this is a bit weird -- following Venkatesan.
@@ -57,6 +75,8 @@ else
 
             best_R = R_wire;
             best_C = C_wire;
+            best_R_cu = R_cu;
+            best_R_barrier = R_barrier;
             best_rho = rho_cu;
             best_C_pul = C_wire_pul;
             best_delay = delay_cu;
@@ -86,6 +106,8 @@ width = last_valid_width;
 pitch = width/width_fraction;
 delay = best_delay;
 R = best_R;
+R_cu = best_R_cu;
+R_barrier = best_R_barrier;
 C = best_C;
 rho = best_rho;
 C_pul = best_C_pul;

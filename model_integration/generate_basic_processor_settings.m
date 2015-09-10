@@ -48,19 +48,31 @@ tsv.max_area_fraction = 0.10;   % (-) % Maximum fraction of total chip area that
 %% Wiring parameters
 wire.aspect_ratio = 1.8;        % (-) h/w of wires in metal layers
 wire.width_fraction = 0.5;     % (-) width/pitch of wires in metal layers
+
 wire.resistivity = 17.2e-9;     % (Ohm*m) Copper wires
+wire.barrier_thickness = 0;     % (nm) Thickness of diffusion barrier
+wire.barrier_resistivity = 17.2e-9; % (Ohm*m) Resistivity of diffusion barrier
 wire.permeability_rel = 1;      % (-) Relative permeability of wiring material
 wire.dielectric_epsr = 3.0;     % (-) Relative dielectric constant for wiring ILD -- Low-K dielectric
+
 wire.layers_per_tier = 1;       % (-) Number of metal layers sharing same pitch in each tier
 wire.routing_efficiency = [ 0.5 ];  % (-) Fraction of available area that the wire routing tool can actually use
 wire.repeater_fraction = [ 0.4 ]; % (-) fraction of optimal repeaters to insert
+
 wire.Beta = [0.9];              % (-v) Fraction of total clock period that a single point-to-point interconnect can consume
 wire.Beta_short = 0.25;         % (-) Beta for shortest wiring layers (used for the top down WLARI)
+
 wire.Rc = 0;                    % (-v) Contact resistance between tiers (can be a vector)
+
 wire.use_graphene = 0;          % (-) Allow or disallow graphene use
+
 wire.use_em_resistant_metal = 0;   % (-) Allow or disallow use of electromigration-resistant metals below a specified minimum pitch
 wire.min_non_em_width = 50e-9; % (m) If use_em_resistant_metal is set to 1, Cu resistivity will be replaced with wire.alt_resistivity_em below this pitch
+
 wire.alt_resistivity_em = 30e-9;    %(Ohm*m) Resistivity of alternate EM-resistant metal
+wire.alt_material_barrier_thickness = 1e-9; % (m) Thickness of diffusion barrier for alternate EM-resistant metal
+wire.alt_material_barrier_resistivity = 50e-9; % (Ohm*m) Resistivity of diffusion barrier for alternate EM-resistant metal
+
 wire.repeater_max_area_fraction = 0.2; % (-) Fraction of chip area that can be consumed by repeater/buffer gates
 wire.repeater_via_max_area_fraction = 0.05; % (-) Fraction of routable wire area that can be consumed by vias for repeater connections
 

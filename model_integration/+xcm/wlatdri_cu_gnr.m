@@ -46,15 +46,24 @@ min_pitch = chip.min_pitch;
 layers_per_tier = wire.layers_per_tier;
 routing_efficiency_vec = wire.routing_efficiency;
 layer_area = wire.layer_area;
+
 rho_m = wire.resistivity;
+barrier_thickness = wire.barrier_thickness;
+barrier_resistivity = wire.barrier_resistivity;
 rho_m_alt_em = wire.alt_resistivity_em;
+
+barrier_thickness_alt_em = wire.alt_material_barrier_thickness;
+barrier_resistivity_alt_em = wire.alt_material_barrier_resistivity;
 epsr_d = wire.dielectric_epsr;
+
 cap_const = wire.capacitance_constant;
+
 Beta = wire.Beta;
 Tclk = chip.clock_period;
 Rc = wire.Rc;
 Ro = gate.output_resistance;
 Co = gate.capacitance;
+
 repeater_fraction = fliplr(wire.repeater_fraction); % flip these around since we start wiring with the top/last metal level in this case
 wire.wla_attempts = wire.wla_attempts + 1;
 
@@ -179,18 +188,35 @@ while (Lm >= 0 && n < max_layers)
     
     
     
-    [width_cu, pitch_cu, delay_cu, R_cu, C_cu, C_pul_cu, rho_cu] = xcm.find_best_cu_wire( ...
-        delay_max, width_guess, min_pitch, resistivity_bulk, wire_length, width_fraction, ...
-        aspect_ratio, electron_mfp, specularity_coeff, reflection_coeff, epsr_dielectric );
+%     [width_cu, pitch_cu, delay_cu, R_cu, C_cu, C_pul_cu, rho_cu] = xcm.find_best_cu_wire( ...
+%         delay_max, width_guess, min_pitch, resistivity_bulk, wire_length, width_fraction, ...
+%         aspect_ratio, electron_mfp, specularity_coeff, reflection_coeff, epsr_dielectric );
     
+    % Unrepeatered copper wire
+    [width_cu, pitch_cu, delay_cu, R_cu, C_cu, C_pul_cu, rho_cu, R_cu_cu, R_barrier_cu] = ...
+        xcm.find_best_cu_wire( ...
+            delay_max, width_guess, min_pitch, resistivity_bulk, ...
+            barrier_thickness, barrier_resistivity, wire_length, ...
+            width_fraction, aspect_ratio, electron_mfp, ...
+            specularity_coeff, reflection_coeff, epsr_dielectric );
+
     material_norep = 1; % Cu
 
     % Calculate repeatered wire parameters
-    [width_cu_rep, pitch_cu_rep, delay_cu_rep, R_cu_rep, C_cu_rep, C_pul_cu_rep, rho_cu_rep] = xcm.find_best_cu_wire_with_repeaters( ...
-        delay_max, repeater_fraction_n, Ro, Co, width_guess, min_pitch, resistivity_bulk, ...
-        wire_length, width_fraction, aspect_ratio, electron_mfp, specularity_coeff, ...
-        reflection_coeff, epsr_dielectric );
-    
+%     [width_cu_rep, pitch_cu_rep, delay_cu_rep, R_cu_rep, C_cu_rep, C_pul_cu_rep, rho_cu_rep] = xcm.find_best_cu_wire_with_repeaters( ...
+%         delay_max, repeater_fraction_n, Ro, Co, width_guess, min_pitch, resistivity_bulk, ...
+%         wire_length, width_fraction, aspect_ratio, electron_mfp, specularity_coeff, ...
+%         reflection_coeff, epsr_dielectric );
+   
+    % Repeatered Cu wire
+    [width_cu_rep, pitch_cu_rep, delay_cu_rep, R_cu_rep, C_cu_rep, C_pul_cu_rep, rho_cu_rep, R_cu_cu_rep, R_barrier_cu_rep] = ...
+        xcm.find_best_cu_wire_with_repeaters( ...
+            delay_max, repeater_fraction_n, Ro, Co, width_guess, ...
+            min_pitch, resistivity_bulk, barrier_thickness, ...
+            barrier_resistivity, wire_length, width_fraction, ...
+            aspect_ratio, electron_mfp, specularity_coeff, ...
+            reflection_coeff, epsr_dielectric );
+
     material_rep = 1; % Cu
     
     % Check that we don't violate electromigration limits
@@ -204,24 +230,36 @@ while (Lm >= 0 && n < max_layers)
     % reflectivity parameters can be used if data is available for fitting
     if(wire.use_em_resistant_metal == 1) % Only do this if we've enabled automatic use of EM-hard metals 
         if(width_cu < wire.min_non_em_width)
+                      
+%         	[width_met, pitch_met, delay_met, R_met, C_met, C_pul_met, rho_met] = xcm.find_best_cu_wire( ...
+%                 delay_max, width_guess, min_pitch, rho_m_alt_em, wire_length, width_fraction, ...
+%                 aspect_ratio, electron_mfp, specularity_coeff, reflection_coeff, epsr_dielectric );
             
-            resistivity_bulk = rho_m_alt_em;
-            
-        	[width_met, pitch_met, delay_met, R_met, C_met, C_pul_met, rho_met] = xcm.find_best_cu_wire( ...
-                delay_max, width_guess, min_pitch, resistivity_bulk, wire_length, width_fraction, ...
-                aspect_ratio, electron_mfp, specularity_coeff, reflection_coeff, epsr_dielectric );
+            [width_met, pitch_met, delay_met, R_met, C_met, C_pul_met, rho_met, R_met_met, R_barrier_met] = ...
+                xcm.find_best_cu_wire( ...
+                    delay_max, width_guess, min_pitch, rho_m_alt_em, ...
+                    barrier_thickness_alt_em, barrier_resistivity_alt_em, wire_length, ...
+                    width_fraction, aspect_ratio, electron_mfp, ...
+                    specularity_coeff, reflection_coeff, epsr_dielectric );
             
             material_norep = 3; % EM-resistant metal
         end
         
         if(width_cu_rep < wire.min_non_em_width)
             
-            resistivity_bulk = rho_m_alt_em;
-            
-            [width_met_rep, pitch_met_rep, delay_met_rep, R_met_rep, C_met_rep, C_pul_met_rep, rho_met_rep] = xcm.find_best_cu_wire_with_repeaters( ...
-                delay_max, repeater_fraction_n, Ro, Co, width_guess, min_pitch, resistivity_bulk, ...
-                wire_length, width_fraction, aspect_ratio, electron_mfp, specularity_coeff, ...
-                 reflection_coeff, epsr_dielectric );
+%             [width_met_rep, pitch_met_rep, delay_met_rep, R_met_rep, C_met_rep, C_pul_met_rep, rho_met_rep] = xcm.find_best_cu_wire_with_repeaters( ...
+%                 delay_max, repeater_fraction_n, Ro, Co, width_guess, min_pitch, rho_m_alt_em, ...
+%                 wire_length, width_fraction, aspect_ratio, electron_mfp, specularity_coeff, ...
+%                  reflection_coeff, epsr_dielectric );
+             
+             % Repeatered altmet wire
+            [width_met_rep, pitch_met_rep, delay_met_rep, R_met_rep, C_met_rep, C_pul_met_rep, rho_met_rep, R_met_met_rep, R_barrier_met_rep] = ...
+                xcm.find_best_cu_wire_with_repeaters( ...
+                    delay_max, repeater_fraction_n, Ro, Co, width_guess, ...
+                    min_pitch, rho_m_alt_em, barrier_thickness_alt_em, ...
+                    barrier_resistivity_alt_em, wire_length, width_fraction, ...
+                    aspect_ratio, electron_mfp, specularity_coeff, ...
+                    reflection_coeff, epsr_dielectric );
             
             material_rep = 3; % EM-resistant metal
         end
@@ -247,8 +285,10 @@ while (Lm >= 0 && n < max_layers)
         material_metal = material_rep;
         if(material_rep == 3)
             pn_vec(n) = pitch_met_rep;
+            R_longest = R_met_rep;
         else
             pn_vec(n) = pitch_cu_rep;
+            R_longest = R_cu_rep;
         end
         wire_width_vec(n) = width_cu_rep;
         pn_cu_vec(n) = pitch_cu_rep;
@@ -260,8 +300,10 @@ while (Lm >= 0 && n < max_layers)
         material_metal = material_norep;
         if(material_norep == 3)
             pn_vec(n) = pitch_met;
+            R_longest = R_met_met;
         else
             pn_vec(n) = pitch_cu;
+            R_longest = R_cu;
         end
         pn_orig_vec(n) = pitch_cu;
         wire_width_vec(n) = width_cu;
@@ -270,7 +312,8 @@ while (Lm >= 0 && n < max_layers)
         C_pul_vec(n) = C_pul_cu;
     end
 
-    R_int = @(pn,Ln) rho_vec(n)*Ln_m(Ln)/ (wire.aspect_ratio * wire.width_fraction^2 * pn^2) + Rc_n; % includes impact of differently-sized wires
+    %R_int = @(pn,Ln) rho_vec(n)*Ln_m(Ln)/ (wire.aspect_ratio * wire.width_fraction^2 * pn^2) + Rc_n; % includes impact of differently-sized wires
+    R_int = @(pn, Ln) R_longest/wire_length*Ln_m(Ln);
     C_int = @(Ln) C_pul_vec(n)*Ln_m(Ln);
     
     tau_rep = delay_cu_rep; % interconnect delay with repeaters
