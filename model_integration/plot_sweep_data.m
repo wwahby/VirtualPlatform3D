@@ -1,43 +1,24 @@
-function plot_sweep_data( sweep, sweep_data, simulation)
+%function plot_sweep_data( sweep, sweep_data, simulation) % just use as a
+%script for now
 
 %% Unpack sweep data
-power = sweep_data.power;
-power_density = sweep_data.power_density;
-freq = sweep_data.freq;
 
-wire_power = sweep_data.wire_power;
-rep_power = sweep_data.rep_power;
-temp = sweep_data.temp;
-thickness = sweep_data.thickness;
-npads = sweep_data.npads;
-
-
-ild_cell = sweep_data.ild_cell;
-psn_cell = sweep_data.psn_cell;
-power_cell = sweep_data.power_cell;
-wire_cell = sweep_data.wire_cell;
-chip_cell = sweep_data.chip_cell;
-tsv_cell = sweep_data.tsv_cell;
-
-Ltsv_m2 = sweep_data.Ltsv_m2;
-cap_density = sweep_data.cap_density;
-
-num_stacks = length(sweep.tiers);
-num_perms = length(sweep.rel_permittivities);
-num_thicks = length(sweep.thicknesses);
+num_stacks = length(tiers);
+num_perms = length(rel_permittivities);
+num_thicks = length(thicknesses);
 
 if (simulation.freq_binsearch == 1)
     num_freqs = 1; % skip freq loops
 else
-    num_freqs = length(sweep.frequencies);
+    num_freqs = length(frequencies);
 end
-num_cooling_configs = length(sweep.heat_fluxes);
-num_decaps = length(sweep.decap_ratios);
-num_wire_resistivities = length(sweep.wire_resistivities);
-num_wire_flags = length(sweep.wire_material_flags);
-num_scaling_factors = length(sweep.scaling_factors);
-num_barrier_thicknesses = length(sweep.barrier_thicknesses);
-num_barrier_resistivities = length(sweep.barrier_resistivities);
+num_cooling_configs = length(heat_fluxes);
+num_decaps = length(decap_ratios);
+num_wire_resistivities = length(wire_resistivities);
+num_wire_flags = length(wire_material_flags);
+num_scaling_factors = length(scaling_factors);
+num_barrier_thicknesses = length(barrier_thicknesses);
+num_barrier_resistivities = length(barrier_resistivities);
 
 cind = num_cooling_configs;
 dind = num_decaps;
@@ -50,19 +31,6 @@ wire_flag_ind = num_wire_flags;
 scaling_ind = num_scaling_factors;
 bar_thick_ind = num_barrier_thicknesses;
 bar_res_ind = num_barrier_resistivities;
-
-tiers = sweep.tiers;
-thicknesses = sweep.thicknesses;
-force_thickness = sweep.force_thickness;
-rel_permittivities = sweep.rel_permittivities;
-frequencies = sweep.frequencies;
-heat_fluxes = sweep.heat_fluxes;
-decap_ratios = sweep.decap_ratios;
-wire_resistivities = sweep.wire_resistivities;
-wire_material_flags = sweep.wire_material_flags;
-scaling_factors = sweep.scaling_factors;
-barrier_thicknesses = sweep.barrier_thicknesses;
-barrier_resistivities = sweep.barrier_resistivities;
 
 
 %% Power vs scaling for different 3d configurations
@@ -152,7 +120,7 @@ fixfigs(3,2,14,12)
 % scaling_factor = [1];
 % 
 % Plots
-% figure(1)
+% figure(4)
 % clf
 % hold on
 % for nind = 1:num_stacks
@@ -177,7 +145,7 @@ fixfigs(3,2,14,12)
 %     xlabel('Clock Frequency (GHz)')
 %     ylabel('On-chip Communication Power Fraction')
 %     %set(gca,'xscale','log')
-%     fixfigs(1,2,14,12)
+%     fixfigs(4,2,14,12)
 % end
 %     
 %     
@@ -190,20 +158,10 @@ fixfigs(3,2,14,12)
 
 
 %%  Max frequency vs ILD
-% % Inputs
-% tiers = [1 2 4 8];
-% thicknesses = [10e-6];
-% force_thickness = 1;
-% rel_permittivities = linspace(1,4,41);
-% frequencies = [3e8 1e10]; % if simulation.freq_binsearch is set, (1) is min freq and (2) is max freq
-% heat_fluxes = [ h_air h_water];
-% decap_ratios = [0.1];%[0.01 0.1 1];
-% %wire_resistivities = [rho_ag rho_cu rho_au rho_al rho_w rho_ni];
-% wire_resistivities = [rho_cu];
-% wire_material_flags = {'00'}; % binary strings. bit1 = use_graphene, bit0 = use alt_em_mat
-% scaling_factor = [1];
+% Sweeping number of tiers, epsrd, and using thermall-limited frequency
+% search
 % 
-% figure(1)
+% figure(5)
 % clf
 % hold on
 % 
@@ -221,9 +179,9 @@ fixfigs(3,2,14,12)
 % end
 % xlabel('ILD Relative Permittivity')
 % ylabel('Maximum Frequency')
-% fixfigs(1,2,14,12)
+% fixfigs(5,2,14,12)
 % 
-% figure(2)
+% figure(6)
 % clf
 % hold on
 % p_ave_vec = zeros(1,num_stacks);
@@ -253,25 +211,25 @@ fixfigs(3,2,14,12)
 % end
 % xlabel('ILD Relative Permittivity')
 % ylabel('Power (W)')
-% fixfigs(2,2,14,12)
+% fixfigs(6,2,14,12)
 % 
 % 
 % pfrac_vec = comm_pow_ave_vec./p_ave_vec;
 % pfrac_vec2 = comm_pow_ave_vec2./p_ave_vec2;
 % 
-% figure(3)
+% figure(7)
 % clf
 % hold on
 % plot(tiers,p_ave_vec,'r')
 % plot(tiers,p_ave_vec2,'b')
 % xlabel('Tiers')
 % ylabel('Power (W)')
-% fixfigs(3,2,14,12)
+% fixfigs(7,2,14,12)
 % 
 % 
 % pmat = [p_ave_vec ; p_ave_vec2]';
 % 
-% figure(4)
+% figure(8)
 % clf
 % b = bar(pmat,1,'grouped');
 % colormap jet
@@ -280,10 +238,10 @@ fixfigs(3,2,14,12)
 % ylabel('Power (W)')
 % b(1).FaceColor = 'blue';
 % b(2).FaceColor = 'yellow';
-% fixfigs(4,2,14,12)
+% fixfigs(8,2,14,12)
 % 
 % 
-% figure(5)
+% figure(9)
 % clf
 % pmat = [pfrac_vec ; pfrac_vec2]';
 % b = bar(pmat,1,'grouped');
@@ -293,11 +251,11 @@ fixfigs(3,2,14,12)
 % ylabel('Comm Power Fraction')
 % b(1).FaceColor = 'blue';
 % b(2).FaceColor = 'yellow';
-% fixfigs(5,2,14,12)
+% fixfigs(9,2,14,12)
 % 
 % 
 % % Plots
-% figure(6)
+% figure(10)
 % clf
 % hold on
 % for nind = 1:num_stacks
@@ -321,9 +279,7 @@ fixfigs(3,2,14,12)
 % end
 % xlabel('ILD Relative Permittivity')
 % ylabel('Energy per cycle (nJ)')
-% fixfigs(6,2,14,12)
-
-% epc_mat = zeros(4,num_stacks);
+% fixfigs(10,2,14,12)
 
 %% Power consumption vs power density
 
@@ -346,7 +302,7 @@ fixfigs(3,2,14,12)
 % pvec(1,:) = power(cind,dind,thind,:,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind,bar_thick_ind,bar_res_ind);
 % pdens_vec(1,:) = power_density(cind,dind,thind,:,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind,bar_thick_ind,bar_res_ind)/100^2;
 % 
-% figure(1)
+% figure(11)
 % clf
 % [ax, h1, h2] = plotyy(tiers,pvec,tiers,pdens_vec);
 % set(ax(1),'ycolor','k')
@@ -356,4 +312,68 @@ fixfigs(3,2,14,12)
 % %ax(1).YLabel.String = 'Power (W)';
 % %ax(2).YLabel.String = 'Power Density (W/cm^2)';
 % xlabel('Number of tiers')
-% fixfigs(1,2,14,12)
+% fixfigs(11,2,14,12)
+
+%% Max frequency vs barrier thickness across nodes
+
+figure(12)
+clf
+hold on
+
+colors = [ 0 0 0 ; 0 0 1; 0 1 0 ; 1 0 0 ];
+linestyles = {'-','--',':'};
+
+for nind = 1:num_stacks
+    for bar_thick_ind = 1:num_barrier_thicknesses
+        fr_vec = zeros(1,num_scaling_factors);
+        fr_vec(1,:) = freq(cind,dind,thind,nind,cind,freq_ind,wire_res_ind,wire_flag_ind,:,bar_thick_ind,bar_res_ind)/1e9;
+        plot(fr_vec,'color',colors(nind,:),'linestyle',linestyles{bar_thick_ind})
+    end
+end
+set(gca,'Xtick',1:num_scaling_factors)
+set(gca,'XtickLabel', {'22nm', '14nm', '10nm', '7nm', '5nm'} )
+xlabel('Process Node')
+ylabel('Maximum Frequency')
+fixfigs(12,2,14,12)
+
+
+%% Leakage power for different scaling scenarios
+
+figure(13)
+clf
+hold on
+figure(14)
+clf
+hold on
+colors = [ 0 0 0 ; 0 0 1; 0 1 0 ; 1 0 0 ];
+linestyles = {'-', '--', ':'};
+for nind = 1:num_stacks
+    for bar_thick_ind = 1:num_barrier_thicknesses
+        pow_leakage = zeros(1,num_scaling_factors);
+        pow_leakage(1,:) = leakage_power(cind,dind,thind,nind,pind,:,wire_res_ind,wire_flag_ind,:,bar_thick_ind,bar_res_ind);
+        
+        pow_dynamic = zeros(1,num_scaling_factors);
+        pow_dynamic(1,:) = dynamic_power(cind,dind,thind,nind,pind,:,wire_res_ind,wire_flag_ind,:,bar_thick_ind,bar_res_ind);
+
+        figure(13)
+        plot(pow_dynamic,'color',colors(nind,:), 'linestyle', linestyles{bar_thick_ind})
+
+        figure(14)
+        plot(pow_leakage, 'color', colors(nind,:), 'linestyle', linestyles{bar_thick_ind})
+    end
+end
+figure(13)
+set(gca,'Xtick',1:num_scaling_factors)
+set(gca,'XtickLabel', {'22nm', '14nm', '10nm', '7nm', '5nm'} )
+xlabel('Process Node')
+ylabel('Dynamic Power (W)')
+fixfigs(13,2,14,12)
+
+figure(14)
+set(gca,'Xtick',1:num_scaling_factors)
+set(gca,'XtickLabel', {'22nm', '14nm', '10nm', '7nm', '5nm'} )
+xlabel('Process Node')
+ylabel('Leakage Power (W)')
+fixfigs(14,2,14,12)
+
+
