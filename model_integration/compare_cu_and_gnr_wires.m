@@ -260,10 +260,13 @@ fixfigs(7,3,14,12)
 
 
 %%
-delay_target = 0.1e-9;
+delay_target = 1e-9;
 delay_tolerance = 0.01;
 guess_init = 100e-9;
-repeater_fraction = 1;
-xc_length = 10e-6;
-[width_rc, delay_rc, width_rep, delay_rep] = xcm.find_narrowest_gnr_interconnects(delay_target, delay_tolerance, guess_init, repeater_fraction, R_source, C_source, C_load, R_contact_gnr, epsr_dielectric, space_vertical, xc_length, mfp_eff_gnr, num_layers_gnr, rho_interlayer_gnr, Ef_gnr, temp_K);
-    
+repeater_fraction = 0.4;
+xc_length = 8e-3;
+
+R_source = 8e3;
+C_source = 1e-15 * 1e6 * Wp;
+C_load = C_source;
+[width_rc, delay_rc, width_rep, delay_rep, width_cu, delay_cu, width_cu_rep, delay_cu_rep] = xcm.find_narrowest_gnr_interconnects(delay_target, delay_tolerance, guess_init, repeater_fraction, R_source, C_source, C_load, R_contact_gnr, epsr_dielectric, space_vertical, xc_length, mfp_eff_gnr, num_layers_gnr, rho_interlayer_gnr, Ef_gnr, temp_K)
