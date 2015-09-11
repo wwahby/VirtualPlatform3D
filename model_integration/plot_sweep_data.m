@@ -87,6 +87,7 @@ fixfigs(2,2,14,12)
 figure(3)
 clf
 hold on
+ymax = 0;
 for bar_thick_ind = 1:num_barrier_thicknesses
     for nind = 1:num_stacks
         num_metal_levels = zeros(1, num_scaling_factors);
@@ -96,8 +97,10 @@ for bar_thick_ind = 1:num_barrier_thicknesses
         end
 
         plot(num_metal_levels, 'color', colors(nind,:), 'linestyle', linestyles{bar_thick_ind})
+        ymax = max([ymax num_metal_levels]);
     end
 end
+%ylim([0 ymax+1])
 set(gca,'Xtick',1:num_scaling_factors)
 set(gca,'XtickLabel', {'22nm', '14nm', '10nm', '7nm', '5nm'} )
 xlabel('Process Node')
@@ -375,5 +378,33 @@ set(gca,'XtickLabel', {'22nm', '14nm', '10nm', '7nm', '5nm'} )
 xlabel('Process Node')
 ylabel('Leakage Power (W)')
 fixfigs(14,2,14,12)
+
+
+%% Number of metal levels vs wire resistivity and scaling
+
+% for nind = 1:num_stacks
+%     fignum = 15 + nind -1;
+%     figure(fignum)
+%     clf
+%     hold on
+%     
+%     num_metal_levels = zeros(num_wire_resistivities, num_scaling_factors);
+%     for scaling_ind = 1:num_scaling_factors
+%         for wire_res_ind = 1:num_wire_resistivities
+%             num_metal_levels(wire_res_ind,scaling_ind) = length(wire_cell{cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind,bar_thick_ind,bar_res_ind}.pn);
+%         end
+%     end
+% 
+%     surf( 1:num_scaling_factors, wire_resistivities*1e9, num_metal_levels);
+%     view(2)
+%     set(gca,'Xtick',1:num_scaling_factors)
+%     set(gca,'XtickLabel', {'22nm', '14nm', '10nm', '7nm', '5nm'} )
+%     xlabel('Process Node')
+%     ylabel('Wire Resistivity (Ohm-nm)')
+% 
+%     colormap jet
+%     colorbar
+%     fixfigs(fignum,3,14,12)
+% end
 
 
