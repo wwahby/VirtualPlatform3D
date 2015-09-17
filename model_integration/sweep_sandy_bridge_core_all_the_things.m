@@ -63,7 +63,7 @@ thicknesses = 10e-6;
 force_thickness = 1;
 rel_permittivities = [3];
 frequencies = design.fmax;
-heat_fluxes = [ h_air ];
+heat_fluxes = [ h_air];
 decap_ratios = [0.1]; % Fraction of die area used for decoupling capacitors
 wire_resistivities = rho_cu;
 wire_material_flags = {'00'}; % binary strings. bit1 = use_graphene, bit0 = use alt_em_mat

@@ -1,6 +1,6 @@
 %function plot_sweep_data( sweep, sweep_data, simulation) % just use as a
 %script for now
-
+fignum = 1;
 %% Unpack sweep data
 
 num_stacks = length(tiers);
@@ -44,7 +44,7 @@ hold on
 colors = [ 0 0 0 ; 0 0 1; 0 1 0 ; 1 0 0 ];
 linestyles = {'-', '--', ':'};
 for nind = 1:num_stacks
-    for bar_thick_ind = 1:num_barrier_thicknesses
+    for bar_thick_ind = 1:1;%num_barrier_thicknesses
         wire_flag_ind = 1;
         pow_tot = zeros(1,num_scaling_factors);
         pow_wire = zeros(1,num_scaling_factors);
@@ -73,14 +73,14 @@ set(gca,'Xtick',1:num_scaling_factors)
 set(gca,'XtickLabel', {'22nm', '14nm', '10nm', '7nm', '5nm'} )
 xlabel('Process Node')
 ylabel('On-chip Communication Power Fraction')
-fixfigs(1,2,14,12)
+fixfigs(1,3,14,12)
 
 figure(2)
 set(gca,'Xtick',1:num_scaling_factors)
 set(gca,'XtickLabel', {'22nm', '14nm', '10nm', '7nm', '5nm'} )
 xlabel('Process Node')
 ylabel('Power Consumption (W)')
-fixfigs(2,2,14,12)
+fixfigs(2,3,14,12)
 
 %% Number of metal levels required for routing
 
@@ -100,12 +100,12 @@ for bar_thick_ind = 1:num_barrier_thicknesses
         ymax = max([ymax num_metal_levels]);
     end
 end
-%ylim([0 ymax+1])
+ylim([0 ymax+1])
 set(gca,'Xtick',1:num_scaling_factors)
 set(gca,'XtickLabel', {'22nm', '14nm', '10nm', '7nm', '5nm'} )
 xlabel('Process Node')
 ylabel('Number of Metal Levels')
-fixfigs(3,2,14,12)
+fixfigs(3,3,14,12)
 
 
 %% Power efficiency vs frequency
@@ -182,7 +182,7 @@ fixfigs(3,2,14,12)
 % end
 % xlabel('ILD Relative Permittivity')
 % ylabel('Maximum Frequency')
-% fixfigs(5,2,14,12)
+% fixfigs(5,3,14,12)
 % 
 % figure(6)
 % clf
@@ -214,7 +214,7 @@ fixfigs(3,2,14,12)
 % end
 % xlabel('ILD Relative Permittivity')
 % ylabel('Power (W)')
-% fixfigs(6,2,14,12)
+% fixfigs(6,3,14,12)
 % 
 % 
 % pfrac_vec = comm_pow_ave_vec./p_ave_vec;
@@ -227,7 +227,7 @@ fixfigs(3,2,14,12)
 % plot(tiers,p_ave_vec2,'b')
 % xlabel('Tiers')
 % ylabel('Power (W)')
-% fixfigs(7,2,14,12)
+% fixfigs(7,3,14,12)
 % 
 % 
 % pmat = [p_ave_vec ; p_ave_vec2]';
@@ -241,7 +241,7 @@ fixfigs(3,2,14,12)
 % ylabel('Power (W)')
 % b(1).FaceColor = 'blue';
 % b(2).FaceColor = 'yellow';
-% fixfigs(8,2,14,12)
+% fixfigs(8,3,14,12)
 % 
 % 
 % figure(9)
@@ -254,7 +254,7 @@ fixfigs(3,2,14,12)
 % ylabel('Comm Power Fraction')
 % b(1).FaceColor = 'blue';
 % b(2).FaceColor = 'yellow';
-% fixfigs(9,2,14,12)
+% fixfigs(9,3,14,12)
 % 
 % 
 % % Plots
@@ -282,7 +282,7 @@ fixfigs(3,2,14,12)
 % end
 % xlabel('ILD Relative Permittivity')
 % ylabel('Energy per cycle (nJ)')
-% fixfigs(10,2,14,12)
+% fixfigs(10,3,14,12)
 
 %% Power consumption vs power density
 
@@ -315,7 +315,7 @@ fixfigs(3,2,14,12)
 % %ax(1).YLabel.String = 'Power (W)';
 % %ax(2).YLabel.String = 'Power Density (W/cm^2)';
 % xlabel('Number of tiers')
-% fixfigs(11,2,14,12)
+% fixfigs(11,3,14,12)
 
 %% Max frequency vs barrier thickness across nodes
 
@@ -329,7 +329,7 @@ linestyles = {'-','--',':'};
 for nind = 1:num_stacks
     for bar_thick_ind = 1:num_barrier_thicknesses
         fr_vec = zeros(1,num_scaling_factors);
-        fr_vec(1,:) = freq(cind,dind,thind,nind,cind,freq_ind,wire_res_ind,wire_flag_ind,:,bar_thick_ind,bar_res_ind)/1e9;
+        fr_vec(1,:) = freq(cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_flag_ind,:,bar_thick_ind,bar_res_ind)/1e9;
         plot(fr_vec,'color',colors(nind,:),'linestyle',linestyles{bar_thick_ind})
     end
 end
@@ -337,7 +337,7 @@ set(gca,'Xtick',1:num_scaling_factors)
 set(gca,'XtickLabel', {'22nm', '14nm', '10nm', '7nm', '5nm'} )
 xlabel('Process Node')
 ylabel('Maximum Frequency')
-fixfigs(12,2,14,12)
+fixfigs(12,3,14,12)
 
 
 %% Leakage power for different scaling scenarios
@@ -370,14 +370,14 @@ set(gca,'Xtick',1:num_scaling_factors)
 set(gca,'XtickLabel', {'22nm', '14nm', '10nm', '7nm', '5nm'} )
 xlabel('Process Node')
 ylabel('Dynamic Power (W)')
-fixfigs(13,2,14,12)
+fixfigs(13,3,14,12)
 
 figure(14)
 set(gca,'Xtick',1:num_scaling_factors)
 set(gca,'XtickLabel', {'22nm', '14nm', '10nm', '7nm', '5nm'} )
 xlabel('Process Node')
 ylabel('Leakage Power (W)')
-fixfigs(14,2,14,12)
+fixfigs(14,3,14,12)
 
 
 %% Number of metal levels vs wire resistivity and scaling
@@ -406,5 +406,47 @@ fixfigs(14,2,14,12)
 %     colorbar
 %     fixfigs(fignum,3,14,12)
 % end
+
+%% Energy per cycle vs scaling
+% Plots
+fignum = 16;
+figure(fignum)
+clf
+hold on
+figure(fignum+1)
+clf
+hold on
+colors = [ 0 0 0 ; 0 0 1; 0 1 0 ; 1 0 0 ];
+linestyles = {'-', '--'};
+for nind = 1:num_stacks
+    
+    for cind = 1:num_cooling_configs
+        fr_vec = zeros(1,num_scaling_factors);
+        pow_vec = zeros(1,num_scaling_factors);
+        fr_vec(1,:) = freq(cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_flag_ind,:,bar_thick_ind,bar_res_ind);
+        pow_vec(1,:) = power(cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_flag_ind,:,bar_thick_ind,bar_res_ind);
+        epc_vec = pow_vec./fr_vec;
+        
+        figure(fignum)
+        plot(epc_vec*1e9,'color',colors(nind,:),'linestyle',linestyles{cind})
+        figure(fignum+1)
+        plot(fr_vec/1e9,'color',colors(nind,:),'linestyle',linestyles{cind})
+    end
+end
+figure(fignum)
+set(gca,'Xtick',1:num_scaling_factors)
+set(gca,'XtickLabel', {'22nm', '14nm', '10nm', '7nm', '5nm'} )
+xlabel('Process Node')
+ylabel('Leakage Power (W)')
+ylabel('Energy per cycle (nJ)')
+fixfigs(fignum,3,14,12)
+
+figure(fignum+1)
+set(gca,'Xtick',1:num_scaling_factors)
+set(gca,'XtickLabel', {'22nm', '14nm', '10nm', '7nm', '5nm'} )
+xlabel('Process Node')
+ylabel('Leakage Power (W)')
+ylabel('Maximum Frequency (GHz)')
+fixfigs(fignum+1,3,14,12)
 
 
