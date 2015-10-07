@@ -106,7 +106,7 @@ end
 bar(tiers, [total_wl; des_perf_skl_miv_wl]', 1)
 set(gca,'xtick', tiers)
 xlabel('Number of tiers')
-ylabel('Total WL (m)')
+ylabel('Total WL (um)')
 fixfigs(fignum, linewidth, label_size, axis_font_size)
     
                                           
