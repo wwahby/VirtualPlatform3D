@@ -3,7 +3,7 @@ clear all
 
 %% Simulation parameters
 simulation.skip_psn_loops = 1; % Skip PSN TSV homing for faster debug
-simulation.skip_thermal = 1; % Skip thermal analysis for faster debug
+simulation.skip_thermal = 0; % Skip thermal analysis for faster debug
 
 simulation.use_joyner = 0;
 simulation.redo_wiring_after_repeaters = 0;
@@ -24,6 +24,11 @@ simulation.freq_binsearch_target = 90;
 simulation.freq_binsearch_raw_tol = 0.25;
 simulation.freq_binsearch_max_gens = 10;
 
+simulation.heat_transfer_binsearch = 1;
+simulation.heat_transfer_binsearch_temp_target = 90;
+simulation.heat_transfer_binsearch_temp_raw_tol = 0.25;
+simulation.heat_transfer_binsearch_max_gens = 10;
+
 %% Typical Rent Exponents
 rent_exp_logic = 0.6;
 rent_exp_mem = 0.4;
@@ -40,10 +45,12 @@ design.w_trans = 32e-9/design.compression_factor;
 design.rent_exp = rent_exp_logic;
 
 %% Thermal parameters
+% Thermal resistances of known heat sinks (From Yue's paper)
 r_air = 1/1.825; %K/W for a 1cm^2 HS % alt, 0.6
 r_water = 1/4.63; %K/W for a 1cm^2 HS
 A_hs = (1e-2)^2; % 1 cm^2
 
+% Heat transfer coefficients
 h_air = 1/(r_air*A_hs);
 h_water = 1/(r_water*A_hs);
 
@@ -67,7 +74,7 @@ heat_fluxes = [ h_air];
 decap_ratios = [0.1]; % Fraction of die area used for decoupling capacitors
 wire_resistivities = rho_cu;
 wire_material_flags = {'00'}; % binary strings. bit1 = use_graphene, bit0 = use alt_em_mat
-scaling_factors = [32/22 32/14 32/10 32/7 32/5];
+scaling_factors = 1; %[32/22 32/14 32/10 32/7 32/5];
 barrier_thicknesses = [0 2e-9];
 barrier_resistivities = [1000e-9];
 Vdd = [ 1.0, 0.95, 0.90, 0.85, 0.80]; % Vdd used at each scaling node. If Vdd is constant (or stops scaling after a certain node) you can just have a single entry (or only the first few entries until it stops changing)
@@ -79,4 +86,5 @@ sweep_design
 
 %% plot stuff!
 %plot_sweep_data( sweep, sweep_data, simulation )
-plot_sweep_data % just run as script
+%plot_sweep_data % just run as script
+plot.plot_heat_transfer_coeff_vs_tiers
