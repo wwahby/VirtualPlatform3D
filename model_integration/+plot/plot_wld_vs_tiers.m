@@ -50,10 +50,11 @@ for nind = 1:num_stacks
     max_wires = max(max_wires, max_i);
     
     color_ind = mod(nind-1, 4)+1;
-    plot(WLD, 'color', color_vec(color_ind, :), 'linewidth', linewidth)
+    xvec = (0:length(WLD)-1);
+    plot(xvec, WLD, 'color', color_vec(color_ind, :), 'linewidth', linewidth)
 end
 set(gca,'yscale','log')
-set(gca,'xscale','log')
+%set(gca,'xscale','log')
 ylim([1e-1, max_wires*10])
 xlabel('Wire Length (GP)')
 ylabel('Number of wires')
@@ -72,11 +73,11 @@ for nind = 1:num_stacks
     max_wires = max(max_wires, max_i);
     
     color_ind = mod(nind-1, 4)+1;
-    xvec = (1:length(WLD)) * design.gate_pitch*1e6;
+    xvec = (0:length(WLD)-1) * design.gate_pitch*1e6;
     plot(xvec, WLD, 'color', color_vec(color_ind, :), 'linewidth', linewidth)
 end
 set(gca,'yscale','log')
-set(gca,'xscale','log')
+%set(gca,'xscale','log')
 ylim([1e-1, max_wires*10])
 xlabel('Wire Length (um)')
 ylabel('Number of wires')

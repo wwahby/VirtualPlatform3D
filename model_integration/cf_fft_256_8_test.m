@@ -24,6 +24,11 @@ simulation.freq_binsearch_target = 90;
 simulation.freq_binsearch_raw_tol = 0.25;
 simulation.freq_binsearch_max_gens = 10;
 
+simulation.heat_transfer_binsearch = 0;
+simulation.heat_transfer_binsearch_temp_target = 90;
+simulation.heat_transfer_binsearch_temp_raw_tol = 0.25;
+simulation.heat_transfer_binsearch_max_gens = 10;
+
 %% Typical Rent Exponents
 rent_exp_logic = 0.6;
 rent_exp_mem = 0.4;

@@ -34,7 +34,7 @@ bar_res_ind = num_barrier_resistivities;
 
 %% Plot options
 color_vec = [0 0 0; 0 0 1; 0 1 0; 1 0 0];
-linewidth = 2;
+linewidth = 3;
 label_size = 14;
 axis_font_size = 12;
 
@@ -50,13 +50,14 @@ for nind = 1:num_stacks
     max_wires = max(max_wires, max_i);
     
     color_ind = mod(nind-1, 4)+1;
-    plot(WLD, 'color', color_vec(color_ind, :), 'linewidth', linewidth)
+    xvec = (0:length(WLD)-1);
+    plot(xvec, WLD, 'color', color_vec(color_ind, :), 'linewidth', linewidth)
 end
 set(gca,'yscale','log')
-set(gca,'xscale','log')
-ylim([1e-1, max_wires*10])
-xlabel('Wire Length (GP)')
-ylabel('Number of wires')
+%set(gca,'xscale','log')
+ylim([1e0, 1e4])
+xlabel('Net Length (GP)')
+ylabel('Number of Nets')
 fixfigs(fignum, linewidth, label_size, axis_font_size)
 
 
@@ -72,14 +73,14 @@ for nind = 1:num_stacks
     max_wires = max(max_wires, max_i);
     
     color_ind = mod(nind-1, 4)+1;
-    xvec = (1:length(WLD)) * design.gate_pitch*1e6;
+    xvec = (0:length(WLD)-1) * design.gate_pitch*1e6;
     plot(xvec, WLD, 'color', color_vec(color_ind, :), 'linewidth', linewidth)
 end
 set(gca,'yscale','log')
-set(gca,'xscale','log')
-ylim([1e-1, max_wires*10])
-xlabel('Wire Length (um)')
-ylabel('Number of wires')
+%set(gca,'xscale','log')
+ylim([1e0, 1e4])
+xlabel('Net Length (um)')
+ylabel('Number of Nets')
 fixfigs(fignum, linewidth, label_size, axis_font_size)
 
 %% Plot Total WL (um) for each configuration
@@ -101,7 +102,7 @@ for nind = 1:num_stacks
     total_wl(nind) = sum(WLD.*xvec);
 end
 
-bar(tiers, [total_wl; cf_fft_skl_miv_wl]', 1)
+bar(tiers, [total_wl; cf_fft_skl_miv_wl]'./1e6, 1)
 set(gca,'xtick', tiers)
 xlabel('Number of tiers')
 ylabel('Total WL (m)')
