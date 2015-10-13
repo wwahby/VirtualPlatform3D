@@ -53,6 +53,9 @@ end
 
 %% Thermal module -- Find actual system temperature
 
+if (simulation.force_power == 1)
+    power.total = chip.power_forced_val;
+end
 power_per_layer = power.total/chip.num_layers;
 power_therm_vec = ones(1,chip.num_layers)*power_per_layer;  %power dissipation of each die
 layer_area = chip.area_per_layer_m2;
