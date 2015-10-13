@@ -65,7 +65,7 @@ rho_al = 26.5e-9;
 rho_all_mets = [rho_ag rho_cu rho_au rho_al rho_w rho_ni];
 
 %% Sweep settings
-tiers = [1 2 3 4];
+tiers = [1:8];
 thicknesses = 10e-6;
 force_thickness = 1;
 rel_permittivities = [3];
@@ -77,7 +77,8 @@ wire_material_flags = {'00'}; % binary strings. bit1 = use_graphene, bit0 = use 
 scaling_factors = 1; %[32/22 32/14 32/10 32/7 32/5];
 barrier_thicknesses = [0 2e-9];
 barrier_resistivities = [1000e-9];
-Vdd = [ 1.0, 0.95, 0.90, 0.85, 0.80]; % Vdd used at each scaling node. If Vdd is constant (or stops scaling after a certain node) you can just have a single entry (or only the first few entries until it stops changing)
+Vdd = [1.0]; %[ 1.0, 0.95, 0.90, 0.85, 0.80]; % Vdd used at each **scaling node**.
+%This doesn't get swept, but rather, if you're doing a scaling sweep, you can input extra Vdd values here to have each scaled node use a different Vdd. If Vdd is constant (or stops scaling after a certain node) you can just have a single entry (or only the first few entries until it stops changing)
 
 
 %% Run the parameter sweep

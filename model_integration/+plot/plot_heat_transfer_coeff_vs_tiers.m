@@ -47,4 +47,20 @@ xlabel('Number of tiers')
 ylabel('Heat Transfer Coefficient (W/cm^2K)')
 fixfigs(1,3,14,12)
 
+%% Actual tier power
+
+pvec = zeros(1,num_stacks);
+freq_vec = zeros(1, num_stacks);
+for nind = 1:num_stacks
+    pvec(nind) = power(cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind,bar_thick_ind,bar_res_ind);
+    freq_vec(nind) = freq(cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind,bar_thick_ind,bar_res_ind);
+end
+
+figure(2)
+clf
+plot(tiers, pvec)
+xlabel('Number of tiers')
+ylabel('Power (W)')
+fixfigs(2,3,14,12)
+
 
