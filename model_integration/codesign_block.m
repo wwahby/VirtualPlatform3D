@@ -54,7 +54,24 @@ end
 %% Thermal module -- Find actual system temperature
 
 if (simulation.force_power == 1)
-    power.total = chip.power_forced_val;
+    % Find frequency which will give us correct power
+    Ptot_new = chip.power_forced_val;
+    
+    Plk_tot = power.leakage + power.repeater_leakage;
+    Pdyn_tot = power.dynamic + power.repeater_dynamic + power.wiring;
+    
+    cur_freq = 1/chip.clock_period;
+    new_freq = (Ptot_new - Plk_tot)/(Pdyn_tot/cur_freq);
+    chip.clock_period = 1/new_freq;
+    
+    Pdyn_logic = power.dynamic;
+    power.dynamic = Pdyn_logic/cur_freq*new_freq;
+    power.repeater_dynamic = power.repeater_dynamic/cur_freq*new_freq;
+    power.wiring = power.wiring/cur_freq*new_freq;
+    
+    power.repeater = power.repeater_leakage + power.repeater_dynamic;
+    power.total = power.repeater + power.dynamic + power.leakage + power.wiring;
+    power.density = power.total/chip.area_per_layer_m2;
 end
 power_per_layer = power.total/chip.num_layers;
 power_therm_vec = ones(1,chip.num_layers)*power_per_layer;  %power dissipation of each die
