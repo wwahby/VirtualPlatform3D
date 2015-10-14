@@ -18,7 +18,7 @@ simulation.wla_max_attempts = 15; % 15 is default
 simulation.wla_min_bot_fill_factor = 0.91; % 0.97 is default
 simulation.wla_min_top_fill_factor = 0.01; % 0.01 is default
 
-simulation.freq_binsearch = 0;
+simulation.freq_binsearch = 1;
 simulation.freq_binsearch_initial_guess = 1e9;
 simulation.freq_binsearch_target = 90;
 simulation.freq_binsearch_raw_tol = 0.25;
@@ -29,7 +29,7 @@ simulation.heat_transfer_binsearch_temp_target = 90;
 simulation.heat_transfer_binsearch_temp_raw_tol = 0.25;
 simulation.heat_transfer_binsearch_max_gens = 10;
 
-simulation.force_power = 1;
+simulation.force_power = 0;
 
 %% Typical Rent Exponents
 rent_exp_logic = 0.6;
@@ -76,11 +76,12 @@ heat_fluxes = [ h_air];
 decap_ratios = [0.1]; % Fraction of die area used for decoupling capacitors
 wire_resistivities = rho_cu;
 wire_material_flags = {'00'}; % binary strings. bit1 = use_graphene, bit0 = use alt_em_mat
-scaling_factors = 1; %[32/22 32/14 32/10 32/7 32/5];
-barrier_thicknesses = [0];
+scaling_factors = [32/32 32/22 32/14 32/10 32/7 32/5];
+node_labels = {'32nm', '22nm', '14nm', '10nm', '7nm', '5nm'};
+barrier_thicknesses = [1e-9];
 barrier_resistivities = [1000e-9];
-power_forced_vec = linspace(0,20,21); % (W) If simulation.force_power is 1, this forces power consumption to these values during sweep for thermal purposes
-Vdd = [1.0]; %[ 1.0, 0.95, 0.90, 0.85, 0.80]; % Vdd used at each **scaling node**.
+power_forced_vec = linspace(0,25,21); % (W) If simulation.force_power is 1, this forces power consumption to these values during sweep for thermal purposes
+Vdd = 1.0; %[ 1.0, 0.95, 0.90, 0.85, 0.80]; % Vdd used at each **scaling node**.
 %This doesn't get swept, but rather, if you're doing a scaling sweep, you can input extra Vdd values here to have each scaled node use a different Vdd. If Vdd is constant (or stops scaling after a certain node) you can just have a single entry (or only the first few entries until it stops changing)
 
 
@@ -92,4 +93,6 @@ sweep_design
 %plot_sweep_data( sweep, sweep_data, simulation )
 %plot_sweep_data % just run as script
 %plot.plot_heat_transfer_coeff_vs_tiers
-plot.plot_temp_vs_forced_power
+%plot.plot_temp_vs_forced_power
+%plot.plot_epc_vs_tiers
+plot.plot_freq_vs_scaling
