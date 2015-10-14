@@ -126,8 +126,8 @@ for cind = 1:num_cooling_configs
                                                 [core.chip, core.transistor, core.gate, core.tsv, core.wire, core.psn, core.heat] = generate_basic_processor_settings(rent_exp,num_layers_per_block,Ng_core,Ach_mm2_scaled,gate_pitch_scaled,min_pitch_scaled,Vdd,fmax,w_trans_scaled);
 
                                                 %% Tweak wiring parameters
-                                                core.gate.output_resistance = 8e3*compression_factor; % Ohm
-                                                core.transistor.capacitance = 1e-15*1e6*3*w_trans; % ITRS projection is 1fF/um of gate width. This is an estimate for pMOS transistor capacitance
+                                                core.gate.output_resistance = 8e3/compression_factor; % Ohm
+                                                core.transistor.capacitance = 1e-15*3*w_trans_scaled*1e6; % ITRS projection is 1fF/um of gate width. This is an estimate for pMOS transistor capacitance
 
                                                 %core.wire.repeater_fraction = [0.3]; % 1 is default from gen_basic_proc_settings
                                                 %core.wire.routing_efficiency = [0.6]; % 0.4 is default from gen_basic_proc_settings
@@ -164,6 +164,9 @@ for cind = 1:num_cooling_configs
                                                 end
 
                                                 core.heat.up = heat_fluxes(cind);        % above chip
+                                                %core.heat.up = core.heat.h_package;
+                                                %core.heat.down = heat_fluxes(cind);
+                                                %core.heat.d = heat_fluxes(cind);
 
                                                 %% If we're searching for frequencies below a certain temperature
                                                 if (simulation.freq_binsearch == 1)
