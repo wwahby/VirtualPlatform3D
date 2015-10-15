@@ -54,12 +54,18 @@ while(keep_going)
         end
     end
     
-    keep_going = keep_going && (~within_tol); % also stop if we're within the tolerance value;
+    keep_going = keep_going && (~within_tol) && (gen_init <= max_gens); % also stop if we're within the tolerance value;; % also stop if we're within the tolerance value;
     fprintf('Initial Search Gen %d: \t h: %.3g \t Temp: %.4d\n\n', gen_init, cur_h, cur_temp);
     if (keep_going)
         prev_h = cur_h;
         cur_h = prefactor*prev_h;
         gen_init = gen_init + 1;
+    elseif ((gen_init >= max_gens) && (~within_tol))
+        % if we ran out of tries but didn't find the answer, just pick the
+        % most reasonable bounds we can.
+        fprintf('\n\nWARNING: Initial bounds for binary search could not be found!\n')
+        min_bound = min(core.heat.up, cur_h);
+        max_bound = max(core.heat.up, cur_h);
     end
 end
 
