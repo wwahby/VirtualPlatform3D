@@ -163,10 +163,23 @@ for cind = 1:num_cooling_configs
                                                     core.chip.power_forced_val = -1;
                                                 end
 
-                                                core.heat.up = heat_fluxes(cind);        % above chip
-                                                %core.heat.up = core.heat.h_package;
-                                                %core.heat.down = heat_fluxes(cind);
-                                                %core.heat.d = heat_fluxes(cind);
+                                                if (strcmp(cooling_configs{cind}, 'up') )
+                                                    core.heat.up = heat_fluxes(cind);        % above chip
+                                                    core.heat.down = core.heat.h_package;
+                                                    core.heat.d = core.heat.h_package;
+                                                elseif (strcmp(cooling_configs{cind}, 'down') )
+                                                    core.heat.up = core.heat.h_package;
+                                                    core.heat.down = heat_fluxes(cind);
+                                                    core.heat.d = core.heat.h_package;
+                                                elseif (strcmp(cooling_configs{cind}, 'down_cooled_interposer') )
+                                                    core.heat.up = core.heat.h_package;
+                                                    core.heat.down = heat_fluxes(cind);
+                                                    core.heat.d = heat_fluxes(cind);
+                                                else % default to top-side heat sink
+                                                    core.heat.up = heat_fluxes(cind);        % above chip
+                                                    core.heat.down = core.heat.h_package;
+                                                    core.heat.d = core.heat.h_package;
+                                                end
 
                                                 %% If we're searching for frequencies below a certain temperature
                                                 if (simulation.freq_binsearch == 1)
