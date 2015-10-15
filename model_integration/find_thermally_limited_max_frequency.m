@@ -60,6 +60,12 @@ while(keep_going)
         prev_freq = cur_freq;
         cur_freq = prefactor*prev_freq;
         gen_init = gen_init + 1;
+    elseif ((gen_init >= max_gens) && (~within_tol))
+        % if we ran out of tries but didn't find the answer, just pick the
+        % most reasonable bounds we can.
+        fprintf('\n\nWARNING: Initial bounds for binary search could not be found!\n')
+        min_bound = min(simulation.freq_binsearch_initial_guess, cur_freq);
+        max_bound = max(simulation.freq_binsearch_initial_guess, cur_freq);
     end
 end
 
