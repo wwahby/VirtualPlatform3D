@@ -54,7 +54,7 @@ while(keep_going)
         end
     end
     
-    keep_going = keep_going && (~within_tol); % also stop if we're within the tolerance value;
+    keep_going = keep_going && (~within_tol) && (gen_init <= max_gens); % also stop if we're within the tolerance value;
     fprintf('Initial Search Gen %d: \t Freq: %.3g \t Temp: %.4d\n\n', gen_init, cur_freq, cur_temp);
     if (keep_going)
         prev_freq = cur_freq;
