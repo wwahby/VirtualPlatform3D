@@ -2,7 +2,7 @@
 %script for now
 fignum = 1;
 
-%% EPC vs tiers
+%% EPC, Freq, Temp, Total Power, Total Power Density
 
 colors = [0 0 0; 0 0 1; 0 1 0; 1 0 0];
 freq_mat = zeros(num_stacks, num_scaling_factors);
@@ -66,17 +66,25 @@ xlabel('Process Node')
 ylabel('Power (W)')
 fixfigs(3,3,14,12)
 
+
 figure(4)
 clf
 hold on
+colors = [0 0 0; 0 0 1; 0 1 0; 1 0 0];
+tvec = zeros(num_stacks, num_scaling_factors);
 for nind = 1:num_stacks
-    plot(1:num_scaling_factors, power_mat(nind,:), 'color', colors(nind,:))
+    tvec = zeros(1, num_forced_powers);
+    for scaling_ind = 1:num_scaling_factors
+        tvec(nind, scaling_ind) = temperature(cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind,bar_thick_ind,bar_res_ind,forced_power_ind);
+    end
+    plot(1:num_scaling_factors, tvec(nind, :), 'color', colors(nind,:) )
 end
 set(gca,'Xtick',1:num_scaling_factors)
 set(gca,'XtickLabel', node_labels )
 xlabel('Process Node')
-ylabel('Power (W)')
-fixfigs(4,3,14,12)
+ylabel('Maximum Temperature (C)')
+fixfigs(4, 3, 14, 12)
+
 
 figure(5)
 clf
@@ -90,6 +98,7 @@ xlabel('Process Node')
 ylabel('Power Density (W/cm^2)')
 fixfigs(5,3,14,12)
 
+%% Power consumption
 fignum = 5;
 fignum = fignum + 1;
 figure(fignum)
@@ -141,7 +150,8 @@ ylabel('Leakage Power (W)')
 
 fixfigs(6:fignum, 3, 14, 12)
 
-%%
+%% Power Densities
+
 area_mat_cm2 = area_mat*1e4;
 fignum_pre = fignum + 1;
 fignum = fignum + 1;
@@ -193,7 +203,5 @@ xlabel('Process Node')
 ylabel('Leakage Power Density (W/cm^2)')
 
 fixfigs(fignum_pre:fignum, 3, 14, 12)
-
-
 
 
