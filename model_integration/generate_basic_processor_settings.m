@@ -147,7 +147,7 @@ heat.material_IDs = [ 2 9 3];
 
 % If die thickness is thinner than some limit, we're dealing with a
 % monolithic 3D stack rather than a conventional 3D stack
-heat.monolithic_max_thickness = 20e-6; % (m)
+heat.monolithic_max_thickness = 9e-6; % (m)
 heat.monolithic_intertier_bond_thickness = 0.2e-6;    % (m) Thickness of oxide layer between ILD and next chip
 heat.monolithic_material_IDs = [ 2 9 5];
 
