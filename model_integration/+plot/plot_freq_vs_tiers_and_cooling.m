@@ -28,17 +28,40 @@ for nind = 1:num_stacks
 end
 Tclk_mat = 1./freq_mat;
 epc_mat = power_mat .* Tclk_mat;
-epc_mat = epc_mat'*1e9;
+epc_mat = epc_mat*1e9;
 
 
 
 %%
 
+colors = {'b', 'y', 'g', 'r'};
+
 figure(1)
 clf
 b = bar(freq_mat/1e9, 1, 'grouped');
-b(1).FaceColor = 'b';
-b(2).FaceColor = 'y';
+for bbb = 1:length(b)
+    b(bbb).FaceColor = colors{bbb};
+end
 xlabel('Tiers')
 ylabel('Maximum Frequency (GHz)')
 fixfigs(1,3,14,12)
+
+figure(2)
+clf
+b = bar(epc_mat, 1, 'grouped');
+for bbb = 1:length(b)
+    b(bbb).FaceColor = colors{bbb};
+end
+xlabel('Tiers')
+ylabel('Energy per Cycle (nJ)')
+fixfigs(2,3,14,12)
+
+figure(3)
+clf
+b = bar(power_mat, 1, 'grouped');
+for bbb = 1:length(b)
+    b(bbb).FaceColor = colors{bbb};
+end
+xlabel('Tiers')
+ylabel('Power (W)')
+fixfigs(3,3,14,12)
