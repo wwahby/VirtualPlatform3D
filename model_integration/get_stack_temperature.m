@@ -7,12 +7,12 @@ function [max_temp temp_vec] = get_stack_temperature(num_layers,die_thickness,wi
     die.model = 3; % for each die, how many layers we model
     if (die_thickness < heat.monolithic_max_thickness)
         die.material_IDs = heat.monolithic_material_IDs;
-        die.layer_thicknesses = [die_thickness sum(wire.pn) heat.underfill_thickness];
-        under_thickness = heat.underfill_thickness; % thickness of the bonding material between dice (underfill in this case)
+        die.layer_thicknesses = [die_thickness sum(wire.pn) heat.monolithic_intertier_bond_thickness];
+        under_thickness = heat.monolithic_intertier_bond_thickness; % thickness of the bonding material between dice (underfill in this case)
     else
         die.material_IDs = heat.material_IDs; % Chip, ILD, underfill
-        die.layer_thicknesses = [die_thickness sum(wire.pn) heat.monolithic_intertier_bond_thickness];
-        under_thickness = heat.monolithic_intertier_bond_thickness; % thickness of the bonding material between dice (oxide in this case)
+        die.layer_thicknesses = [die_thickness sum(wire.pn) heat.underfill_thickness ];
+        under_thickness =  heat.underfill_thickness; % thickness of the bonding material between dice (oxide in this case)
     end
     
 
