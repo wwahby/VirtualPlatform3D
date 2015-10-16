@@ -171,7 +171,7 @@ for cind = 1:num_cooling_configs
                                                     core.heat.up = core.heat.h_package;
                                                     core.heat.down = heat_fluxes(cind);
                                                     core.heat.d = core.heat.h_package;
-                                                elseif (strcmp(cooling_configs{cind}, 'down_cooled_interposer') )
+                                                elseif (strcmp(cooling_configs{cind}, 'down_all') )
                                                     core.heat.up = core.heat.h_package;
                                                     core.heat.down = heat_fluxes(cind);
                                                     core.heat.d = heat_fluxes(cind);
