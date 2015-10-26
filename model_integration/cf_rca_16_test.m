@@ -24,6 +24,12 @@ simulation.freq_binsearch_target = 90;
 simulation.freq_binsearch_raw_tol = 0.25;
 simulation.freq_binsearch_max_gens = 10;
 
+simulation.heat_transfer_binsearch = 0;
+simulation.heat_transfer_binsearch_temp_target = 90;
+simulation.heat_transfer_binsearch_temp_raw_tol = 0.25;
+simulation.heat_transfer_binsearch_max_gens = 10;
+
+simulation.force_power = 0;
 %% Typical Rent Exponents
 rent_exp_logic = 0.6;
 rent_exp_mem = 0.4;
@@ -64,6 +70,7 @@ force_thickness = 1;
 rel_permittivities = [3];
 frequencies = design.fmax;
 heat_fluxes = [ h_air];
+cooling_configs = {'up'};
 decap_ratios = [0.1]; % Fraction of die area used for decoupling capacitors
 wire_resistivities = rho_cu;
 wire_material_flags = {'00'}; % binary strings. bit1 = use_graphene, bit0 = use alt_em_mat
