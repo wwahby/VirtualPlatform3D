@@ -110,3 +110,6 @@ wire.best_bot_fill_factor = max_ff;
 wire.best_top_fill_factor = best_top_ff;
 
 fprintf('\tWLA Done! WLA Runs: %d \t Final Fill Factors:: \t Bot: %.3g \t Top: %.3g\n',num_runs, max_ff, best_top_ff);
+if (wire.routable == 0)
+    fprintf('\tWARNING: Not able to route design without extremely high layer numbers! Results may not be correct')
+end

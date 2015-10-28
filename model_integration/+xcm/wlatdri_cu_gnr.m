@@ -614,7 +614,11 @@ for i=1:num_tiers
     tier_start_ind = Ln_ind+1;
 end
 
-
-    
+%% Did we succeed in routing? We'll use this outside this function to fail gracefully if things went awry
+if (length(Ln_vec) == max_layers)
+    wire.routable = 0;
+else
+    wire.routable = 1;
+end
 
 

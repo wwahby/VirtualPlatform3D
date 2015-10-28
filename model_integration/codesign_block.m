@@ -107,7 +107,9 @@ end
 
 
 %% Power Supply Network Determination
-if (~simulation.skip_psn_loops)
+if (wire.routable == 0)
+    fprintf('\tPSN analysis SKIPPED due to unroutable design!\n')
+elseif (~simulation.skip_psn_loops)
     psn = determine_power_tsv_requirements(tsv,psn,power,wire,chip);
 else
     fprintf('\tPSN analysis SKIPPED due to simulation flag!\n')
