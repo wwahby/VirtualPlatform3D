@@ -31,6 +31,8 @@ simulation.heat_transfer_binsearch_max_gens = 10;
 
 simulation.force_power = 0;
 
+simulation.ignore_repeater_area = 0; % 0 = restrict area, 1 = ignore area limit
+
 %% Typical Rent Exponents
 rent_exp_logic = 0.6;
 rent_exp_mem = 0.4;
@@ -67,17 +69,17 @@ rho_ni = 69.9e-9;
 rho_all_mets = [rho_ag rho_cu rho_au rho_al rho_w rho_ni];
 
 %% Sweep settings
-tiers = [1 2 3 4];
-thicknesses = [1e-6 10e-6 50e-6];
+tiers = [1];
+thicknesses = [1e-6];
 force_thickness = 1;
 rel_permittivities = [3];
 frequencies = design.fmax;
 heat_fluxes = [ h_air];% h_water h_water];
 cooling_configs = {'up'};%, 'down', 'down_all'}; % 
 decap_ratios = [0.1]; % Fraction of die area used for decoupling capacitors
-wire_resistivities = [rho_cu rho_w];
+wire_resistivities = [rho_w];
 wire_material_flags = {'00'}; % binary strings. bit1 = use_graphene, bit0 = use alt_em_mat
-scaling_factors = [32/32 32/22 32/14 32/10 32/7 32/5];
+scaling_factors = [32/5]; %[32/32 32/22 32/14 32/10 32/7 32/5];
 node_labels = {'32nm', '22nm', '14nm', '10nm', '7nm', '5nm'}; % labels for plots involving scaling factors
 barrier_thicknesses = [0e-9];
 barrier_resistivities = [1000e-9];

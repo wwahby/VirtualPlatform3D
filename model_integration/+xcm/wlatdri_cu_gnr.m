@@ -1,5 +1,5 @@
 %function [Ln_vec pn_vec A_wires A_vias_wiring A_vias_repeaters A_layer repeater_num repeater_size tau_rc_vec tau_rep_vec] = wla_topdown_with_repeaters(Iidf,gate_pitch,min_pitch,layers_per_tier,routing_efficiency_vec,layer_area,rho_m,epsr_d,Beta,Tclk,Rc,Ro,Co,repeater_fraction)
-function [wire, repeater] = wlatdri_cu_gnr(chip,gate,wire)
+function [wire, repeater] = wlatdri_cu_gnr(simulation, chip, gate, wire)
 
 % Simple wire layer assignment algorithm, including via blockage
 % Assign wires to layers to satisfy timing and areal constraints as
@@ -276,8 +276,8 @@ while (Lm >= 0 && n < max_layers)
     % If the RC delay constant is long enough, we'll use repeaters (and use
     % the pitch derived from the repeater delay)
     % Otherwise we'll just use the RC delay to determine the pitch
-    repeater_area_ok = (repeater_area_used < Arep_max);
-    repeater_via_area_ok = (A_vr_n < Arep_via_max);
+    repeater_area_ok = ( (repeater_area_used < Arep_max) || (simulation.ignore_repeater_area) );
+    repeater_via_area_ok = ( (A_vr_n < Arep_via_max) || (simulation.ignore_repeater_area) );
     cu_wires_benefit_from_repeaters = (tau_rc > 7*Ro*Co);
     use_repeaters = (cu_wires_benefit_from_repeaters && repeater_area_ok && repeater_via_area_ok && (pitch_cu_rep < pitch_cu) );
     
@@ -613,6 +613,7 @@ for i=1:num_tiers
     repeater.num_per_tier(i) = sum(repeater_num(tier_start_ind:Ln_ind).*Iidf(tier_start_ind:Ln_ind));
     tier_start_ind = Ln_ind+1;
 end
+
 
     
 

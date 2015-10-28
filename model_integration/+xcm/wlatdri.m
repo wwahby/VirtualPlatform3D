@@ -17,10 +17,10 @@ rbnd = top_fill_factor;
 wire.wla_attempts = 2; % 1 because one of the runs below will get thrown away.
 
 wire.routing_efficiency(1) = lbnd;
-[wire_lbnd repeater_lbnd] = xcm.wlatdri_cu_gnr(chip,gate,wire);
+[wire_lbnd repeater_lbnd] = xcm.wlatdri_cu_gnr(simulation,chip,gate,wire);
 
 wire.routing_efficiency(1) = rbnd;
-[wire_rbnd repeater_rbnd] = xcm.wlatdri_cu_gnr(chip,gate,wire);
+[wire_rbnd repeater_rbnd] = xcm.wlatdri_cu_gnr(simulation,chip,gate,wire);
 
 bin_gen = 1;
 num_runs = 1;
@@ -29,7 +29,7 @@ while( (bottom_layer_underfilled) && (bin_gen <= max_wla_attempts) )
     mid = (lbnd + rbnd)/2;
     wire.routing_efficiency(1) = mid;
     
-    [wire_mid repeater_mid] = xcm.wlatdri_cu_gnr(chip,gate,wire);
+    [wire_mid repeater_mid] = xcm.wlatdri_cu_gnr(simulation,chip,gate,wire);
     
     ntiers_lbnd = length(wire_lbnd.pn);
     ntiers_mid = length(wire_mid.pn);
