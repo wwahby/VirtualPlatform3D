@@ -464,21 +464,50 @@ while (Lm >= 0 && n < max_layers)
     % last wire routed in next lowest tier will be the first length for
     % which we don't have enough area
     Areq = 0;
-    L_ind = Ln_ind+1;
+    L_ind = Ln_ind;
     Lm_old = Lm;
-    while( (Areq < A_avail_n) && (L_ind > 1))
-        L_ind = L_ind - 1;
-        Areq = Areq + chi*pn_vec(n)*gate_pitch*LIDF(L_ind);
+    enough_space = 1;
+    while( enough_space && (L_ind > 1))
+        Areq_new = Areq + chi*pn_vec(n)*gate_pitch*LIDF(L_ind);
+        enough_space = (Areq_new < A_avail_n);
+        if (enough_space)
+            Areq = Areq_new;
+            L_ind = L_ind - 1;
+        end
     end
-    L = L_ind - 1; % first length routed in this layer
-    Lm = L - 1; % last length routed in previous tier
+    space_remaining = A_avail_n - Areq;
+    num_extra_wires_possible = 0;
+    if ((space_remaining > 0) && (L_ind > 1)) % fill in as much of the next shortest wire as we can, unless we already filled the last layer
+        wire_length = L_ind - 1;
+        area_per_wire = chi*pn_vec(n)*gate_pitch*wire_length;
+        num_extra_wires_possible = floor(space_remaining/area_per_wire);
+        
+        Areq = Areq + chi*pn_vec(n)*gate_pitch*l(L_ind)*num_extra_wires_possible;
 
-    A_wires(n) = chi*pn_vec(n)*gate_pitch*sum(LIDF(L_ind:Ln_ind));
+        % effective Iidf used on this layer
+        wire_dist_this_layer = zeros(1,length(Iidf));
+        wire_dist_this_layer(L_ind) = num_extra_wires_possible;
+        wire_dist_this_layer(L_ind+1:Ln_ind) = Iidf(L_ind+1:Ln_ind);
+
+        L = L_ind - 1; % first length routed in this layer
+        Lm = L; % last length routed in next lowest layer (Lm=L here since we partially routed wires of length L in this chunk)
+    else
+        L = L_ind - 1; % first length routed in this layer
+        Lm = L - 1; % last length routed in previous tier
+        
+        wire_dist_this_layer = zeros(1,length(Iidf));
+        wire_dist_this_layer(L_ind:Ln_ind) = Iidf(L_ind:Ln_ind);
+    end
+    
+    wire_length_dist_this_layer = l.*wire_dist_this_layer;
+    total_wire_length_this_layer = sum(wire_length_dist_this_layer);
+
+    A_wires(n) = chi*pn_vec(n)*gate_pitch*total_wire_length_this_layer;
     A_vias_wiring(n) = A_vw_n;
     A_vias_repeaters(n) = A_vr_n;
     
     %% now that we know how many wires to route in this tier, size repeaters
-    wire_lengths_gp = (Lm+1:Ln);
+    wire_lengths_gp = (L:Ln);
     wire_length_inds = wire_lengths_gp+1;
     
     
@@ -494,15 +523,24 @@ while (Lm >= 0 && n < max_layers)
     end
     tau_rc_vec(n) = tau_rc;
     
-    repeater_area_used = 2*Ainv_min*sum(repeater_size(Lm_ind:end).*repeater_num(Lm_ind:end).*Iidf(Lm_ind:end));
+    repeater_area_used = 2*Ainv_min*sum(repeater_size(L_ind:end).*repeater_num(L_ind:end).*wire_dist_this_layer(L_ind:end));
     
     if (Lm > 0)
         Ln_vec(n+1) = Lm;
+        
+        % Update Iidf and LIDF if we partially routed a layer
+        Iidf(L_ind) = Iidf(L_ind) - num_extra_wires_possible;
+        LIDF(L_ind) = l(L_ind) * Iidf(L_ind);
     else
+        % if Lm == 0 we need to redo all this with a different beta
         if(final_layers == 0)
             n = n-1;
             Lm = Lm_old;
             final_layers = 1;
+        else
+            % Update Iidf and LIDF if we partially routed a layer
+            Iidf(L_ind) = Iidf(L_ind) - num_extra_wires_possible;
+            LIDF(L_ind) = l(L_ind) * Iidf(L_ind);
         end
     end
     Ln = Lm;
@@ -553,6 +591,8 @@ wire.rho_vec = rho_vec;
 wire.C_pul_vec = C_pul_vec;
 wire.width = wire_width_vec;
 
+
+
 [Cxc, Cn] = xcm.calc_wiring_capacitance_from_area(wire);
 wire.capacitance_total = Cxc;
 wire.capacitance_per_tier = Cn;
@@ -573,6 +613,7 @@ for i=1:num_tiers
     repeater.num_per_tier(i) = sum(repeater_num(tier_start_ind:Ln_ind).*Iidf(tier_start_ind:Ln_ind));
     tier_start_ind = Ln_ind+1;
 end
+
     
 
 
