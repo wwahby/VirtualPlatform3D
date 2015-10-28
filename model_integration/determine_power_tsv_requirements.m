@@ -16,6 +16,8 @@ psn_iterations = 1;
 rho_m = wire.rho_vec(end); % use top layer
 mu_m = wire.permeability_rel*mu0;
 
+psn.noise_target = psn.noise_fraction * chip.Vdd;
+
 %% Run twice to jump close to where we need to be
 norm_err_min = 1e3; % setting this to an arbitrarily high value to start
 
