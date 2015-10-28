@@ -8,13 +8,9 @@ if(length(wire.routing_efficiency) == 1) % if we only have one entry for routing
 end
 
 % dead man counter to get out of while loop if something goes wrong
-% max_wla_attempts = 100;
-% min_top_fill_factor = 0.01;
-
 max_wla_attempts = simulation.wla_max_attempts;
-min_top_fill_factor = simulation.wla_min_top_fill_factor;
 
-% dead man counter to get out of while loop if something goes wrong
+min_top_fill_factor = simulation.wla_min_top_fill_factor;
 lbnd = min_top_fill_factor;
 rbnd = top_fill_factor;
 
@@ -25,7 +21,6 @@ wire.routing_efficiency(1) = lbnd;
 
 wire.routing_efficiency(1) = rbnd;
 [wire_rbnd repeater_rbnd] = xcm.wlatdri_cu_gnr(chip,gate,wire);
-
 
 bin_gen = 1;
 num_runs = 1;

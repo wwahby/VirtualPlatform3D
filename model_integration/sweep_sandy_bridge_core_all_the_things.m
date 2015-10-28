@@ -2,7 +2,7 @@ close all
 clear all
 
 %% Simulation parameters
-simulation.skip_psn_loops = 1; % Skip PSN TSV homing for faster debug
+simulation.skip_psn_loops = 0; % Skip PSN TSV homing for faster debug
 simulation.skip_thermal = 0; % Skip thermal analysis for faster debug
 
 simulation.use_joyner = 0;
@@ -18,7 +18,7 @@ simulation.wla_max_attempts = 15; % 15 is default
 simulation.wla_min_bot_fill_factor = 0.91; % 0.97 is default
 simulation.wla_min_top_fill_factor = 0.01; % 0.01 is default
 
-simulation.freq_binsearch = 1;
+simulation.freq_binsearch = 0;
 simulation.freq_binsearch_initial_guess = 1e9;
 simulation.freq_binsearch_target = 90;
 simulation.freq_binsearch_raw_tol = 0.25;
@@ -58,28 +58,28 @@ h_water = 1/(r_water*A_hs);
 
 %% Metal resistivities
 rho_ag = 15.9e-9;
-rho_au = 24.4e-9;
 rho_cu = 17.2e-9;
+rho_au = 24.4e-9;
+rho_al = 26.5e-9;
 rho_w = 56.0e-9;
 rho_ni = 69.9e-9;
 %rho_co_al = 0e-9;
-rho_al = 26.5e-9;
 rho_all_mets = [rho_ag rho_cu rho_au rho_al rho_w rho_ni];
 
 %% Sweep settings
 tiers = [1 2 3 4];
-thicknesses = 50e-6;
+thicknesses = [1e-6 10e-6 50e-6];
 force_thickness = 1;
 rel_permittivities = [3];
 frequencies = design.fmax;
-heat_fluxes = [ h_air h_water];% h_water h_water];
-cooling_configs = {'up', 'up'};%, 'down', 'down_all'}; % 
+heat_fluxes = [ h_air];% h_water h_water];
+cooling_configs = {'up'};%, 'down', 'down_all'}; % 
 decap_ratios = [0.1]; % Fraction of die area used for decoupling capacitors
-wire_resistivities = rho_cu;
+wire_resistivities = [rho_cu rho_w];
 wire_material_flags = {'00'}; % binary strings. bit1 = use_graphene, bit0 = use alt_em_mat
-scaling_factors = 1; %[32/32 32/22 32/14 32/10 32/7 32/5];
-node_labels = {'32nm'}; %{'32nm', '22nm', '14nm', '10nm', '7nm', '5nm'}; % labels for plots involving scaling factors
-barrier_thicknesses = [2e-9];
+scaling_factors = [32/32 32/22 32/14 32/10 32/7 32/5];
+node_labels = {'32nm', '22nm', '14nm', '10nm', '7nm', '5nm'}; % labels for plots involving scaling factors
+barrier_thicknesses = [0e-9];
 barrier_resistivities = [1000e-9];
 power_forced_vec = linspace(0,25,21); % (W) If simulation.force_power is 1, this forces power consumption to these values during sweep for thermal purposes
 Vdd = [ 1.25, 1.0, 0.95, 0.90, 0.85, 0.80]; % Vdd used at each **scaling node**.
