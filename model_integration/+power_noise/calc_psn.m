@@ -92,7 +92,9 @@ cap_density = Cd;
 %% Determine Package Parameters
 % [FIX] using arbitrary parameters for now
 %[RTSV,LTSV] = power_noise.RL_TSV(h_tsv,w_tsv,rho_m,mu_m,pp,pitch_tsv);
-[RTSV,LTSV] = power_noise.RL_TSV(h_tsv,w_tsv,rho_m,mu_m,PGpitch,Ppitch);
+tsv_barrier_thickness = tsv.barrier_thickness;
+tsv_barrier_resistivity = tsv.barrier_resistivity;
+[RTSV,LTSV] = power_noise.RL_TSV(h_tsv,w_tsv,tsv_barrier_thickness,tsv_barrier_resistivity,rho_m,mu_m,PGpitch,Ppitch);
 
 %% Determine power supply noise
 

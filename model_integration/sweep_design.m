@@ -145,6 +145,8 @@ for cind = 1:num_cooling_configs
                                                 core.wire.min_non_em_width = 25e-9; % (m) If use_em_resistant_metal is set to 1, Cu resistivity will be replaced with wire.alt_resistivity_em below this pitch
                                                 core.wire.barrier_thickness = barrier_thicknesses(bar_thick_ind);
                                                 core.wire.barrier_resistivity = barrier_resistivities(bar_res_ind);
+                                                core.tsv.barrier_thickness = barrier_thicknesses(bar_thick_ind);
+                                                core.tsv.barrier_resistivity = barrier_resistivities(bar_res_ind);
                                                 if(alt_met_flag == 1)
                                                     core.wire.alt_resistivity_em = wire_resistivity;
                                                     core.wire.resistivity = rho_cu;
