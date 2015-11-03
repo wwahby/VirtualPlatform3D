@@ -121,7 +121,7 @@ for cind = 1:num_cooling_configs
                                                 w_trans_scaled = w_trans/compression_factor;
 
                                                 % Let Vdd scale with scaling_ind
-                                                Vdd = xcm.get_nth_or_last( Vdd, scaling_ind);
+                                                Vdd = xcm.get_nth_or_last( Vdd_vec, scaling_ind);
 
                                                 %% define parameters
                                                 [core.chip, core.transistor, core.gate, core.tsv, core.wire, core.psn, core.heat] = generate_basic_processor_settings(rent_exp,num_layers_per_block,Ng_core,Ach_mm2_scaled,gate_pitch_scaled,min_pitch_scaled,Vdd,fmax,w_trans_scaled);
@@ -159,12 +159,14 @@ for cind = 1:num_cooling_configs
                                                 core.chip.thickness_nominal = die_thickness;
                                                 core.wire.dielectric_epsr = epsrd;
                                                 core.psn.decap_area_fraction = decap_ratios(dind);
+                                                core.psn.power_tsv_width = power_tsv_width;
                                                 
                                                 if (simulation.force_power == 1)
                                                     core.chip.power_forced_val = power_forced_vec(forced_power_ind);
                                                 else
                                                     core.chip.power_forced_val = -1;
                                                 end
+                                                
 
                                                 if (strcmp(cooling_configs{cind}, 'up') )
                                                     core.heat.up = heat_fluxes(cind);        % above chip
