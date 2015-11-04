@@ -1,4 +1,4 @@
-function [R, rho_cu, R_cu, R_barrier] = calc_cu_wire_resistance_size_dependent(resistivity_bulk,width,height,barrier_thickness,rho_barrier,wire_length,electron_mfp,specularity_coeff,reflection_coeff)
+function [R, rho_cu, R_cu, R_barrier] = calc_cu_wire_resistance_size_dependent(resistivity_bulk,width,height,barrier_thickness,rho_barrier,wire_length,electron_mfp,specularity_coeff,reflection_coeff,temperature_K)
 
 % Dimensions of entire wire
 width_tot = width;
@@ -15,7 +15,7 @@ film_thickness = min(width_cu,height_cu);
 grain_size = film_thickness;
 
 if ((width_cu > 0) && (height_cu > 0)) % Only find Cu resistivity if there's actually space to put cu in the wire!
-    [rho_cu] = xcm.cu_resistivity_fsms(resistivity_bulk,film_thickness,grain_size,electron_mfp,specularity_coeff,reflection_coeff);
+    [rho_cu] = xcm.cu_resistivity_fsms(resistivity_bulk,film_thickness,grain_size,electron_mfp,specularity_coeff,reflection_coeff,temperature_K);
     R_cu = rho_cu*wire_length/width_cu/height_cu;
 else % otherwise the wire is made entirely of barrier material
     width_barrier = width_tot;
