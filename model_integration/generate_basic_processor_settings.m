@@ -31,6 +31,7 @@ transistor.gate_length = w_trans;
 transistor.oxide_rel_permittivity = 25; % HfO2
 transistor.oxide_thickness = 1.0e-9; %2.5e-9; %1.0e-9 %(nm)
 transistor.leakage_current_per_micron = 100e-9; %(A/um)
+transistor.leakage_reference_temperature = 300; % (K)
 transistor.capacitance_per_micron = 1.25e-15; % (F/um)
 transistor.capacitance = transistor.oxide_rel_permittivity*eps0*transistor.gate_length^2/transistor.oxide_thickness;
 transistor.subthreshold_swing = .060; % (V/decade at 300K)
@@ -130,6 +131,16 @@ heat.A_hs = (1e-2)^2; % 1 cm^2
 heat.h_air = 1/(heat.r_air*heat.A_hs);
 heat.h_water = 1/(heat.r_water*heat.A_hs);
 heat.h_package = 5;
+
+% thermal conductivity of various materials used in thermal module
+heat.k_tim = 3;       % TIM
+heat.k_chip = 149;      % typically silicon
+heat.k_underfill = 0.9; % underfill
+heat.k_wires = 400;     % Wires (Typically copper)
+heat.k_ild = 1.38;      % ILD
+heat.k_microbumps = 60; % Microbumps
+heat.k_interposer = 149; % interposer 
+heat.k_air = 0.024;      % Air
 
 q_cm2 = 50; % (W/cm2) Top heat sink max heat flux
 q = q_cm2*1e4; % (W/m2) Top heat sink max heat flux

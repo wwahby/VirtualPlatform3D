@@ -6,16 +6,16 @@ function T = ThermSim( die, thick, chip, pack, ...
     %start = tic;
 %%%%%%%%%%%%%%%%%%%%material information for the chip%%%%%%%%%%%%%%%%%%%%%%
 %thermal conductivity
-    K_Material = [3  %TIM 1
-                  149 %CHIP 2
-                  0.9 %UNDER 3
-                  400 %COPPER 4
-                  1.38 %SIO2 5
-                  60 %UBUMP 6
-                  149 %SILICON INTERPOSER 7
-                  0.024 %Air 8
-                  400*portion+1.38*(1-portion) %ILD vertical 9
-                  1/(portion/400+(1-portion)/1.38) %ILD lateral 10
+    K_Material = [h.k_tim  %TIM 1
+                  h.k_chip %CHIP 2
+                  h.k_underfill %UNDER 3
+                  h.k_wires %COPPER 4
+                  h.k_ild %SIO2 5
+                  h.k_microbumps %UBUMP 6
+                  h.k_interposer %SILICON INTERPOSER 7
+                  h.k_air %Air 8
+                  h.k_wires*portion+h.k_ild*(1-portion) %ILD vertical 9
+                  1/(portion/h.k_wires+(1-portion)/h.k_ild) %ILD lateral 10
                   ]; 
               
  % Replace a bunch of materials with silicon for a monolithic stack     
