@@ -5,6 +5,14 @@ time_start = cputime;
 eps0 = 8.854e-12; % (F/m) vacuum permittivity
 mu0 = 4*pi*1e-7; % (H/m) Vacuum permeability
 
+%% Initializations
+temperature_previous = chip.temperature;
+temperature_current = chip.temperature;
+temperature_converged = 0;
+temperature_iterations = 1;
+temperature_iterations_max = 10;
+temperature_change_tolerance = 1;
+
 %% TSV number determination
 % Inputs:
 %   Rent parameters
@@ -43,65 +51,86 @@ if(tsv.height_m > 0)
 else
     chip.thickness = chip.thickness_nominal;
 end
-%% System determination
-% Run WLD + WLA + RI to get power estimate
-% disp('Generating system...')
-[chip, power, wire, repeater, tsv] = xcm.gen_design(chip,tsv,gate,transistor,wire,simulation);
 
-%Pdens = power.total/chip.area_per_layer_m2;
-%power.density = power.total/chip.area_total;
+%% Check if we need to run/rerun the interconnect and thermal modules
+initial_run = (temperature_iterations == 1);
+rerun_temperature = (~temperature_converged) && (temperature_iterations <= temperature_iterations_max) && (simulation.iterate_temperature) && (~simulation.skip_thermal);
+run_xcm_and_thermal_modules = (initial_run || rerun_temperature);
 
-%% Thermal module -- Find actual system temperature
-
-if (simulation.force_power == 1)
-    % Find frequency which will give us correct power
-    Ptot_new = chip.power_forced_val;
+while(run_xcm_and_thermal_modules)
     
-    Plk_tot = power.leakage + power.repeater_leakage;
-    Pdyn_tot = power.dynamic + power.repeater_dynamic + power.wiring;
+    temperature_previous = temperature_current;
+    %% System determination
+    % Run WLD + WLA + RI to get power estimate
+    % disp('Generating system...')
+    [chip, power, wire, repeater, tsv] = xcm.gen_design(chip,tsv,gate,transistor,wire,simulation);
+
+    %Pdens = power.total/chip.area_per_layer_m2;
+    %power.density = power.total/chip.area_total;
+
+    %% Thermal module -- Find actual system temperature
+
+    if (simulation.force_power == 1)
+        % Find frequency which will give us correct power
+        Ptot_new = chip.power_forced_val;
+
+        Plk_tot = power.leakage + power.repeater_leakage;
+        Pdyn_tot = power.dynamic + power.repeater_dynamic + power.wiring;
+
+        cur_freq = 1/chip.clock_period;
+        new_freq = (Ptot_new - Plk_tot)/(Pdyn_tot/cur_freq);
+        chip.clock_period = 1/new_freq;
+
+        Pdyn_logic = power.dynamic;
+        power.dynamic = Pdyn_logic/cur_freq*new_freq;
+        power.repeater_dynamic = power.repeater_dynamic/cur_freq*new_freq;
+        power.wiring = power.wiring/cur_freq*new_freq;
+
+        power.repeater = power.repeater_leakage + power.repeater_dynamic;
+        power.total = power.repeater + power.dynamic + power.leakage + power.wiring;
+        power.density = power.total/chip.area_per_layer_m2;
+    end
+    power_per_layer = power.total/chip.num_layers;
+    power_therm_vec = ones(1,chip.num_layers)*power_per_layer;  %power dissipation of each die
+    layer_area = chip.area_per_layer_m2;
+    side_length = sqrt(layer_area);
+    chip_width = side_length;
+    chip_height = side_length;
+
+    package_width = 3.5*chip_width;
+    package_height = 3.5*chip_height;
+
+    %power blocks by each die
+    %format: bottom left point bl_x, bl_y, width, height, power
+    %list blocks in die1 and then die2, die3 ....
+    map_row = [0     0     side_length    side_length     power_per_layer];
+    map = zeros(chip.num_layers,5);
+    blk_num = zeros(chip.num_layers,1);
+    for i =1:chip.num_layers
+        map(i,:) = map_row;
+        blk_num(i,1) = 1;
+    end
+    %blk_num is for splitting the power maps of each die
+
+    if(~simulation.skip_thermal)
+        [max_temp temp_vec] = get_stack_temperature(chip.num_layers,chip.thickness,wire,tsv,chip_width,chip_height,package_width,package_height,heat,simulation,map,blk_num,power_therm_vec);
+
+        chip.temperature_vec = temp_vec;
+        chip.temperature = max_temp;
+
+        temperature_current = chip.temperature;
+        temperature_change = temperature_current - temperature_previous;
+        fprintf('\tPrevious Temperature: %.5g\tCurrent Temperature: %.5g\n',temperature_previous, temperature_current);
+
+        temperature_converged = ( abs(temperature_change) < temperature_change_tolerance);
+        temperature_iterations = temperature_iterations + 1;
+    else
+        fprintf('\tThermal analysis SKIPPED due to simulation flag!\n')
+    end
     
-    cur_freq = 1/chip.clock_period;
-    new_freq = (Ptot_new - Plk_tot)/(Pdyn_tot/cur_freq);
-    chip.clock_period = 1/new_freq;
-    
-    Pdyn_logic = power.dynamic;
-    power.dynamic = Pdyn_logic/cur_freq*new_freq;
-    power.repeater_dynamic = power.repeater_dynamic/cur_freq*new_freq;
-    power.wiring = power.wiring/cur_freq*new_freq;
-    
-    power.repeater = power.repeater_leakage + power.repeater_dynamic;
-    power.total = power.repeater + power.dynamic + power.leakage + power.wiring;
-    power.density = power.total/chip.area_per_layer_m2;
-end
-power_per_layer = power.total/chip.num_layers;
-power_therm_vec = ones(1,chip.num_layers)*power_per_layer;  %power dissipation of each die
-layer_area = chip.area_per_layer_m2;
-side_length = sqrt(layer_area);
-chip_width = side_length;
-chip_height = side_length;
-
-package_width = 3.5*chip_width;
-package_height = 3.5*chip_height;
-
-%power blocks by each die
-%format: bottom left point bl_x, bl_y, width, height, power
-%list blocks in die1 and then die2, die3 ....
-map_row = [0     0     side_length    side_length     power_per_layer];
-map = zeros(chip.num_layers,5);
-blk_num = zeros(chip.num_layers,1);
-for i =1:chip.num_layers
-    map(i,:) = map_row;
-    blk_num(i,1) = 1;
-end
-%blk_num is for splitting the power maps of each die
-
-if(~simulation.skip_thermal)
-    [max_temp temp_vec] = get_stack_temperature(chip.num_layers,chip.thickness,wire,tsv,chip_width,chip_height,package_width,package_height,heat,simulation,map,blk_num,power_therm_vec);
-
-    chip.temperature_vec = temp_vec;
-    chip.temperature = max_temp;
-else
-    fprintf('\tThermal analysis SKIPPED due to simulation flag!\n')
+    initial_run = (temperature_iterations == 1);
+    rerun_temperature = (~temperature_converged) && (temperature_iterations <= temperature_iterations_max) && (simulation.iterate_temperature) && (~simulation.skip_thermal);
+    run_xcm_and_thermal_modules = (initial_run || rerun_temperature);
 end
 
 
