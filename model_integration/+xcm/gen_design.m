@@ -20,7 +20,7 @@ gate_pitch = chip.gate_pitch;
 w_trans = transistor.gate_length;
 eps_ox = transistor.oxide_rel_permittivity;
 tox = transistor.oxide_thickness;
-Ioff = transistor.leakage_current_per_micron;
+Ioff_per_um = transistor.leakage_current_per_micron;
 
 Ro = gate.output_resistance;
 N_trans_per_gate = gate.num_transistors;
@@ -166,8 +166,28 @@ swing_at_temp = transistor.subthreshold_swing * (chip.temperature+273)/300; % (V
 Vth = transistor.Vt;
 Vgs = 0;
 Vds = chip.Vdd;
-Ilk = (Ioff*1e6)*(1.5*w_trans);% (1.5 because pmos should have ~3X nmos width, and half the transistors should be pmos)
+Vdd = chip.Vdd;
+Ilk = (Ioff_per_um*1e6)*(1.5*w_trans);% (1.5 because pmos should have ~3X nmos width, and half the transistors should be pmos)
 %[FIX] very coarse leakage model -- update this with something better (incl temp, gate size, etc)
+
+width_um = 1.5*w_trans*1e6;
+w_trans_um = w_trans * 1e6;
+Ilk_To = Ioff_per_um*width_um;
+To = transistor.leakage_reference_temperature;
+
+kb = 1.381e-23; % (J/K)
+T = chip.temperature + 273.15; % (K)
+q = 1.602e-19; % (C)
+Eg = 1/12; % (eV)
+
+phi_th = kb*T/q;
+Ilk_T = Ilk_To * (T/To)*exp(-q*Eg/kb*(1/T-1/To))*(exp(-Vds/phi_th)-1);
+Ilk_T = abs(Ilk_T);
+
+Plk_per_transistor = Ilk_T*Vdd;
+Plk_per_transistor_per_um = Ilk_T/width_um;
+
+
 
 %Ct = transistor.capacitance_per_micron * w_trans/1e-6;
 %Cox = 4*transistor.capacitance; % (4 because pmos + nmos capacitance in parallel, pmos cap ~3X nmos)
@@ -182,10 +202,12 @@ Cxc = wire.capacitance_total;
 
 Pdyn = 1/2*a*Co*Vdd^2*f*Nt;
 Plk = Vdd*Ilk*Nt;
+Plk_logic = Plk_per_transistor * Nt;
 
 Pw = 1/2*a*Cxc*Vdd^2*f;
 
-Plk_rep_vec = Vdd*Ilk_rep.* repeater.num_per_wire .* repeater.size;
+%Plk_rep_vec = Vdd*Ilk_rep.* repeater.num_per_wire .* repeater.size;
+Plk_rep_vec = Plk_per_transistor_per_um .* w_trans_um .* repeater.size .* repeater.num_per_wire .* chip.iidf;
 Plk_rep = sum(Plk_rep_vec);
 
 Pdyn_rep_vec = 1/2*a*Vdd^2*f.* repeater.num_per_wire .*Co_rep.* repeater.size;
@@ -200,12 +222,12 @@ chip.iidf = iidf;
 chip.lengths = l;
 
 power.dynamic = Pdyn;
-power.leakage = Plk;
+power.leakage = Plk_logic;
 power.wiring = Pw;
 power.repeater = Prep;
 power.repeater_leakage = Plk_rep;
 power.repeater_dynamic = Pdyn_rep;
-power.total = Pdyn + Plk + Pw + Prep;
+power.total = Pdyn + Plk_logic + Pw + Prep;
 power.density = power.total/chip.area_per_layer_m2;
 
 
