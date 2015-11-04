@@ -10,10 +10,10 @@ npads_mat = zeros(num_wire_resistivities, num_scaling_factors);
 for nind = 1
     for wire_res_ind = 1:num_wire_resistivities
         for scaling_ind = 1:num_scaling_factors
-            if (routable_design(cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind,bar_thick_ind,bar_res_ind,forced_power_ind) == 1)
+            if (routable_design(cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind,bar_thick_ind,bar_res_ind,forced_power_ind,k_ind) == 1)
                 
-                npads_mat(wire_res_ind, scaling_ind) = npads(cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind,bar_thick_ind,bar_res_ind,forced_power_ind);
-                num_metal_levels_mat(wire_res_ind, scaling_ind) = num_metal_levels(cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind,bar_thick_ind,bar_res_ind,forced_power_ind);
+                npads_mat(wire_res_ind, scaling_ind) = npads(cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind,bar_thick_ind,bar_res_ind,forced_power_ind,k_ind);
+                num_metal_levels_mat(wire_res_ind, scaling_ind) = num_metal_levels(cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind,bar_thick_ind,bar_res_ind,forced_power_ind,k_ind);
             else
                 npads_mat(wire_res_ind, scaling_ind) = 0;
                 num_metal_levels_mat(wire_res_ind, scaling_ind) = 0;
@@ -63,11 +63,11 @@ temp_mat = zeros(num_wire_resistivities*num_stacks, num_scaling_factors);
 for nind = 1:num_stacks
     for wire_res_ind = 1:num_wire_resistivities
         for scaling_ind = 1:num_scaling_factors
-            if (routable_design(cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind,bar_thick_ind,bar_res_ind,forced_power_ind) == 1)
-                power_mat(wire_res_ind*num_stacks + (nind-1), scaling_ind) = power(cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind,bar_thick_ind,bar_res_ind,forced_power_ind);
-                temp_mat(wire_res_ind*num_stacks + (nind-1), scaling_ind) = temperature(cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind,bar_thick_ind,bar_res_ind,forced_power_ind);
-                npads_mat(wire_res_ind*num_stacks + (nind-1), scaling_ind) = npads(cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind,bar_thick_ind,bar_res_ind,forced_power_ind);
-                num_metal_levels_mat(wire_res_ind*num_stacks + (nind-1), scaling_ind) = num_metal_levels(cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind,bar_thick_ind,bar_res_ind,forced_power_ind);
+            if (routable_design(cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind,bar_thick_ind,bar_res_ind,forced_power_ind,k_ind) == 1)
+                power_mat(wire_res_ind*num_stacks + (nind-1), scaling_ind) = power(cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind,bar_thick_ind,bar_res_ind,forced_power_ind,k_ind);
+                temp_mat(wire_res_ind*num_stacks + (nind-1), scaling_ind) = temperature(cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind,bar_thick_ind,bar_res_ind,forced_power_ind,k_ind);
+                npads_mat(wire_res_ind*num_stacks + (nind-1), scaling_ind) = npads(cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind,bar_thick_ind,bar_res_ind,forced_power_ind,k_ind);
+                num_metal_levels_mat(wire_res_ind*num_stacks + (nind-1), scaling_ind) = num_metal_levels(cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind,bar_thick_ind,bar_res_ind,forced_power_ind,k_ind);
             else
                 power_mat(wire_res_ind*num_stacks + (nind-1), scaling_ind) = 0;
                 temp_mat(wire_res_ind*num_stacks + (nind-1), scaling_ind) = 0;
@@ -143,11 +143,11 @@ temp_mat = zeros(num_wire_resistivities, num_stacks, num_scaling_factors);
 for nind = 1:num_stacks
     for wire_res_ind = 1:num_wire_resistivities
         for scaling_ind = 1:num_scaling_factors
-            if (routable_design(cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind,bar_thick_ind,bar_res_ind,forced_power_ind) == 1)
-                power_mat(wire_res_ind, nind, scaling_ind) = power(cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind,bar_thick_ind,bar_res_ind,forced_power_ind);
-                temp_mat(wire_res_ind, nind, scaling_ind) = temperature(cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind,bar_thick_ind,bar_res_ind,forced_power_ind);
-                npads_mat(wire_res_ind, nind, scaling_ind) = npads(cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind,bar_thick_ind,bar_res_ind,forced_power_ind);
-                num_metal_levels_mat(wire_res_ind, nind, scaling_ind) = num_metal_levels(cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind,bar_thick_ind,bar_res_ind,forced_power_ind);
+            if (routable_design(cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind,bar_thick_ind,bar_res_ind,forced_power_ind,k_ind) == 1)
+                power_mat(wire_res_ind, nind, scaling_ind) = power(cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind,bar_thick_ind,bar_res_ind,forced_power_ind,k_ind);
+                temp_mat(wire_res_ind, nind, scaling_ind) = temperature(cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind,bar_thick_ind,bar_res_ind,forced_power_ind,k_ind);
+                npads_mat(wire_res_ind, nind, scaling_ind) = npads(cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind,bar_thick_ind,bar_res_ind,forced_power_ind,k_ind);
+                num_metal_levels_mat(wire_res_ind, nind, scaling_ind) = num_metal_levels(cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind,bar_thick_ind,bar_res_ind,forced_power_ind,k_ind);
             else
                 power_mat(wire_res_ind, nind, scaling_ind) = 0;
                 temp_mat(wire_res_ind, nind, scaling_ind) = 0;
