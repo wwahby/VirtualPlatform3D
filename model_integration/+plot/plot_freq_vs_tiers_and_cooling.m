@@ -13,6 +13,7 @@ rep_power_mat = zeros(num_stacks, num_cooling_configs);
 dynamic_power_mat = zeros(num_stacks, num_cooling_configs);
 leakage_power_mat = zeros(num_stacks, num_cooling_configs);
 area_mat = zeros(num_stacks, num_cooling_configs);
+temperature_mat = zeros(num_stacks, num_cooling_configs);
 
 for nind = 1:num_stacks
     for cind = 1:num_cooling_configs
@@ -24,6 +25,7 @@ for nind = 1:num_stacks
         dynamic_power_mat(nind, cind) = dynamic_power(cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind,bar_thick_ind,bar_res_ind,forced_power_ind,k_ind);
         leakage_power_mat(nind, cind) = leakage_power(cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind,bar_thick_ind,bar_res_ind,forced_power_ind,k_ind);
         area_mat(nind, cind) = chip_cell{cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind,bar_thick_ind,bar_res_ind,forced_power_ind,k_ind}.area_per_layer_m2;                               
+        temperature_mat(nind, cind) = temperature(cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind,bar_thick_ind,bar_res_ind,forced_power_ind,k_ind);
     end
 end
 Tclk_mat = 1./freq_mat;
@@ -71,3 +73,15 @@ xlabel('Tiers')
 set(gca,'xticklabel',tier_cell)
 ylabel('Power (W)')
 fixfigs(3,3,14,12)
+
+figure(4)
+clf
+b = bar(temperature_mat, 1, 'grouped');
+for bbb = 1:length(b)
+    b(bbb).FaceColor = colors{bbb};
+end
+%ylim([0 90])
+xlabel('Tiers')
+set(gca,'xticklabel',tier_cell)
+ylabel('Temperature (^\circC)')
+fixfigs(4,3,14,12)

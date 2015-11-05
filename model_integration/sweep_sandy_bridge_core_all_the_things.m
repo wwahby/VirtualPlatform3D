@@ -24,6 +24,7 @@ simulation.freq_binsearch_initial_guess = 1e9;
 simulation.freq_binsearch_target = 90;
 simulation.freq_binsearch_raw_tol = 0.25;
 simulation.freq_binsearch_max_gens = 10;
+simulation.freq_ceiling = 3.5e9;
 
 simulation.heat_transfer_binsearch = 0;
 simulation.heat_transfer_binsearch_temp_target = 90;

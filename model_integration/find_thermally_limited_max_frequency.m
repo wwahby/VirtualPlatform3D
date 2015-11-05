@@ -5,6 +5,7 @@ target_max_value = simulation.freq_binsearch_target;
 target_cur_value = target_max_value*1; % start with something invalid so we run it at least once
 abs_err = abs(target_max_value - target_cur_value);
 tolerance = simulation.freq_binsearch_raw_tol;
+target_ceiling_value = simulation.freq_ceiling; % If > 0, do not allow the use of frequencies higher than this.
 
 %% Find bounds
 % Start with initial guess g0
@@ -69,6 +70,19 @@ while(keep_going)
     end
 end
 
+if ( target_ceiling_value > 0) % if we enter this, intelligently limit the frequency to the frequency ceiling
+    if ((max_bound > target_ceiling_value) && (min_bound  > target_ceiling_value))
+        max_bound = target_ceiling_value;
+        min_bound = target_ceiling_value;
+        mid = target_ceiling_value;
+        core.chip.clock_period = 1/mid;
+        [core.chip, core.power, core.tsv, core.wire, core.repeater, core.psn] = codesign_block(core.chip,core.tsv,core.gate,core.transistor,core.wire,core.heat,core.psn,simulation);
+        within_tol = 1;
+    elseif ( (max_bound > target_ceiling_value) && (min_bound < target_ceiling_value) )
+        max_bound = target_ceiling_value;
+    end % otherwise both max_bound and min_bound are less than the target_ceiling_value and we don't need to limit it
+end
+    
 % At this point min_bound and max_bound should be set
 % We may have accidentally hit on something close enough to accept, in that
 % case just stop
