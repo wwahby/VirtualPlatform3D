@@ -178,7 +178,7 @@ To = transistor.leakage_reference_temperature;
 kb = 1.381e-23; % (J/K)
 T = chip.temperature + 273.15; % (K)
 q = 1.602e-19; % (C)
-Eg = 1/12; % (eV)
+Eg = 1.12; % (eV)
 
 phi_th = kb*T/q;
 Ilk_T = Ilk_To * (T/To)*exp(-q*Eg/kb*(1/T-1/To))*(exp(-Vds/phi_th)-1);
