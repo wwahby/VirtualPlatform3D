@@ -4,7 +4,8 @@ clear all
 %% Simulation parameters
 simulation.skip_psn_loops = 1; % Skip PSN TSV homing for faster debug
 simulation.skip_thermal = 0; % Skip thermal analysis for faster debug
-simulation.iterate_temperature = 1;
+simulation.iterate_temperature = 0; % rerun WLA/Leakage until temperature converges
+simulation.ignore_leakage = 1;
 
 simulation.use_joyner = 0;
 simulation.redo_wiring_after_repeaters = 0;
@@ -24,7 +25,11 @@ simulation.freq_binsearch_initial_guess = 1e9;
 simulation.freq_binsearch_target = 90;
 simulation.freq_binsearch_raw_tol = 0.25;
 simulation.freq_binsearch_max_gens = 10;
-simulation.freq_ceiling = 3.5e9;
+simulation.freq_ceiling = 0;%3.5e9;
+
+simulation.power_binsearch = 0;
+simulation.power_binsearch_target = 90;
+simulation.power_binsearch_raw_tol = 0.25;
 
 simulation.heat_transfer_binsearch = 0;
 simulation.heat_transfer_binsearch_temp_target = 90;
@@ -32,6 +37,7 @@ simulation.heat_transfer_binsearch_temp_raw_tol = 0.25;
 simulation.heat_transfer_binsearch_max_gens = 10;
 
 simulation.force_power = 0;
+simulation.insanity_temperature = 1e3; % (C) 
 
 simulation.ignore_repeater_area = 0; % 0 = restrict area, 1 = ignore area limit
 
@@ -71,12 +77,12 @@ rho_ni = 69.9e-9;
 rho_all_mets = [rho_ag rho_cu rho_au rho_al rho_w rho_ni];
 
 %% Sweep settings
-tiers = [1 2 4 8];
+tiers = [1];
 thicknesses = [1e-6];
 force_thickness = 1;
 rel_permittivities = [3];
 frequencies = design.fmax;
-heat_fluxes = [ h_air h_water ];% h_water h_water];
+heat_fluxes = [ h_air];% h_water h_water];
 thermal_conductivities = 0.3;
 cooling_configs = {'up', 'down'};%, 'down', 'down_all'}; % 
 decap_ratios = [0.1]; % Fraction of die area used for decoupling capacitors

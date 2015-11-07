@@ -194,6 +194,15 @@ for cind = 1:num_cooling_configs
                                                     %% If we're searching for frequencies below a certain temperature
                                                     if (simulation.freq_binsearch == 1)
                                                         core = find_thermally_limited_max_frequency(core, simulation);
+                                                    elseif (simulation.power_binsearch == 1)
+                                                        core_init = core;
+                                                        simulation.ignore_leakage = 1;
+                                                        core = find_thermally_limited_max_frequency(core, simulation);
+                                                        power_target_W = core.power.total;
+                                                        temperature_target_C = simulation.freq_binsearch_target;
+                                                        fprintf('Beginning power search...\n')
+                                                        simulation.ignore_leakage = 0;
+                                                        core = design_for_power_target(power_target_W, temperature_target_C, core_init, simulation);
                                                     elseif (simulation.heat_transfer_binsearch == 1)
                                                         core = find_heat_transfer_coeff_for_target_temp(core, simulation);
                                                     else
