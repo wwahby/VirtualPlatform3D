@@ -15,8 +15,13 @@ q = 1.602e-19; % (C)
 Eg = 1.12; % (eV)
 
 phi_th = kb*T/q;
-Ilk_T = Ilk_To * (T/To)*exp(-q*Eg/kb*(1/T-1/To))*(exp(-Vds/phi_th)-1);
+phi_th0 = kb*To/q;
+Ilk_T = Ilk_To * (T/To)*exp(-q*Eg/2/kb*(1/T-1/To))*(exp(-Vds/phi_th)-1);
+%Ilk_T = Ilk_To * (T/To)*exp(-Eg/2/phi_th)*exp(Eg/2/phi_th0)*(exp(-Vds/phi_th)-1);
 Ilk_T = abs(Ilk_T);
 
 Plk_per_transistor = Ilk_T*Vdd
 Plk_per_transistor_per_um = Ilk_T/width_um
+
+Nt = 1e6;
+Plk_per_million_transistors = Plk_per_transistor*Nt
