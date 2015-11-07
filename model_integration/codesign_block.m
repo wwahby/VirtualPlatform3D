@@ -54,7 +54,8 @@ end
 
 %% Check if we need to run/rerun the interconnect and thermal modules
 initial_run = (temperature_iterations == 1);
-rerun_temperature = (~temperature_converged) && (temperature_iterations <= temperature_iterations_max) && (simulation.iterate_temperature) && (~simulation.skip_thermal);
+temp_below_sanity_limit = (chip.temperature < simulation.insanity_temperature);
+rerun_temperature = (~temperature_converged) && (temperature_iterations <= temperature_iterations_max) && (simulation.iterate_temperature) && (~simulation.skip_thermal) && (temp_below_sanity_limit);
 run_xcm_and_thermal_modules = (initial_run || rerun_temperature);
 
 while(run_xcm_and_thermal_modules)
@@ -129,8 +130,10 @@ while(run_xcm_and_thermal_modules)
     end
     
     initial_run = (temperature_iterations == 1);
-    rerun_temperature = (~temperature_converged) && (temperature_iterations <= temperature_iterations_max) && (simulation.iterate_temperature) && (~simulation.skip_thermal);
+    temp_below_sanity_limit = (chip.temperature < simulation.insanity_temperature);
+    rerun_temperature = (~temperature_converged) && (temperature_iterations <= temperature_iterations_max) && (simulation.iterate_temperature) && (~simulation.skip_thermal) && (temp_below_sanity_limit) && (simulation.iterate_temperature);
     run_xcm_and_thermal_modules = (initial_run || rerun_temperature);
+    chip.temperature_exceeds_sanity_limit = ~temp_below_sanity_limit;
 end
 
 
