@@ -25,6 +25,7 @@ dir_sign = false;
 prev_dir_sign = false;
 prev_freq = cur_freq;
 prefactor = 1;
+initial_temperature = core.chip.temperature;
 
 time_init_start = cputime;
 while(keep_going)
@@ -35,7 +36,11 @@ while(keep_going)
     within_tol = (abs_err <= tolerance);
     
     prev_dir_sign = dir_sign;
-    if (cur_temp < target_max_value)
+    if (core.chip.temperature_exceeds_sanity_limit) % decrease frequency and reset chip temperature
+        prefactor = 1/A;
+        dir_sign = false;
+        core.chip.temperature = initial_temperature;        
+    elseif (cur_temp < target_max_value)
         prefactor = A;
         dir_sign = true;
     elseif (cur_temp > target_max_value)
