@@ -5,7 +5,7 @@ clear all
 simulation.skip_psn_loops = 1; % Skip PSN TSV homing for faster debug
 simulation.skip_thermal = 0; % Skip thermal analysis for faster debug
 simulation.iterate_temperature = 0; % rerun WLA/Leakage until temperature converges
-simulation.ignore_leakage = 1;
+simulation.ignore_leakage = 0;
 
 simulation.use_joyner = 0;
 simulation.redo_wiring_after_repeaters = 0;
@@ -73,18 +73,20 @@ rho_au = 24.4e-9;
 rho_al = 26.5e-9;
 rho_w = 56.0e-9;
 rho_ni = 69.9e-9;
+rho_pt = 106e-9;
 %rho_co_al = 0e-9;
-rho_all_mets = [rho_ag rho_cu rho_au rho_al rho_w rho_ni];
+rho_all_mets = [rho_ag rho_cu rho_au rho_al rho_w rho_ni rho_pt];
 
 %% Sweep settings
-tiers = [1];
-thicknesses = [1e-6];
+tiers = [1:8];
+thicknesses = [1e-6 100e-6];
 force_thickness = 1;
 rel_permittivities = [3];
 frequencies = design.fmax;
-heat_fluxes = [ h_air];% h_water h_water];
+heat_fluxes = [ h_air, h_water];% h_water h_water];
+temperature_targets = [90, 90]; % temperature target to be used for each heat flux condition
+cooling_configs = {'up', 'down'};%, 'down', 'down_all'}; % Location of heat sink in each heat flux condition
 thermal_conductivities = 0.3;
-cooling_configs = {'up', 'down'};%, 'down', 'down_all'}; % 
 decap_ratios = [0.1]; % Fraction of die area used for decoupling capacitors
 wire_resistivities = [rho_cu];
 wire_material_flags = {'00'}; % binary strings. bit1 = use_graphene, bit0 = use alt_em_mat
