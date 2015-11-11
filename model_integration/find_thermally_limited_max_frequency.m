@@ -1,7 +1,7 @@
-function core = find_thermally_limited_max_frequency(core, simulation)
+function core = find_thermally_limited_max_frequency(core, simulation, temperature_target)
 
 max_gens = simulation.freq_binsearch_max_gens;
-target_max_value = simulation.freq_binsearch_target;
+target_max_value = temperature_target;
 target_cur_value = target_max_value*1; % start with something invalid so we run it at least once
 abs_err = abs(target_max_value - target_cur_value);
 tolerance = simulation.freq_binsearch_raw_tol;
@@ -30,6 +30,7 @@ initial_temperature = core.chip.temperature;
 time_init_start = cputime;
 while(keep_going)
     core.chip.clock_period = 1/cur_freq;
+    core.chip.temperature = temperature_target;
     [core.chip, core.power, core.tsv, core.wire, core.repeater, core.psn] = codesign_block(core.chip,core.tsv,core.gate,core.transistor,core.wire,core.heat,core.psn,simulation);
     cur_temp = core.chip.temperature;
     abs_err = abs(target_max_value - cur_temp);
@@ -81,6 +82,7 @@ if ( target_ceiling_value > 0) % if we enter this, intelligently limit the frequ
         min_bound = target_ceiling_value;
         mid = target_ceiling_value;
         core.chip.clock_period = 1/mid;
+        core.chip.temperature = temperature_target;
         [core.chip, core.power, core.tsv, core.wire, core.repeater, core.psn] = codesign_block(core.chip,core.tsv,core.gate,core.transistor,core.wire,core.heat,core.psn,simulation);
         within_tol = 1;
     elseif ( (max_bound > target_ceiling_value) && (min_bound < target_ceiling_value) )
@@ -102,6 +104,7 @@ if (~within_tol)
     while ((abs_err > tolerance) && (num_gens < max_gens))
         mid = 1/2*(left+right);
         core.chip.clock_period = 1/mid;
+        core.chip.temperature = temperature_target;
         [core.chip, core.power, core.tsv, core.wire, core.repeater, core.psn] = codesign_block(core.chip,core.tsv,core.gate,core.transistor,core.wire,core.heat,core.psn,simulation);
         target_cur_value = core.chip.temperature;
         abs_err = abs(target_max_value - target_cur_value);

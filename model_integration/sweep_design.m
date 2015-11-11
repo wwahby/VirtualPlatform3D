@@ -189,15 +189,17 @@ for cind = 1:num_cooling_configs
                                                         core.heat.d = core.heat.h_package;
                                                     end
 
-                                                    %core.heat.k_microbumps = thermal_conductivities(k_ind);
+                                                    core.heat.k_underfill = thermal_conductivities(k_ind);
+                                                    temperature_target = temperature_targets(cind);
+                                                    core.chip.temperature = temperature_target;
 
                                                     %% If we're searching for frequencies below a certain temperature
                                                     if (simulation.freq_binsearch == 1)
-                                                        core = find_thermally_limited_max_frequency(core, simulation);
+                                                        core = find_thermally_limited_max_frequency(core, simulation, temperature_target);
                                                     elseif (simulation.power_binsearch == 1)
                                                         core_init = core;
                                                         simulation.ignore_leakage = 1;
-                                                        core = find_thermally_limited_max_frequency(core, simulation);
+                                                        core = find_thermally_limited_max_frequency(core, simulation, temperature_target);
                                                         power_target_W = core.power.total;
                                                         temperature_target_C = simulation.freq_binsearch_target;
                                                         fprintf('Beginning power search...\n')
