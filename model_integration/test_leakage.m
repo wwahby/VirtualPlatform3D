@@ -8,6 +8,7 @@ Ilk_To = Ioff_per_um*width_um;
 To = 300; % (K)
 Vdd = 1.25;
 Vds = Vdd;
+Vth = 0.25; % (V)
 
 kb = 1.381e-23; % (J/K)
 T = 390; % (K)
@@ -16,7 +17,8 @@ Eg = 1.12; % (eV)
 
 phi_th = kb*T/q;
 phi_th0 = kb*To/q;
-Ilk_T = Ilk_To * (T/To)*exp(-q*Eg/2/kb*(1/T-1/To))*(exp(-Vds/phi_th)-1);
+%Ilk_T = Ilk_To * (T/To)*exp(-q*Eg/2/kb*(1/T-1/To))*(exp(-Vds/phi_th)-1)
+Ilk_T = Ilk_To * (T/To)*exp(-q*(Vds-Vth)/2/kb*(1/T-1/To))*(exp(-Vds/phi_th)-1)
 %Ilk_T = Ilk_To * (T/To)*exp(-Eg/2/phi_th)*exp(Eg/2/phi_th0)*(exp(-Vds/phi_th)-1);
 Ilk_T = abs(Ilk_T);
 

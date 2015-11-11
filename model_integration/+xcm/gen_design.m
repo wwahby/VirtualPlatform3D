@@ -181,12 +181,15 @@ q = 1.602e-19; % (C)
 Eg = 1.12; % (eV)
 
 phi_th = kb*T/q;
-Ilk_T = Ilk_To * (T/To)*exp(-q*Eg/2/kb*(1/T-1/To))*(exp(-Vds/phi_th)-1);
+Ilk_T = Ilk_To * (T/To)*exp(-q*(Vds-Vth)/2/kb*(1/T-1/To))*(exp(-Vds/phi_th)-1);
 Ilk_T = abs(Ilk_T);
 
+w_trans_min_m = w_trans;
+[Plk_per_transistor, Plk_per_transistor_per_um, Ilk_T] = calc_transistor_leakage_at_temp(chip.temperature, To, Vdd, Vth, Ioff_per_um, w_trans_min_m, width_um, 1);
 
-Plk_per_transistor = Ilk_T*Vdd;
-Plk_per_transistor_per_um = Ilk_T/width_um;
+
+%Plk_per_transistor = Ilk_T*Vdd;
+%Plk_per_transistor_per_um = Ilk_T/width_um;
 
 if (simulation.ignore_leakage)
     Ilk_T = 0;
