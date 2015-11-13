@@ -16,11 +16,11 @@ simulation.separate_wiring_tiers = 1; % 1 = Each logic plane will have its own w
 simulation.draw_thermal_map = 0; % Plot thermal profile of each chip
 simulation.print_thermal_data = 0; % Output max temp in each layer to console
 
-simulation.wla_max_attempts = 15; % 15 is default
-simulation.wla_min_bot_fill_factor = 0.91; % 0.97 is default
+simulation.wla_max_attempts = 30; % 15 is default
+simulation.wla_min_bot_fill_factor = 0.97; % 0.97 is default
 simulation.wla_min_top_fill_factor = 0.01; % 0.01 is default
 
-simulation.freq_binsearch = 1;
+simulation.freq_binsearch = 0;
 simulation.freq_binsearch_initial_guess = 1e9;
 simulation.freq_binsearch_target = 90;
 simulation.freq_binsearch_raw_tol = 0.25;
@@ -78,14 +78,14 @@ rho_pt = 106e-9;
 rho_all_mets = [rho_ag rho_cu rho_au rho_al rho_w rho_ni rho_pt];
 
 %% Sweep settings
-tiers = [1:8];
-thicknesses = [1e-6 100e-6];
+tiers = [1];
+thicknesses = [50e-6];
 force_thickness = 1;
-rel_permittivities = [3];
+rel_permittivities = [1:0.25:4];
 frequencies = design.fmax;
-heat_fluxes = [ h_air, h_water];% h_water h_water];
-temperature_targets = [90, 90]; % temperature target to be used for each heat flux condition
-cooling_configs = {'up', 'down'};%, 'down', 'down_all'}; % Location of heat sink in each heat flux condition
+heat_fluxes = [ h_air];% h_water h_water];
+temperature_targets = [90]; % temperature target to be used for each heat flux condition
+cooling_configs = {'up'};%, 'down', 'down_all'}; % Location of heat sink in each heat flux condition
 thermal_conductivities = 0.3;
 decap_ratios = [0.1]; % Fraction of die area used for decoupling capacitors
 wire_resistivities = [rho_cu];
@@ -112,6 +112,7 @@ sweep_design
 %plot.plot_temp_vs_forced_power
 %plot.plot_epc_vs_tiers
 %plot.plot_freq_vs_scaling
-plot.plot_freq_vs_tiers_and_cooling
+% plot.plot_freq_vs_tiers_and_cooling
 %plot.plot_power_tsvs_vs_scaling
 %plot.plot_temp_underfill_vs_tiers
+plot.plot_metal_levs_and_power_vs_permittivity
