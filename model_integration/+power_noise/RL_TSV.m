@@ -1,7 +1,7 @@
 %%%%%% TSV resistance, inductance and capacitance calculation
 %%%%%% Li Zheng, 9/21/2012
 
-function [R,L] = RL_TSV(H,D,barrier_thickness,rho_barrier,rho,mu,TSVpitch,Ppitch)
+function [R,L] = RL_TSV(H,D,barrier_thickness,rho_barrier,rho,mu,TSVpitch,Ppitch,temperature_K)
 
 %%%%%% Test Codes %%%%%
 % clear
@@ -23,7 +23,7 @@ width = D;
 height = D;
 wire_length = H;
 %[R rho_cu] = xcm.calc_cu_wire_resistance_size_dependent(resistivity_bulk,width,height,wire_length,electron_mfp,specularity_coeff,reflection_coeff); % Use size-dependent resistivity, rather than bulk
-[R, rho_cu, R_cu, R_barrier] = xcm.calc_cu_wire_resistance_size_dependent(resistivity_bulk,width,height,barrier_thickness,rho_barrier,wire_length,electron_mfp,specularity_coeff,reflection_coeff);
+[R, rho_cu, R_cu, R_barrier] = xcm.calc_cu_wire_resistance_size_dependent(resistivity_bulk,width,height,barrier_thickness,rho_barrier,wire_length,electron_mfp,specularity_coeff,reflection_coeff,temperature_K);
 
 R = rho_cu*H/(pi*(D/2)^2);
 Ls = mu*H/(2*pi)*log(1+2.84*H/(pi*(D/2)));
