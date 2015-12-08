@@ -78,13 +78,13 @@ rho_pt = 106e-9;
 rho_all_mets = [rho_ag rho_cu rho_au rho_al rho_w rho_ni rho_pt];
 
 %% Sweep settings
-tiers = [1];
-thicknesses = [50e-6];
+tiers = [1 2 3 4];
+thicknesses = [10e-6];
 force_thickness = 1;
-rel_permittivities = [1:0.25:4];
+rel_permittivities = [1:0.1:4];
 frequencies = design.fmax;
 heat_fluxes = [ h_air];% h_water h_water];
-temperature_targets = [90]; % temperature target to be used for each heat flux condition
+temperature_targets = [70]; % temperature target to be used for each heat flux condition
 cooling_configs = {'up'};%, 'down', 'down_all'}; % Location of heat sink in each heat flux condition
 thermal_conductivities = 0.3;
 decap_ratios = [0.1]; % Fraction of die area used for decoupling capacitors
