@@ -177,5 +177,9 @@ while ((norm_err > tol) && (gen_ind < max_gens) && (rbnd > lbnd+1))
     gen_ind = gen_ind + 1;
 end
 
+if (psn.power_tsv_width == -1)
+    psn.power_tsv_width = tsv.width_m;
+end
+
 
  fprintf('\tPSN Done! \tNpads: %d\tpsn_target: %d\tpsn_max: %d\tnorm_err: %.3g\n',psn.Npads, psn.noise_target, psn_max,norm_err_min);
