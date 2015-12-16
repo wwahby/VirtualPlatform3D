@@ -32,16 +32,12 @@ time_init_start = cputime;
 while(keep_going)
     core.chip.clock_period = 1/cur_freq;
     [core.chip, core.power, core.tsv, core.wire, core.repeater, core.psn] = codesign_block(core.chip,core.tsv,core.gate,core.transistor,core.wire,core.heat,core.psn,simulation);
-    cur_power = core.power.total - core.power.leakage;
+    cur_power = core.power.total;% - core.power.leakage;
     abs_err = abs(target_max_value - cur_power);
     within_tol = (abs_err <= tolerance);
     
-    prev_dir_sign = dir_sign;
-    if (core.chip.temperature_exceeds_sanity_limit) % decrease frequency and reset chip temperature
-        prefactor = 1/A;
-        dir_sign = false;
-        core.chip.temperature = initial_temperature;        
-    elseif (cur_power < target_max_value)
+    prev_dir_sign = dir_sign;      
+    if (cur_power < target_max_value)
         prefactor = A;
         dir_sign = true;
     elseif (cur_power > target_max_value)
@@ -51,6 +47,7 @@ while(keep_going)
         prefactor = 1;
         dir_sign = false;
         % [ FIX ] need to break here so we don't get stuck
+        fprintf('Weird!\n')
     end
     
     if ( gen_init > 0) % the second run is the first one where we'll know if we can stop
@@ -62,7 +59,7 @@ while(keep_going)
     end
     
     keep_going = keep_going && (~within_tol) && (gen_init <= max_gens); % also stop if we're within the tolerance value;
-    fprintf('Initial Search Gen %d: \t Freq: %.3g \t Temp: %.4d\n\n', gen_init, cur_freq, cur_power);
+    fprintf('Initial Search Gen %d: \t Freq: %.3g \t Power: %.4g \t Target: %.4g\n\n', gen_init, cur_freq, cur_power, target_max_value);
     if (keep_going)
         prev_freq = cur_freq;
         cur_freq = prefactor*prev_freq;
@@ -104,7 +101,7 @@ if (~within_tol)
         mid = 1/2*(left+right);
         core.chip.clock_period = 1/mid;
         [core.chip, core.power, core.tsv, core.wire, core.repeater, core.psn] = codesign_block(core.chip,core.tsv,core.gate,core.transistor,core.wire,core.heat,core.psn,simulation);
-        target_cur_value = core.power.total - core.power.leakage;
+        target_cur_value = core.power.total;% - core.power.leakage;
         abs_err = abs(target_max_value - target_cur_value);
 
         if (target_cur_value > target_max_value)
@@ -117,7 +114,7 @@ if (~within_tol)
         end
 
         num_gens = num_gens + 1;
-        fprintf('Binsrch Gen %d: \t Freq: %.3g \t Temp: %.4d\n\n',num_gens, mid, target_cur_value);
+        fprintf('Binsrch Gen %d: \t Freq: %.3g \t Power: %.4g \t Target: %.4g\n\n',num_gens, mid, target_cur_value, target_max_value);
     end
 end
 time_bin_stop = cputime;

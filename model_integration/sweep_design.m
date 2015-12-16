@@ -197,14 +197,24 @@ for cind = 1:num_cooling_configs
                                                     if (simulation.freq_binsearch == 1)
                                                         core = find_thermally_limited_max_frequency(core, simulation, temperature_target);
                                                     elseif (simulation.power_binsearch == 1)
-                                                        core_init = core;
-                                                        simulation.ignore_leakage = 1;
-                                                        core = find_thermally_limited_max_frequency(core, simulation, temperature_target);
-                                                        power_target_W = core.power.total;
-                                                        temperature_target_C = simulation.freq_binsearch_target;
-                                                        fprintf('Beginning power search...\n')
-                                                        simulation.ignore_leakage = 0;
-                                                        core = design_for_power_target(power_target_W, temperature_target_C, core_init, simulation);
+                                                        %Do frequency binsearch on first tier, and use that to set the power targets
+                                                        if nind == 1
+                                                            simulation.skip_thermal = 0; % Run thermal analysis for first round
+                                                            core = find_thermally_limited_max_frequency(core, simulation, temperature_target);
+                                                            simulation.power_binsearch_target = core.power.total; % set power target for future iterations
+                                                        else
+                                                            
+%                                                         core_init = core;
+%                                                         simulation.ignore_leakage = 1;
+%                                                         core = find_thermally_limited_max_frequency(core, simulation, temperature_target);
+%                                                         power_target_W = core.power.total;
+%                                                         temperature_target_C = simulation.freq_binsearch_target;
+%                                                         fprintf('Beginning power search...\n')
+%                                                         simulation.ignore_leakage = 0;
+%                                                         core = design_for_power_target(power_target_W, temperature_target_C, core_init, simulation);
+                                                            simulation.skip_thermal = 1; % Skip thermal analysis since we're now assuming temperature is fixed at temperature_target
+                                                            core = find_power_limited_max_frequency(core, simulation);
+                                                        end
                                                     elseif (simulation.heat_transfer_binsearch == 1)
                                                         core = find_heat_transfer_coeff_for_target_temp(core, simulation);
                                                     else
