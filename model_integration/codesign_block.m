@@ -56,6 +56,7 @@ end
 initial_run = (temperature_iterations == 1);
 temp_below_sanity_limit = (chip.temperature < simulation.insanity_temperature);
 rerun_temperature = (~temperature_converged) && (temperature_iterations <= temperature_iterations_max) && (simulation.iterate_temperature) && (~simulation.skip_thermal) && (temp_below_sanity_limit);
+
 run_xcm_and_thermal_modules = (initial_run || rerun_temperature);
 
 while(run_xcm_and_thermal_modules)
@@ -124,10 +125,10 @@ while(run_xcm_and_thermal_modules)
         fprintf('\tPrevious Temperature: %.5g\tCurrent Temperature: %.5g\n',temperature_previous, temperature_current);
 
         temperature_converged = ( abs(temperature_change) < temperature_change_tolerance);
-        temperature_iterations = temperature_iterations + 1;
     else
         fprintf('\tThermal analysis SKIPPED due to simulation flag!\n')
     end
+    temperature_iterations = temperature_iterations + 1;
     
     initial_run = (temperature_iterations == 1);
     temp_below_sanity_limit = (chip.temperature < simulation.insanity_temperature);
