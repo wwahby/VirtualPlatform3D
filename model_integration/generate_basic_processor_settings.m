@@ -79,8 +79,8 @@ wire.repeater_via_max_area_fraction = 0.05; % (-) Fraction of routable wire area
 
 %% Power supply noise model parameters
 
-psn.noise_fraction = 0.15;          % (-) Maximum power supply noise as a fraction of Vdd
-psn.noise_target = 0.1875;          % (V) Acceptable power supply noise
+psn.noise_fraction = 0.10;          % (-) Maximum power supply noise as a fraction of Vdd
+%psn.noise_target = 0.1875;          % (V) Acceptable power supply noise
 psn.decap_area_fraction = 0.1;      % (Ratio) - Fraction of chip area dedicated to decoupling capacitors
 psn.power_tsv_width = 10e-6;        % (m) Width of TSVs used for power delivery. This may be larger than signal TSVs. Setting this to -1 will cause PSN module to use the signal TSV width.
 
