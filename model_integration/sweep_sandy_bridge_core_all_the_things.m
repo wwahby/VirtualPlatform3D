@@ -24,12 +24,12 @@ simulation.freq_binsearch = 0;
 simulation.freq_binsearch_initial_guess = 1e9;
 simulation.freq_binsearch_target = 90;
 simulation.freq_binsearch_raw_tol = 0.25;
-simulation.freq_binsearch_max_gens = 10;
+simulation.freq_binsearch_max_gens = 12;
 simulation.freq_ceiling = 0;%3.5e9;
 
-simulation.power_binsearch = 0;
-simulation.power_binsearch_target = 90;
-simulation.power_binsearch_raw_tol = 0.25;
+simulation.power_binsearch = 1;
+simulation.power_binsearch_target = 20;
+simulation.power_binsearch_raw_tol = 0.01;
 
 simulation.heat_transfer_binsearch = 0;
 simulation.heat_transfer_binsearch_temp_target = 90;
@@ -78,10 +78,10 @@ rho_pt = 106e-9;
 rho_all_mets = [rho_ag rho_cu rho_au rho_al rho_w rho_ni rho_pt];
 
 %% Sweep settings
-tiers = [1 2 3 4];
+tiers = [1:8];
 thicknesses = [10e-6];
 force_thickness = 1;
-rel_permittivities = [1:0.1:4];
+rel_permittivities = [3];
 frequencies = design.fmax;
 heat_fluxes = [ h_air];% h_water h_water];
 temperature_targets = [70]; % temperature target to be used for each heat flux condition
@@ -95,7 +95,7 @@ node_labels = {'32nm'}; %{'32nm', '22nm', '14nm', '10nm', '7nm', '5nm'}; % label
 barrier_thicknesses = [0e-9];
 barrier_resistivities = [1000e-9];
 power_forced_vec = linspace(0,25,21); % (W) If simulation.force_power is 1, this forces power consumption to these values during sweep for thermal purposes
-power_tsv_width = 1e-6;
+power_tsv_width = 10e-6; % set this to -1 to use the same dimensions as signal TSVs (signal TSV dimensions are determined automatically in the interconnect module, and will typically be on the smallish end of things)
 
 %This doesn't get swept, but rather, if you're doing a scaling sweep, you can input extra Vdd values here to have each scaled node use a different Vdd. If Vdd is constant (or stops scaling after a certain node) you can just have a single entry (or only the first few entries until it stops changing)
 Vdd_vec = [ 1.25, 1.0, 0.95, 0.90, 0.85, 0.80]; % Vdd used at each **scaling node**.
@@ -106,13 +106,14 @@ Vdd_vec = [ 1.25, 1.0, 0.95, 0.90, 0.85, 0.80]; % Vdd used at each **scaling nod
 sweep_design
 
 %% plot stuff!
-%plot_sweep_data( sweep, sweep_data, simulation )
-%plot_sweep_data % just run as script
-%plot.plot_heat_transfer_coeff_vs_tiers
-%plot.plot_temp_vs_forced_power
-%plot.plot_epc_vs_tiers
-%plot.plot_freq_vs_scaling
-% plot.plot_freq_vs_tiers_and_cooling
-%plot.plot_power_tsvs_vs_scaling
-%plot.plot_temp_underfill_vs_tiers
-plot.plot_metal_levs_and_power_vs_permittivity
+% plot_sweep_data( sweep, sweep_data, simulation )
+% plot_sweep_data % just run as script
+% plot.plot_heat_transfer_coeff_vs_tiers
+% plot.plot_temp_vs_forced_power
+% plot.plot_epc_vs_tiers
+% plot.plot_freq_vs_scaling
+plot.plot_freq_vs_tiers_and_cooling
+% plot.plot_power_tsvs_vs_scaling
+% plot.plot_temp_underfill_vs_tiers
+% plot.plot_metal_levs_and_power_vs_permittivity
+% plot.plot_everything_vs_resistivity_and_tiers
