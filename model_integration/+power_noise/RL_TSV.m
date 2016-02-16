@@ -15,7 +15,7 @@ function [R,L] = RL_TSV(H,D,barrier_thickness,rho_barrier,rho,mu,TSVpitch,Ppitch
 % Ppitch = 424e-6;    %power or ground pad pitch
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 
-resistivity_bulk = 17.2e-9;
+resistivity_bulk = rho;
 electron_mfp = 39e-9; % (m) Mean free path of electrons in copper
 specularity_coeff = 0.55;
 reflection_coeff = 0.43;
