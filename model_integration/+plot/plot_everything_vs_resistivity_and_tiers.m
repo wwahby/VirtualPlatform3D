@@ -44,7 +44,7 @@ for nind = 1:num_stacks
     plot(wire_resistivities*1e9, npads_vec(nind,:), 'color', colors{nind}, 'linestyle', '-');
 end
 xlabel('Bulk Resistivity (\Omeganm)')
-ylabel('Number of Power TSVs Per Die')
+ylabel('Power Vias Per Tier')
 set(gca,'yscale','log')
 xlim([10 60])
 fixfigs(3,3,14,12)
@@ -66,7 +66,22 @@ for nind = 1:num_stacks
     plot(wire_resistivities*1e9, psn_tsv_area_vec_mm2(nind,:)/total_tsv_area_allocation_mm2, 'color', colors{nind}, 'linestyle', '-');
 end
 xlabel('Bulk Resistivity (\Omeganm)')
-ylabel('Power TSV Area / Max TSV Area')
+ylabel('Power Via Area / Max Via Area')
 xlim([10 60])
 set(gca,'yscale','log')
 fixfigs(5,3,14,12)
+
+figure(6)
+clf
+hold on
+for nind = 1:num_stacks
+    area_per_die_mm2 = total_die_area_mm2/tiers(nind);
+    total_tsv_area_allocation_mm2 = area_per_die_mm2;
+    
+    plot(wire_resistivities*1e9, psn_tsv_area_vec_mm2(nind,:)/total_tsv_area_allocation_mm2, 'color', colors{nind}, 'linestyle', '-');
+end
+xlabel('Bulk Resistivity (\Omeganm)')
+ylabel('Power Via Area / Total Area')
+xlim([10 60])
+set(gca,'yscale','log')
+fixfigs(6,3,14,12)

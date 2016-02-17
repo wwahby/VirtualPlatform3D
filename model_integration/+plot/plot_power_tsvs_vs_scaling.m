@@ -235,4 +235,58 @@ ylabel('Number of Power TSVs/Pads')
 fixfigs(10,3,14,12)
 
 
+total_die_area_m2 = core.chip.area_total;
+total_die_area_mm2 = total_die_area_m2 * 1e6;
+tsv_max_area_fraction = 0.01;
+
+psn_tsv_area_vec_m2 = npads_mat * core.psn.power_tsv_width^2;
+psn_tsv_area_vec_mm2 = psn_tsv_area_vec_m2*1e6;
+
+figure(11)
+clf
+hold on
+for wire_res_ind = 1:num_wire_resistivities
+    for nind = 1:num_stacks
+        area_per_die_mm2 = total_die_area_mm2/tiers(nind);
+        total_tsv_area_allocation_mm2 = area_per_die_mm2 * tsv_max_area_fraction;
+        
+        plot_vec = zeros(1,num_scaling_factors);
+        plot_vec(1,:) = psn_tsv_area_vec_mm2(wire_res_ind, nind,:);
+        plot_vec = plot_vec( plot_vec > 0);
+        wire_resistivities
+        plot_vec
+
+        plot(1:length(plot_vec), plot_vec/total_tsv_area_allocation_mm2, 'color', colors{wire_res_ind}, 'linestyle', linestyles{nind});
+    end
+end
+xlabel('Process Node')
+ylabel('Power Via Area / Max Via Area')
+set(gca, 'xtick', 1:num_scaling_factors)
+set(gca, 'xticklabel', node_labels)
+set(gca,'yscale','log')
+fixfigs(11,3,14,12)
+
+figure(12)
+clf
+hold on
+for wire_res_ind = 1:num_wire_resistivities
+    for nind = 1:num_stacks
+        area_per_die_mm2 = total_die_area_mm2/tiers(nind);
+        total_tsv_area_allocation_mm2 = area_per_die_mm2;
+        
+        plot_vec = zeros(1,num_scaling_factors);
+        plot_vec(1,:) = psn_tsv_area_vec_mm2(wire_res_ind, nind,:);
+        plot_vec = plot_vec( plot_vec > 0);
+
+        plot(1:length(plot_vec), plot_vec/total_tsv_area_allocation_mm2, 'color', colors{wire_res_ind}, 'linestyle', linestyles{nind});
+    end
+end
+xlabel('Process Node')
+ylabel('Power Via Area / Total Area')
+set(gca, 'xtick', 1:num_scaling_factors)
+set(gca, 'xticklabel', node_labels)
+set(gca,'yscale','log')
+fixfigs(12,3,14,12)
+
+
 

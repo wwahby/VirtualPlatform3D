@@ -148,6 +148,21 @@ else
     fprintf('\tPSN analysis SKIPPED due to simulation flag!\n')
 end
 
+temperature_K = chip.temperature + 273.15;
+decap_frac_per_die = psn.decap_area_fraction * ones(1,chip.num_layers);
+power_per_layer = power.total/chip.num_layers;
+power_per_die = ones(1,chip.num_layers)*power_per_layer;  %power dissipation of each die
+resistivity_bulk = wire.resistivity;
+if (simulation.run_transient_psn)
+    [max_noise, max_noise_time, time_mat, voltage_mat] = pdnt.run_transient_power_analysis(chip.Vdd, chip.thickness, chip_width, chip_height, tsv, resistivity_bulk, power_per_die, decap_frac_per_die, temperature_K, heat );
+    psn.transient.max_noise = max_noise;
+    psn.transient.max_noise_time = max_noise_time;
+    psn.transient.time_mat = time_mat;
+    psn.transient.voltage_mat = voltage_mat;
+end
+
+
+
 %% Final report
 
 time_stop = cputime;
