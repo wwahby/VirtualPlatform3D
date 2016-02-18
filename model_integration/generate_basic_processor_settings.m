@@ -74,7 +74,7 @@ wire.alt_resistivity_em = 30e-9;    %(Ohm*m) Resistivity of alternate EM-resista
 wire.alt_material_barrier_thickness = 1e-9; % (m) Thickness of diffusion barrier for alternate EM-resistant metal
 wire.alt_material_barrier_resistivity = 50e-9; % (Ohm*m) Resistivity of diffusion barrier for alternate EM-resistant metal
 
-wire.repeater_max_area_fraction = 0.2; % (-) Fraction of chip area that can be consumed by repeater/buffer gates
+wire.repeater_max_area_fraction = 0.3; % (-) Fraction of chip area that can be consumed by repeater/buffer gates
 wire.repeater_via_max_area_fraction = 0.05; % (-) Fraction of routable wire area that can be consumed by vias for repeater connections
 
 %% Power supply noise model parameters

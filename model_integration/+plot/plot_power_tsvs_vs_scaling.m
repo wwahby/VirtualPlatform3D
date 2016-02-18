@@ -257,8 +257,6 @@ for wire_res_ind = 1:num_wire_resistivities
         plot_vec = zeros(1,num_scaling_factors);
         plot_vec(1,:) = psn_tsv_area_vec_mm2(wire_res_ind, nind,:);
         plot_vec = plot_vec( plot_vec > 0);
-        wire_resistivities
-        plot_vec
 
         plot(1:length(plot_vec), plot_vec/total_tsv_area_allocation_mm2, 'color', colors{wire_res_ind}, 'linestyle', linestyles{nind});
     end

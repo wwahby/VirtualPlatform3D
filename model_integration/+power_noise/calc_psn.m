@@ -1,4 +1,4 @@
-function [psn_max RTSV LTSV cap_density unit_cell_length] = calc_psn(psn,power,chip,tsv,rho_m,mu_m,T)
+function [psn_max, RTSV, LTSV, cap_density, unit_cell_length, output_cell] = calc_psn(psn,power,chip,tsv,rho_m,mu_m,T)
 % === INPUTS ===
 % area      (m^2)   chip area
 % Npad      (-)     Number of power pads -- does not include ground pads!
@@ -100,7 +100,7 @@ temperature_K = T + 273.15; % (K) Temperature
 %% Determine power supply noise
 
 layer = Nstrata; % Just worry about top die (worst case scenario)
-psn_max = power_noise.psn_fast(Nstrata,layer,RTSV,LTSV,RPKG,LPKG,Cd,Jch,T,acell,Rseg,rpad);
+[psn_max, output_cell] = power_noise.psn_fast(Nstrata,layer,RTSV,LTSV,RPKG,LPKG,Cd,Jch,T,acell,Rseg,rpad);
 
 % Print the inputs to psn_fast for debug purposes -- leave this commented
 % out most of the time

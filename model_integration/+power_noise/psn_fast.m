@@ -1,7 +1,7 @@
 %Power supply noise functioin
 %Li Zheng, 9/21/2012
 
-function psn = psn_fast(Nstrata,layer,RTSV,LTSV,RPKG,LPKG,Cd,Jchip,temperature,acell,R,rpad)
+function [psn, output_cell] = psn_fast(Nstrata,layer,RTSV,LTSV,RPKG,LPKG,Cd,Jchip,temperature,acell,R,rpad)
 
 % %%% Testing code%%%%%
 % clear
@@ -180,6 +180,8 @@ opval=ifft(output,NFFT,'symmetric');
 %plot(0:tstep:(length(opval)-1)*tstep,opval)
 max_PSN=abs(min(opval))+ mean(sqrt((opval(1:round(90e-9/tstep))).^2));
 psn=max_PSN;
+
+output_cell = {Vp, fft_sys, f, v, Omg, NFFT, Y, output};
 end
 
 % file_name=strcat('3.sp');

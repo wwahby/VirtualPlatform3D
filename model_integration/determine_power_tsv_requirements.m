@@ -152,12 +152,13 @@ while ((norm_err > tol) && (gen_ind < max_gens) && (rbnd > lbnd+1))
     %psn.Npads_1d = mid;
     psn.Npads = mid;
     %psn.Npads = psn.Npads_1d^2;
-    [psn_max RTSV LTSV cap_density l_unit_cell] = power_noise.calc_psn(psn,power,chip,tsv,rho_m,mu_m,chip.temperature);
+    [psn_max, RTSV, LTSV, cap_density, l_unit_cell, output_cell] = power_noise.calc_psn(psn,power,chip,tsv,rho_m,mu_m,chip.temperature);
     psn.noise = psn_max;
     psn.Rtsv = RTSV;
     psn.Ltsv = LTSV;
     psn.cap_density = cap_density;
     psn.l_unit_cell = l_unit_cell;
+    psn.output_cell = output_cell;
 
     if (psn_max > psn_target) % need more tsvs
         lbnd = mid;
