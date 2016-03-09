@@ -135,12 +135,77 @@ num_metal_levels_vec( num_metal_levels_vec > 25) = NaN;
 figure(8)
 clf
 hold on
-surf(1:num_scaling_factors, 1:num_stacks, num_metal_levels_vec)
+imagesc(1:num_scaling_factors, 1:num_stacks, num_metal_levels_vec)
 set(gca, 'xtick', 1:num_scaling_factors)
 set(gca, 'xticklabel', node_labels)
+axis tight
 colorbar
 colormap jet
 xlabel('Process Node')
 ylabel('Number of Tiers')
 caxis([2 11])
 fixfigs(8,3,14,12)
+
+%% Cu
+wire_res_ind = 1;
+num_metal_levels_vec = zeros(num_stacks,num_scaling_factors);
+power_vec = zeros(num_stacks,num_scaling_factors);
+npads_vec = zeros(num_stacks,num_scaling_factors);
+for nind = 1:num_stacks
+    for scaling_ind = 1:num_scaling_factors
+        num_metal_levels_vec(nind,scaling_ind) = num_metal_levels(cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind,bar_thick_ind,bar_res_ind,forced_power_ind,k_ind);
+        power_vec(nind, scaling_ind) = power(cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind,bar_thick_ind,bar_res_ind,forced_power_ind,k_ind);
+        npads_vec(nind, scaling_ind) = npads(cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind,bar_thick_ind,bar_res_ind,forced_power_ind,k_ind);                                       
+    end
+end
+
+num_metal_levels_vec( num_metal_levels_vec > 25) = NaN;
+num_metal_levels_vec = [num_metal_levels_vec NaN*ones(num_stacks,1) ; NaN*ones(1,num_scaling_factors + 1)];
+figure(9)
+clf
+hold on
+pcolor(1:num_scaling_factors+1, 1:num_stacks+1, num_metal_levels_vec)
+set(gca, 'xtick', 1.5:1:num_scaling_factors+1)
+set(gca, 'xticklabel', node_labels)
+set(gca, 'ytick', 1.5:1:num_stacks+1)
+set(gca, 'yticklabel', 1:num_stacks)
+set(gca,'TickLength',[ 0 0 ])
+axis tight
+colorbar
+colormap jet
+xlabel('Process Node')
+ylabel('Number of Tiers')
+caxis([2 11])
+fixfigs(9,3,14,12)
+
+%% W
+wire_res_ind = 2;
+num_metal_levels_vec = zeros(num_stacks,num_scaling_factors);
+power_vec = zeros(num_stacks,num_scaling_factors);
+npads_vec = zeros(num_stacks,num_scaling_factors);
+for nind = 1:num_stacks
+    for scaling_ind = 1:num_scaling_factors
+        num_metal_levels_vec(nind,scaling_ind) = num_metal_levels(cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind,bar_thick_ind,bar_res_ind,forced_power_ind,k_ind);
+        power_vec(nind, scaling_ind) = power(cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind,bar_thick_ind,bar_res_ind,forced_power_ind,k_ind);
+        npads_vec(nind, scaling_ind) = npads(cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind,bar_thick_ind,bar_res_ind,forced_power_ind,k_ind);                                       
+    end
+end
+
+num_metal_levels_vec( num_metal_levels_vec > 25) = NaN;
+num_metal_levels_vec = [num_metal_levels_vec NaN*ones(num_stacks,1) ; NaN*ones(1,num_scaling_factors + 1)];
+figure(10)
+clf
+hold on
+pcolor(1:num_scaling_factors+1, 1:num_stacks+1, num_metal_levels_vec)
+set(gca, 'xtick', 1.5:1:num_scaling_factors+1)
+set(gca, 'xticklabel', node_labels)
+set(gca, 'ytick', 1.5:1:num_stacks+1)
+set(gca, 'yticklabel', 1:num_stacks)
+set(gca,'TickLength',[ 0 0 ])
+axis tight
+colorbar
+colormap jet
+xlabel('Process Node')
+ylabel('Number of Tiers')
+caxis([2 11])
+fixfigs(10,3,14,12)
