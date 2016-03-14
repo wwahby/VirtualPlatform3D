@@ -193,6 +193,7 @@ end
 
 num_metal_levels_vec( num_metal_levels_vec > 25) = NaN;
 num_metal_levels_vec = [num_metal_levels_vec NaN*ones(num_stacks,1) ; NaN*ones(1,num_scaling_factors + 1)];
+
 figure(10)
 clf
 hold on
@@ -209,3 +210,5 @@ xlabel('Process Node')
 ylabel('Number of Tiers')
 caxis([2 11])
 fixfigs(10,3,14,12)
+
+fig = surfcentered(1:num_scaling_factors, 1:num_stacks, num_metal_levels_vec);
