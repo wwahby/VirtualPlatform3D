@@ -192,12 +192,13 @@ for nind = 1:num_stacks
 end
 
 num_metal_levels_vec( num_metal_levels_vec > 25) = NaN;
-num_metal_levels_vec = [num_metal_levels_vec NaN*ones(num_stacks,1) ; NaN*ones(1,num_scaling_factors + 1)];
+%num_metal_levels_vec = [num_metal_levels_vec NaN*ones(num_stacks,1) ; NaN*ones(1,num_scaling_factors + 1)];
 
 figure(10)
 clf
 hold on
-pcolor(1:num_scaling_factors+1, 1:num_stacks+1, num_metal_levels_vec)
+%pcolor(1:num_scaling_factors+1, 1:num_stacks+1, num_metal_levels_vec)
+fig = surf_centered(1:num_scaling_factors, 1:num_stacks, num_metal_levels_vec);
 set(gca, 'xtick', 1.5:1:num_scaling_factors+1)
 set(gca, 'xticklabel', node_labels)
 set(gca, 'ytick', 1.5:1:num_stacks+1)
@@ -211,4 +212,3 @@ ylabel('Number of Tiers')
 caxis([2 11])
 fixfigs(10,3,14,12)
 
-fig = surfcentered(1:num_scaling_factors, 1:num_stacks, num_metal_levels_vec);
