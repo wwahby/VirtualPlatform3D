@@ -87,24 +87,51 @@ pp = sqrt(2*pitch_tsv^2); % [FIX] Not really sure what the point of this is
 
 %% Determine Unit Cell parameters
 
-[lcell,Ppitch,PGpitch,rpad,Rseg,Cd] = Ucell(area,Npad,Ngrid,padsize,rho_m,Tseg,Wseg,decap);
+[lcell,Ppitch,PGpitch,rpad,Rseg,Cd] = power_noise.Ucell(area,Npad,Ngrid,padsize,rho_m,Tseg,Wseg,decap);
 acell = lcell;
 
 %% Determine Package Parameters
 % [FIX] using arbitrary parameters for now
-[RTSV,LTSV] = RL_TSV(h_tsv,w_tsv,rho_m,mu_m,pp,pitch_tsv);
+%[RTSV,LTSV] = power_noise.RL_TSV(h_tsv,w_tsv,rho_m,mu_m,pp,pitch_tsv);
+rho_barrier = 17.9e-9;
+barrier_thickness = 0e-9;
+mu = 4*pi/1e7; % vacuum permeability
+temperature_K = 70 + 273.15;
+[RTSV, LTSV] = power_noise.RL_TSV(h_tsv,w_tsv,barrier_thickness,rho_barrier,rho_m,mu,pitch_tsv,pp,temperature_K);
+% RTSV = 0.01;  %Resistance of a TSV
+% LTSV = 2.5e-11; %Inductance of a TSV
 
 %% Determine power supply noise
 
 layer = Nstrata; % Just worry about top die (worst case scenario)
-RTSV = 0.01;  %Resistance of a TSV
-LTSV = 2.5e-11; %Inductance of a TSV
 Jch= 2e6;%Current density, A/cm^2
 Rseg = 0.17; %segment resistance
 rpad = 4.04e-6; %Equivalent pad radius
 acell = 212e-6; %unit cell side length
 Cd = 0.0053;
-psn_max = psn_fast(Nstrata,layer,RTSV,LTSV,RPKG,LPKG,Cd,Jch,T,acell,Rseg,rpad)
+[psn_max, output_cell] = power_noise.psn_fast(Nstrata,layer,RTSV,LTSV,RPKG,LPKG,Cd,Jch,T,acell,Rseg,rpad);
+%%
+Vp = output_cell{1};
+fft_sys = output_cell{2};
+f = output_cell{3};
+v = output_cell{4};
+Omg = output_cell{5};
+NFFT = output_cell{6};
+Y = output_cell{7};
+output = output_cell{8};
+opval = output_cell{9};
+tvec = output_cell{10};
+
+
+%%
+
+figure(1)
+clf
+hold on
+plot(tvec*1e9, opval, 'b');
+xlabel('Time (ns)')
+ylabel('Power Noise (V)');
+fixfigs(1,3,14,12);
 
 % Print the inputs to psn_fast for debug purposes -- leave this commented
 % out most of the time

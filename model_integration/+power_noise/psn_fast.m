@@ -142,27 +142,41 @@ f0=0;
 %Bumped Npts up from 1024 to 1024*10 due to resolution issues noticed in 3D Sandy Bridge test case when sweeping decap from 0-0.2. WWAHBY 2014-10-06
 % Default is 2^10, seems like Npts should be a power of 2
 Npts=1024*10; %[FIX] May need a dynamic way to determine FFT resolution. WWAHBY 2014.10.06
+tstart = 0;
 tstop=1000e-9;
 tstep=tstop/Npts;
+trise = 0.6e-9;
+tfall = 0.6e-9;
+t1 = 100e-9;
+t2 = 900e-9;
 %PWL piecewise linear function
 v=zeros(1,Npts);
-for k=1:1:Npts
-    if k<=100e-9/tstep
-        v(k)=0;
-    end
-    if k>=100e-9/tstep && k<=100.6e-9/tstep
-        v(k) = (1/(0.6e-9))*(k-(100e-9/tstep))*tstep;
-    end
-    if k>=100.6e-9/tstep && k<= 900e-9/tstep
-        v(k)=1;
-    end
-    if k>=900e-9/tstep && k<=900.6e-9/tstep
-        v(k) = 1-(1/(0.6e-9))*(k-(900e-9/tstep))*tstep;
-    end
-    if k>900.6e-9/tstep
-        v(k)=0;
-    end
-end
+tvec = linspace(tstart, tstop, Npts);
+vvec = zeros(1,length(tvec));
+trise_vec = (tvec >= t1) & (tvec < t1 + trise);
+thigh_vec = (tvec >= t1 + trise) & (tvec < t2);
+tfall_vec = (tvec >= t2) & (tvec <= t2 + tfall);
+vvec( trise_vec ) = 1/trise * (tvec(trise_vec) - t1);
+vvec( thigh_vec ) = 1;
+vvec( tfall_vec ) = 1/tfall *(tvec(tfall_vec) - t2);
+v = vvec;
+% for k=1:1:Npts
+%     if k<=100e-9/tstep
+%         v(k)=0;
+%     end
+%     if k>=100e-9/tstep && k<=100.6e-9/tstep
+%         v(k) = (1/(0.6e-9))*(k-(100e-9/tstep))*tstep;
+%     end
+%     if k>=100.6e-9/tstep && k<= 900e-9/tstep
+%         v(k)=1;
+%     end
+%     if k>=900e-9/tstep && k<=900.6e-9/tstep
+%         v(k) = 1-(1/(0.6e-9))*(k-(900e-9/tstep))*tstep;
+%     end
+%     if k>900.6e-9/tstep
+%         v(k)=0;
+%     end
+% end
 NFFT=2^nextpow2(length(v));
 Y = fft(v,NFFT);%/NFFT;
 Fs=1/(tstep);
@@ -176,12 +190,13 @@ pval_sys=sum(fft_sys_mag.^2);
 output=Y(1:NFFT/2+1).*fft_sys;
 %opval=ifft(output,NFFT);
 opval=ifft(output,NFFT,'symmetric');
+pnoise_vec = opval(1:length(tvec));
 %figure(4)
 %plot(0:tstep:(length(opval)-1)*tstep,opval)
-max_PSN=abs(min(opval))+ mean(sqrt((opval(1:round(90e-9/tstep))).^2));
+max_PSN=max(abs(opval))+ mean(sqrt((opval(1:round(90e-9/tstep))).^2));
 psn=max_PSN;
 
-output_cell = {Vp, fft_sys, f, v, Omg, NFFT, Y, output};
+output_cell = {Vp, fft_sys, f, v, Omg, NFFT, Y, output, pnoise_vec, tvec};
 end
 
 % file_name=strcat('3.sp');
