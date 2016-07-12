@@ -77,6 +77,8 @@ wire_cell = cell(num_cooling_configs,num_decaps,num_thicks,num_stacks,num_perms,
 chip_cell = cell(num_cooling_configs,num_decaps,num_thicks,num_stacks,num_perms,num_freqs,num_wire_resistivities,num_wire_flags,num_scaling_factors,num_barrier_thicknesses,num_barrier_resistivities,num_forced_powers,num_thermal_conductivities);
 tsv_cell = cell(num_cooling_configs,num_decaps,num_thicks,num_stacks,num_perms,num_freqs,num_wire_resistivities,num_wire_flags,num_scaling_factors,num_barrier_thicknesses,num_barrier_resistivities,num_forced_powers,num_thermal_conductivities);
 
+Npts_psn_tvec = 0; % number of points in psn transient vector. Will be filled in during runs.
+
 %% Parameter sweep
 cur_config = 0;
 for cind = 1:num_cooling_configs
@@ -253,6 +255,12 @@ for cind = 1:num_cooling_configs
                                                     else
                                                         psn_inductance_density_m2 = 0;
                                                         psn_capacitance_density_m2 = 0;
+                                                    end
+                                                    
+                                                    if (core.wire.routable)
+                                                        if (length(core.psn.output_cell{10}) > Npts_psn_tvec)
+                                                            Npts_psn_tvec = length(core.psn.output_cell{10});
+                                                        end
                                                     end
 
                                                     Ltsv_m2(cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind,bar_thick_ind,bar_res_ind,forced_power_ind,k_ind) = psn_inductance_density_m2;

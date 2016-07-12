@@ -142,10 +142,13 @@ end
 %% Power Supply Network Determination
 if (wire.routable == 0)
     fprintf('\tPSN analysis SKIPPED due to unroutable design!\n')
+    psn.skipped = 1;
 elseif (~simulation.skip_psn_loops)
     psn = determine_power_tsv_requirements(tsv,psn,power,wire,chip);
+    psn.skipped = 0;
 else
     fprintf('\tPSN analysis SKIPPED due to simulation flag!\n')
+    psn.skipped = 1;
 end
 
 temperature_K = chip.temperature + 273.15;

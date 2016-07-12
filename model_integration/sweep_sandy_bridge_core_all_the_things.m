@@ -2,7 +2,7 @@ close all
 clear all
 
 %% Simulation parameters
-simulation.skip_psn_loops = 1; % Skip PSN TSV homing for faster debug
+simulation.skip_psn_loops = 0; % Skip PSN TSV homing for faster debug
 simulation.run_transient_psn = 0; % Run transient PSN in addition to static PSN
 simulation.skip_thermal = 1; % Skip thermal analysis for faster debug
 simulation.iterate_temperature = 0; % rerun WLA/Leakage until temperature converges

@@ -22,13 +22,14 @@ psn.noise_target = psn.noise_fraction * chip.Vdd;
 norm_err_min = 1e3; % setting this to an arbitrarily high value to start
 
 % fprintf('\tLimiting search space...\n')
-[psn_max, RTSV, LTSV, cap_density, l_unit_cell] = power_noise.calc_psn(psn,power,chip,tsv,rho_m,mu_m,chip.temperature);
+[psn_max, RTSV, LTSV, cap_density, l_unit_cell, output_cell] = power_noise.calc_psn(psn,power,chip,tsv,rho_m,mu_m,chip.temperature);
 psn.noise = psn_max;
 psn.Rtsv = RTSV;
 psn.Ltsv = LTSV;
 psn.cap_density = cap_density;
 psn.l_unit_cell = l_unit_cell;
 psn.noise = psn_max;
+psn.output_cell = output_cell;
 mismatch_norm = psn.noise/psn.noise_target;
 psn_target = psn.noise_target;
 rel_err = (psn_max - psn_target)/psn_target;
@@ -46,12 +47,13 @@ end
 new_pads_1d = round(sqrt(psn.Npads*mismatch_norm));
 psn.Npads_1d = new_pads_1d;
 psn.Npads = psn.Npads_1d^2;
-[psn_max, RTSV, LTSV, cap_density, l_unit_cell] = power_noise.calc_psn(psn,power,chip,tsv,rho_m,mu_m,chip.temperature);
+[psn_max, RTSV, LTSV, cap_density, l_unit_cell, output_cell] = power_noise.calc_psn(psn,power,chip,tsv,rho_m,mu_m,chip.temperature);
 psn.noise = psn_max;
 psn.Rtsv = RTSV;
 psn.Ltsv = LTSV;
 psn.cap_density = cap_density;
 psn.l_unit_cell = l_unit_cell;
+psn.output_cell = output_cell;
 rel_err = (psn_max - psn_target)/psn_target;
 norm_err = abs(rel_err);
 
@@ -81,12 +83,13 @@ if (psn_max < psn_target)
         psn.Npads_1d = npads_1d;
         psn.Npads = psn.Npads_1d^2;
         npads = psn.Npads;
-        [psn_max RTSV LTSV cap_density l_unit_cell] = power_noise.calc_psn(psn,power,chip,tsv,rho_m,mu_m,chip.temperature);
+        [psn_max RTSV, LTSV, cap_density, l_unit_cell, output_cell] = power_noise.calc_psn(psn,power,chip,tsv,rho_m,mu_m,chip.temperature);
         psn.noise = psn_max;
         psn.Rtsv = RTSV;
         psn.Ltsv = LTSV;
         psn.cap_density = cap_density;
         psn.l_unit_cell = l_unit_cell;
+        psn.output_cell = output_cell;
 
         rel_err = (psn_max - psn_target)/psn_target;
         norm_err = abs(rel_err);
@@ -112,12 +115,13 @@ elseif(psn_max > psn_target)
         psn.Npads_1d = npads_1d;
         psn.Npads = psn.Npads_1d^2;
         npads = psn.Npads;
-        [psn_max RTSV LTSV cap_density l_unit_cell] = power_noise.calc_psn(psn,power,chip,tsv,rho_m,mu_m,chip.temperature);
+        [psn_max, RTSV, LTSV, cap_density, l_unit_cell, output_cell] = power_noise.calc_psn(psn,power,chip,tsv,rho_m,mu_m,chip.temperature);
         psn.noise = psn_max;
         psn.Rtsv = RTSV;
         psn.Ltsv = LTSV;
         psn.cap_density = cap_density;
         psn.l_unit_cell = l_unit_cell;
+        psn.output_cell = output_cell;
 
         rel_err = (psn_max - psn_target)/psn_target;
         norm_err = abs(rel_err);

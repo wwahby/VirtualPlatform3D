@@ -212,3 +212,68 @@ ylabel('Number of Tiers')
 caxis([2 11])
 fixfigs(10,3,14,12)
 
+%% Transient power noise
+% Cu
+wire_res_ind = 2;
+num_metal_levels_vec = zeros(num_stacks,num_scaling_factors);
+power_vec = zeros(num_stacks,num_scaling_factors);
+npads_vec = zeros(num_stacks,num_scaling_factors);
+Npts_pow_transient = Npts_psn_tvec;
+power_transient_mat = zeros(num_stacks, num_scaling_factors, Npts_pow_transient);
+max_metal_levels_routable = 20;
+
+tdecay_mat = zeros(num_stacks, num_scaling_factors);
+
+figure(11)
+clf
+hold on
+for nind = 1:num_stacks
+    for scaling_ind = 1:num_scaling_factors
+        num_metal_levels_vec(nind,scaling_ind) = num_metal_levels(cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind,bar_thick_ind,bar_res_ind,forced_power_ind,k_ind);
+        power_vec(nind, scaling_ind) = power(cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind,bar_thick_ind,bar_res_ind,forced_power_ind,k_ind);
+        npads_vec(nind, scaling_ind) = npads(cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind,bar_thick_ind,bar_res_ind,forced_power_ind,k_ind);
+        if(routable_design(cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind,bar_thick_ind,bar_res_ind,forced_power_ind,k_ind))
+            power_transient_mat(nind, scaling_ind, :) = psn_cell{cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind,bar_thick_ind,bar_res_ind,forced_power_ind,k_ind}.output_cell{9};
+            tvec = psn_cell{cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind,bar_thick_ind,bar_res_ind,forced_power_ind,k_ind}.output_cell{10};
+            tstart = find(tvec  >= 100e-9, 1, 'first');
+            tstop = find(tvec <= 130e-9, 1, 'last');
+
+            tnorm_start = find(tvec >=500e-9, 1, 'first');
+            tnorm_stop = find(tvec <= 800e-9, 1, 'last');
+            final_rms_val = - rms( squeeze( power_transient_mat(nind, scaling_ind, tnorm_start:tnorm_stop) ) );
+            [max_val, max_ind] = min( power_transient_mat(nind, scaling_ind, tstart:tstop) );
+            max_delta = abs(max_val - final_rms_val);
+            decay_threshold_ratio = 0.10; % percentage of max delta at which we'll say ringdown is complete
+            decay_threshold = decay_threshold_ratio*max_delta;
+            decay_diff_vec = abs( squeeze( power_transient_mat(nind, scaling_ind, :) ) - final_rms_val );
+            if (abs((max_val - final_rms_val)/final_rms_val) < decay_threshold_ratio)
+                tdecay_ind = tstart + max_ind;
+            else
+                tdecay_ind = find(decay_diff_vec(tstart:tstop) < decay_threshold, 1, 'last');
+            end
+            tdecay = tvec(tstart + tdecay_ind);
+            tdecay_mat(nind, scaling_ind) = tdecay;
+            
+            
+            plot(tvec(tstart:tstop)*1e9, squeeze(power_transient_mat(nind, scaling_ind, tstart:tstop))./rms(squeeze(power_transient_mat(nind, scaling_ind, tnorm_start:tnorm_stop))) )
+        end
+
+    end
+end
+num_metal_levels_vec( num_metal_levels_vec > max_metal_levels_routable) = NaN;
+
+tdecay_mat(tdecay_mat == 0) = NaN;
+figure(13)
+clf
+hold on
+for nind = 2:num_stacks
+    plot(tdecay_mat(nind, :)*1e9);
+end
+set(gca, 'xtick', 1:length(scaling_factors));
+set(gca, 'xticklabels', node_labels);
+xlabel('Node')
+fixfigs(13,3,14,12)
+ylabel('Transient decay time (ns)')
+
+
+
