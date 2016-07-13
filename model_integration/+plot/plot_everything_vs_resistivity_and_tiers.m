@@ -236,14 +236,14 @@ for nind = 1:num_stacks
             power_transient_mat(nind, scaling_ind, :) = psn_cell{cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind,bar_thick_ind,bar_res_ind,forced_power_ind,k_ind}.output_cell{9};
             tvec = psn_cell{cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind,bar_thick_ind,bar_res_ind,forced_power_ind,k_ind}.output_cell{10};
             tstart = find(tvec  >= 100e-9, 1, 'first');
-            tstop = find(tvec <= 130e-9, 1, 'last');
+            tstop = find(tvec <= 110e-9, 1, 'last');
 
             tnorm_start = find(tvec >=500e-9, 1, 'first');
             tnorm_stop = find(tvec <= 800e-9, 1, 'last');
             final_rms_val = - rms( squeeze( power_transient_mat(nind, scaling_ind, tnorm_start:tnorm_stop) ) );
             [max_val, max_ind] = min( power_transient_mat(nind, scaling_ind, tstart:tstop) );
             max_delta = abs(max_val - final_rms_val);
-            decay_threshold_ratio = 0.10; % percentage of max delta at which we'll say ringdown is complete
+            decay_threshold_ratio = 0.25; % percentage of max delta at which we'll say ringdown is complete
             decay_threshold = decay_threshold_ratio*max_delta;
             decay_diff_vec = abs( squeeze( power_transient_mat(nind, scaling_ind, :) ) - final_rms_val );
             if (abs((max_val - final_rms_val)/final_rms_val) < decay_threshold_ratio)
@@ -262,8 +262,9 @@ for nind = 1:num_stacks
 end
 num_metal_levels_vec( num_metal_levels_vec > max_metal_levels_routable) = NaN;
 
+fignum = 13;
 tdecay_mat(tdecay_mat == 0) = NaN;
-figure(13)
+figure(fignum)
 clf
 hold on
 for nind = 2:num_stacks
@@ -272,8 +273,9 @@ end
 set(gca, 'xtick', 1:length(scaling_factors));
 set(gca, 'xticklabels', node_labels);
 xlabel('Node')
-fixfigs(13,3,14,12)
 ylabel('Transient decay time (ns)')
+grid on
+fixfigs(fignum,3,14,12)
 
 
 
