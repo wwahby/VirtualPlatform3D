@@ -2,7 +2,7 @@ close all
 clear all
 
 %% Simulation parameters
-simulation.skip_psn_loops = 0; % Skip PSN TSV homing for faster debug
+simulation.skip_psn_loops = 1; % Skip PSN TSV homing for faster debug
 simulation.run_transient_psn = 0; % Run transient PSN in addition to static PSN
 simulation.skip_thermal = 1; % Skip thermal analysis for faster debug
 simulation.iterate_temperature = 0; % rerun WLA/Leakage until temperature converges
@@ -79,7 +79,7 @@ rho_pt = 106e-9;
 rho_all_mets = [rho_ag rho_cu rho_au rho_al rho_w rho_ni rho_pt];
 
 %% Sweep settings
-tiers = [1:8];
+tiers = [1];
 thicknesses = [1e-6];
 force_thickness = 1;
 rel_permittivities = [3];
@@ -89,10 +89,10 @@ temperature_targets = [70]; % temperature target to be used for each heat flux c
 cooling_configs = {'up'};%, 'down', 'down_all'}; % Location of heat sink in each heat flux condition
 thermal_conductivities = 0.3;
 decap_ratios = [0.1]; % Fraction of die area used for decoupling capacitors
-wire_resistivities = [rho_cu, rho_w]; %[10:10:60]*1e-9;
+wire_resistivities = [rho_cu]; %[10:10:60]*1e-9;
 wire_material_flags = {'00'}; % binary strings. bit1 = use_graphene, bit0 = use alt_em_mat
-scaling_factors = [32/32 32/22 32/14 32/10 32/7 32/5];
-node_labels = {'32nm', '22nm', '14nm', '10nm', '7nm', '5nm'}; % labels for plots involving scaling factors
+scaling_factors = [32/32]; % 32/22 32/14 32/10 32/7 32/5];
+node_labels = {'32nm'}; %{'32nm', '22nm', '14nm', '10nm', '7nm', '5nm'}; % labels for plots involving scaling factors
 % scaling_factors = 1; 
 % node_labels = {'32nm'}; % labels for plots involving scaling factors
 barrier_thicknesses = [0e-9];
