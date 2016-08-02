@@ -68,6 +68,10 @@ routable_design = zeros(num_cooling_configs,num_decaps,num_thicks,num_stacks,num
 
 h_coeff = zeros(num_cooling_configs,num_decaps,num_thicks,num_stacks,num_perms,num_freqs,num_wire_resistivities,num_wire_flags,num_scaling_factors,num_barrier_thicknesses,num_barrier_resistivities,num_forced_powers,num_thermal_conductivities,num_gate_sweeps);
 
+area_tot_mat = zeros(num_cooling_configs,num_decaps,num_thicks,num_stacks,num_perms,num_freqs,num_wire_resistivities,num_wire_flags,num_scaling_factors,num_barrier_thicknesses,num_barrier_resistivities,num_forced_powers,num_thermal_conductivities,num_gate_sweeps);
+area_per_layer_mat = zeros(num_cooling_configs,num_decaps,num_thicks,num_stacks,num_perms,num_freqs,num_wire_resistivities,num_wire_flags,num_scaling_factors,num_barrier_thicknesses,num_barrier_resistivities,num_forced_powers,num_thermal_conductivities,num_gate_sweeps);
+
+
 num_metal_levels = zeros(num_cooling_configs,num_decaps,num_thicks,num_stacks,num_perms,num_freqs,num_wire_resistivities,num_wire_flags,num_scaling_factors,num_barrier_thicknesses,num_barrier_resistivities,num_forced_powers,num_thermal_conductivities,num_gate_sweeps);
 wire_pitch = cell(num_cooling_configs,num_decaps,num_thicks,num_stacks,num_perms,num_freqs,num_wire_resistivities,num_wire_flags,num_scaling_factors,num_barrier_thicknesses,num_barrier_resistivities,num_forced_powers,num_thermal_conductivities,num_gate_sweeps);
 
@@ -103,7 +107,7 @@ for cind = 1:num_cooling_configs
                                                         fmax = frequencies(freq_ind);
                                                         wire_resistivity = wire_resistivities(wire_res_ind);
                                                         Ng_core = num_gates_vec(num_gates_ind);
-                                                        Ach_mm2 = 3*gate_pitch^2*Ng_core;
+                                                        Ach_mm2 = 3*(gate_pitch*1e3)^2*Ng_core;
 
                                                         fprintf('\n===============================\n')
                                                         fprintf('==   cooling: %d/%d \t=====\n',cind,num_cooling_configs);
@@ -233,6 +237,10 @@ for cind = 1:num_cooling_configs
                                                         freq(cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind,bar_thick_ind,bar_res_ind,forced_power_ind,k_ind,num_gates_ind) = 1/core.chip.clock_period;
 
                                                         wire_power(cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind,bar_thick_ind,bar_res_ind,forced_power_ind,k_ind,num_gates_ind) = core.power.wiring;
+                                                        logic_dynamic_power(cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind,bar_thick_ind,bar_res_ind,forced_power_ind,k_ind,num_gates_ind) = core.power.dynamic;
+                                                        logic_leakage_power(cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind,bar_thick_ind,bar_res_ind,forced_power_ind,k_ind,num_gates_ind) = core.power.leakage;
+                                                        interconnect_power(cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind,bar_thick_ind,bar_res_ind,forced_power_ind,k_ind,num_gates_ind) = core.power.wiring + core.power.repeater_leakage + core.power.repeater_dynamic;
+                                                        
                                                         rep_power(cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind,bar_thick_ind,bar_res_ind,forced_power_ind,k_ind,num_gates_ind) = core.power.repeater;
                                                         dynamic_power(cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind,bar_thick_ind,bar_res_ind,forced_power_ind,k_ind,num_gates_ind) = core.power.repeater_dynamic + core.power.dynamic;
                                                         leakage_power(cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind,bar_thick_ind,bar_res_ind,forced_power_ind,k_ind,num_gates_ind) = core.power.repeater_leakage + core.power.leakage;
@@ -240,6 +248,8 @@ for cind = 1:num_cooling_configs
                                                         thickness(cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind,bar_thick_ind,bar_res_ind,forced_power_ind,k_ind,num_gates_ind) = core.chip.thickness;
                                                         npads(cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind,bar_thick_ind,bar_res_ind,forced_power_ind,k_ind,num_gates_ind) = core.psn.Npads;
                                                         h_coeff(cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind,bar_thick_ind,bar_res_ind,forced_power_ind,k_ind,num_gates_ind) = core.heat.up;
+                                                        area_tot_mat(cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind,bar_thick_ind,bar_res_ind,forced_power_ind,k_ind,num_gates_ind) = core.chip.area_total;
+                                                        area_per_layer_mat(cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind,bar_thick_ind,bar_res_ind,forced_power_ind,k_ind,num_gates_ind) = core.chip.area_per_layer_m2;
 
                                                         num_metal_levels(cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind,bar_thick_ind,bar_res_ind,forced_power_ind,k_ind,num_gates_ind) = length(core.wire.pn);
                                                         wire_pitch{cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind,bar_thick_ind,bar_res_ind,forced_power_ind,k_ind,num_gates_ind} = core.wire.pn;
@@ -262,7 +272,7 @@ for cind = 1:num_cooling_configs
                                                             psn_capacitance_density_m2 = 0;
                                                         end
 
-                                                        if (core.wire.routable)
+                                                        if (core.wire.routable && ~simulation.skip_psn_loops)
                                                             if (length(core.psn.output_cell{10}) > Npts_psn_tvec)
                                                                 Npts_psn_tvec = length(core.psn.output_cell{10});
                                                             end

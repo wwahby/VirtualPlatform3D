@@ -80,6 +80,7 @@ rho_all_mets = [rho_ag rho_cu rho_au rho_al rho_w rho_ni rho_pt];
 
 %% Sweep settings
 tiers = [1];
+num_gates_vec = round(logspace(1,10,21));
 thicknesses = [1e-6];
 force_thickness = 1;
 rel_permittivities = [3];
@@ -119,5 +120,6 @@ sweep_design
 % plot.plot_power_tsvs_vs_scaling
 % plot.plot_temp_underfill_vs_tiers
 % plot.plot_metal_levs_and_power_vs_permittivity
-plot.plot_everything_vs_resistivity_and_tiers
+% plot.plot_everything_vs_resistivity_and_tiers
 % plot.plot_psn_test_stuff
+plot.plot_xc_power_vs_num_gates
