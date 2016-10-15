@@ -142,8 +142,8 @@ for cind = 1:num_cooling_configs
 
                                                         core.heat.k_wires = xcm.get_nth_or_last(wire_thermal_conductivities, wire_res_ind);
                                                         %% Tweak wiring parameters
-                                                        core.gate.output_resistance = 3e3/compression_factor; % Ohm
-                                                        core.transistor.capacitance = 1e-15*3*w_trans_scaled*1e6; % ITRS projection is 1fF/um of gate width. This is an estimate for pMOS transistor capacitance
+                                                        core.gate.output_resistance = 8e3/compression_factor; % Ohm
+                                                        core.transistor.capacitance = 5*1e-15*3*w_trans_scaled*1e6; % ITRS projection is 1fF/um of gate width. This is an estimate for pMOS transistor capacitance
 
                                                         %core.wire.repeater_fraction = [0.3]; % 1 is default from gen_basic_proc_settings
                                                         %core.wire.routing_efficiency = [0.6]; % 0.4 is default from gen_basic_proc_settings

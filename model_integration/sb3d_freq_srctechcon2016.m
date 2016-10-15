@@ -4,7 +4,7 @@ clear all
 %% Simulation parameters
 simulation.skip_psn_loops = 1; % Skip PSN TSV homing for faster debug
 simulation.run_transient_psn = 0; % Run transient PSN in addition to static PSN
-simulation.skip_thermal = 1; % Skip thermal analysis for faster debug
+simulation.skip_thermal = 0; % Skip thermal analysis for faster debug
 simulation.iterate_temperature = 0; % rerun WLA/Leakage until temperature converges
 simulation.ignore_leakage = 0;
 
@@ -21,7 +21,7 @@ simulation.wla_max_attempts = 30; % 15 is default
 simulation.wla_min_bot_fill_factor = 0.97; % 0.97 is default
 simulation.wla_min_top_fill_factor = 0.01; % 0.01 is default
 
-simulation.freq_binsearch = 0;
+simulation.freq_binsearch = 1;
 simulation.freq_binsearch_initial_guess = 1e9;
 simulation.freq_binsearch_target = 90;
 simulation.freq_binsearch_raw_tol = 0.25;
@@ -40,7 +40,7 @@ simulation.heat_transfer_binsearch_max_gens = 10;
 simulation.force_power = 0;
 simulation.insanity_temperature = 1e3; % (C) 
 
-simulation.ignore_repeater_area = 0; % 0 = restrict area, 1 = ignore area limit
+simulation.ignore_repeater_area = 1; % 0 = restrict area, 1 = ignore area limit
 
 %% Typical Rent Exponents
 rent_exp_logic = 0.6;
@@ -81,7 +81,7 @@ rho_all_mets = [rho_ag rho_cu rho_au rho_al rho_w rho_ni rho_pt];
 %% Sweep settings
 tiers = [1:4];
 num_gates_vec = design.Ng_core;
-thicknesses = [1e-6];
+thicknesses = [0.1e-6, 20e-6, 300e-6];
 force_thickness = 1;
 rel_permittivities = [3];
 frequencies = design.fmax;
@@ -116,10 +116,10 @@ sweep_design
 % plot.plot_temp_vs_forced_power
 % plot.plot_epc_vs_tiers
 % plot.plot_freq_vs_scaling
-% plot.plot_freq_vs_tiers_and_cooling
+plot.plot_freq_vs_tiers_and_cooling
 % plot.plot_power_tsvs_vs_scaling
 % plot.plot_temp_underfill_vs_tiers
 % plot.plot_metal_levs_and_power_vs_permittivity
 % plot.plot_everything_vs_resistivity_and_tiers
 % plot.plot_psn_test_stuff
-plot.plot_xc_power_vs_num_gates
+% plot.plot_xc_power_vs_num_gates
