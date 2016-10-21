@@ -78,10 +78,23 @@ rho_pt = 106e-9;
 %rho_co_al = 0e-9;
 rho_all_mets = [rho_ag rho_cu rho_au rho_al rho_w rho_ni rho_pt];
 
+%% Thermal Conductivities
+k_tim = 3;       % TIM
+k_chip = 149;      % typically silicon
+k_underfill = 0.9; % underfill
+k_wires = 400;     % copper wires
+k_copper = 400;    % Copper
+k_tungsten = 173;  % Tungsten:
+k_ild = 1.38;      % ILD
+k_microbumps = 60; % Microbumps
+k_interposer = 149; % interposer 
+k_air = 0.024;      % Air
+
 %% Sweep settings
-tiers = [1];
-num_gates_vec = round(logspace(1,10,21));
-thicknesses = [1e-6];
+tiers = [1 2 3 4];
+num_gates_vec = design.Ng_core;
+thicknesses = [0.1 100]*1e-6;
+tsv_aspect_ratio = 10;
 force_thickness = 1;
 rel_permittivities = [3];
 frequencies = design.fmax;
@@ -90,7 +103,8 @@ temperature_targets = [70]; % temperature target to be used for each heat flux c
 cooling_configs = {'up'};%, 'down', 'down_all'}; % Location of heat sink in each heat flux condition
 thermal_conductivities = 0.3;
 decap_ratios = [0.1]; % Fraction of die area used for decoupling capacitors
-wire_resistivities = [rho_cu]; %[10:10:60]*1e-9;
+wire_resistivities = [rho_cu, rho_w]; %[10:10:60]*1e-9;
+wire_thermal_conductivities = [k_copper, k_tungsten];
 wire_material_flags = {'00'}; % binary strings. bit1 = use_graphene, bit0 = use alt_em_mat
 scaling_factors = [32/32]; % 32/22 32/14 32/10 32/7 32/5];
 node_labels = {'32nm'}; %{'32nm', '22nm', '14nm', '10nm', '7nm', '5nm'}; % labels for plots involving scaling factors
@@ -122,4 +136,5 @@ sweep_design
 % plot.plot_metal_levs_and_power_vs_permittivity
 % plot.plot_everything_vs_resistivity_and_tiers
 % plot.plot_psn_test_stuff
-plot.plot_xc_power_vs_num_gates
+% plot.plot_xc_power_vs_num_gates
+plot.tsv_vs_m3d_power
