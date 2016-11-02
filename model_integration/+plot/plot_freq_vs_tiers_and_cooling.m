@@ -60,11 +60,31 @@ b = bar(freq_mat/1e9, 1, 'grouped');
 %     b(bbb).FaceColor = colors{bbb};
 % end
 colormap(jet)
+grid on
 xlabel('Tiers')
 set(gca,'xticklabel',tier_cell)
+b(1).FaceColor = 'b';
+b(2).FaceColor ='y';
+b(3).FaceColor = 'r';
 ylabel('Maximum Frequency (GHz)')
 fixfigs(1,3,14,12)
 
+figure(11)
+clf
+b = bar(freq_mat/freq_mat(1,1), 1, 'grouped');
+% for bbb = 1:length(b)
+%     b(bbb).FaceColor = colors{bbb};
+% end
+colormap(jet)
+grid on
+xlabel('Tiers')
+set(gca,'xticklabel',tier_cell)
+ylabel('Relative maximum clock rate')
+b(1).FaceColor = 'b';
+b(2).FaceColor ='y';
+b(3).FaceColor = 'r';
+fixfigs(11,3,14,12)
+%%
 figure(2)
 clf
 b = bar(epc_mat, 1, 'grouped');
