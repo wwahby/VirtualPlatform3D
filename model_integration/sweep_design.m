@@ -66,6 +66,11 @@ cap_density = zeros(num_cooling_configs,num_decaps,num_thicks,num_stacks,num_per
 Ltsv_m2 = zeros(num_cooling_configs,num_decaps,num_thicks,num_stacks,num_perms,num_freqs,num_wire_resistivities,num_wire_flags,num_scaling_factors,num_barrier_thicknesses,num_barrier_resistivities,num_forced_powers,num_thermal_conductivities,num_gate_sweeps);
 routable_design = zeros(num_cooling_configs,num_decaps,num_thicks,num_stacks,num_perms,num_freqs,num_wire_resistivities,num_wire_flags,num_scaling_factors,num_barrier_thicknesses,num_barrier_resistivities,num_forced_powers,num_thermal_conductivities,num_gate_sweeps);
 
+logic_dynamic_power = zeros(num_cooling_configs,num_decaps,num_thicks,num_stacks,num_perms,num_freqs,num_wire_resistivities,num_wire_flags,num_scaling_factors,num_barrier_thicknesses,num_barrier_resistivities,num_forced_powers,num_thermal_conductivities,num_gate_sweeps);
+logic_leakage_power = zeros(num_cooling_configs,num_decaps,num_thicks,num_stacks,num_perms,num_freqs,num_wire_resistivities,num_wire_flags,num_scaling_factors,num_barrier_thicknesses,num_barrier_resistivities,num_forced_powers,num_thermal_conductivities,num_gate_sweeps);
+interconnect_power = zeros(num_cooling_configs,num_decaps,num_thicks,num_stacks,num_perms,num_freqs,num_wire_resistivities,num_wire_flags,num_scaling_factors,num_barrier_thicknesses,num_barrier_resistivities,num_forced_powers,num_thermal_conductivities,num_gate_sweeps);
+
+
 h_coeff = zeros(num_cooling_configs,num_decaps,num_thicks,num_stacks,num_perms,num_freqs,num_wire_resistivities,num_wire_flags,num_scaling_factors,num_barrier_thicknesses,num_barrier_resistivities,num_forced_powers,num_thermal_conductivities,num_gate_sweeps);
 
 area_tot_mat = zeros(num_cooling_configs,num_decaps,num_thicks,num_stacks,num_perms,num_freqs,num_wire_resistivities,num_wire_flags,num_scaling_factors,num_barrier_thicknesses,num_barrier_resistivities,num_forced_powers,num_thermal_conductivities,num_gate_sweeps);
@@ -108,6 +113,7 @@ for cind = 1:num_cooling_configs
                                                         wire_resistivity = wire_resistivities(wire_res_ind);
                                                         Ng_core = num_gates_vec(num_gates_ind);
                                                         Ach_mm2 = 3*(gate_pitch*1e3)^2*Ng_core;
+                                                        Ach_mm2 = design.Ach_mm2;
 
                                                         fprintf('\n===============================\n')
                                                         fprintf('==   cooling: %d/%d \t=====\n',cind,num_cooling_configs);
@@ -142,10 +148,10 @@ for cind = 1:num_cooling_configs
 
                                                         core.heat.k_wires = xcm.get_nth_or_last(wire_thermal_conductivities, wire_res_ind);
 %                                                         %% Tweak wiring parameters
-%                                                         core.gate.output_resistance = 4e3/compression_factor; % Ohm
-%                                                         core.transistor.capacitance = 2e-15*3*w_trans_scaled*1e6; % ITRS projection is 1fF/um of gate width. This is an estimate for pMOS transistor capacitance
-                                                        core.gate.output_resistance = 8e3/compression_factor; % Ohm
-                                                        core.transistor.capacitance = 5*1e-15*3*w_trans_scaled*1e6; % ITRS projection is 1fF/um of gate width. This is an estimate for pMOS transistor capacitance
+                                                        core.gate.output_resistance = 4e3/compression_factor; % Ohm
+                                                        core.transistor.capacitance = 1.5e-15*3*w_trans_scaled*1e6; % ITRS projection is 1fF/um of gate width. This is an estimate for pMOS transistor capacitance
+%                                                         core.gate.output_resistance = 8e3/compression_factor; % Ohm
+%                                                         core.transistor.capacitance = 5*1e-15*3*w_trans_scaled*1e6; % ITRS projection is 1fF/um of gate width. This is an estimate for pMOS transistor capacitance
 
                                                         %core.wire.repeater_fraction = [0.3]; % 1 is default from gen_basic_proc_settings
                                                         %core.wire.routing_efficiency = [0.6]; % 0.4 is default from gen_basic_proc_settings
