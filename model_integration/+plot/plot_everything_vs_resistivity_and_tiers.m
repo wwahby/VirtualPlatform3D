@@ -2,11 +2,13 @@
 
 num_metal_levels_vec = zeros(num_stacks,num_wire_resistivities);
 power_vec = zeros(num_stacks,num_wire_resistivities);
+xc_power_vec = zeros(num_stacks,num_wire_resistivities);
 npads_vec = zeros(num_stacks,num_wire_resistivities);
 for nind = 1:num_stacks
     for wire_res_ind = 1:num_wire_resistivities
         num_metal_levels_vec(nind,wire_res_ind) = num_metal_levels(cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind,bar_thick_ind,bar_res_ind,forced_power_ind,k_ind);
         power_vec(nind, wire_res_ind) = power(cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind,bar_thick_ind,bar_res_ind,forced_power_ind,k_ind);
+        xc_power_vec(nind, wire_res_ind) = interconnect_power(cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind,bar_thick_ind,bar_res_ind,forced_power_ind,k_ind);
         npads_vec(nind, wire_res_ind) = npads(cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind,bar_thick_ind,bar_res_ind,forced_power_ind,k_ind);
                                                     
     end
@@ -211,6 +213,47 @@ xlabel('Process Node')
 ylabel('Number of Tiers')
 caxis([2 11])
 fixfigs(10,3,14,12)
+
+scaling_ind = 1;
+num_metal_levels_vec = zeros(num_stacks,num_wire_resistivities);
+power_vec = zeros(num_stacks,num_wire_resistivities);
+xc_power_vec = zeros(num_stacks,num_wire_resistivities);
+npads_vec = zeros(num_stacks,num_wire_resistivities);
+for nind = 1:num_stacks
+    for wire_res_ind = 1:num_wire_resistivities
+        num_metal_levels_vec(nind, wire_res_ind) = num_metal_levels(cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind,bar_thick_ind,bar_res_ind,forced_power_ind,k_ind);
+        power_vec(nind, wire_res_ind) = power(cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind,bar_thick_ind,bar_res_ind,forced_power_ind,k_ind);
+        xc_power_vec(nind, wire_res_ind) = interconnect_power(cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind,bar_thick_ind,bar_res_ind,forced_power_ind,k_ind);
+        npads_vec(nind, wire_res_ind) = npads(cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind,bar_thick_ind,bar_res_ind,forced_power_ind,k_ind);                                       
+    end
+end
+
+num_metal_levels_vec( num_metal_levels_vec > 25) = NaN;
+%num_metal_levels_vec = [num_metal_levels_vec NaN*ones(num_stacks,1) ; NaN*ones(1,num_scaling_factors + 1)];
+
+figure(15)
+clf
+hold on
+grid on
+for nind = 1:num_stacks
+    plot(wire_resistivities, power_vec);
+end
+xlabel('Wire Resistivity (\Omega nm)')
+ylabel('Power Consumption')
+fixfigs(15,2,14,12)
+
+figure(16)
+clf
+hold on
+grid on
+for nind = 1:num_stacks
+    plot(wire_resistivities, xc_power_vec);
+end
+xlabel('Wire Resistivity (\Omega nm)')
+ylabel('XC Power Consumption')
+fixfigs(16,2,14,12)
+
+
 
 %% Transient power noise
 % Cu

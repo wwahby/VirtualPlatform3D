@@ -7,7 +7,7 @@ for nind = 1:num_stacks
     power_density_vec(nind) = power_density(cind,dind,thind,nind,pind,freq_ind,wire_res_ind,wire_flag_ind,scaling_ind,bar_thick_ind,bar_res_ind,forced_power_ind,k_ind);                 
 end
 
-f1 = figure(1)
+f1 = figure(1);
 clf
 hold on
 [ax h1 h2] = plotyy(1:num_stacks, power_vec, 1:num_stacks, power_density_vec/1e4);

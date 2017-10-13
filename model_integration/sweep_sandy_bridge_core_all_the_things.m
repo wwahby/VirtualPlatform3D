@@ -93,7 +93,7 @@ k_air = 0.024;      % Air
 %% Sweep settings
 tiers = [1:8];
 num_gates_vec = design.Ng_core;
-thicknesses = [1]*1e-6;
+thicknesses = [1 100]*1e-6;
 tsv_aspect_ratio = 10;
 force_thickness = 1;
 rel_permittivities = [3];
@@ -103,11 +103,11 @@ temperature_targets = [70]; % temperature target to be used for each heat flux c
 cooling_configs = {'up'};%, 'down', 'down_all'}; % Location of heat sink in each heat flux condition
 thermal_conductivities = 0.3;
 decap_ratios = [0.1]; % Fraction of die area used for decoupling capacitors
-wire_resistivities = [rho_cu]; %[10:10:60]*1e-9;
-wire_thermal_conductivities = [k_copper];
+wire_resistivities = [rho_cu rho_w]; %[10:10:60]*1e-9;
+wire_thermal_conductivities = [k_copper k_tungsten];
 wire_material_flags = {'00'}; % binary strings. bit1 = use_graphene, bit0 = use alt_em_mat
-scaling_factors = [32/32]; % 32/22 32/14 32/10 32/7 32/5];
-node_labels = {'32nm'}; %{'32nm', '22nm', '14nm', '10nm', '7nm', '5nm'}; % labels for plots involving scaling factors
+scaling_factors = [32/22 32/14 32/10 32/7 32/5];
+node_labels = {'32nm', '22nm', '14nm', '10nm', '7nm', '5nm'}; % labels for plots involving scaling factors
 % scaling_factors = 1; 
 % node_labels = {'32nm'}; % labels for plots involving scaling factors
 barrier_thicknesses = [0e-9];
@@ -134,8 +134,8 @@ sweep_design
 % plot.plot_power_tsvs_vs_scaling
 % plot.plot_temp_underfill_vs_tiers
 % plot.plot_metal_levs_and_power_vs_permittivity
-% plot.plot_everything_vs_resistivity_and_tiers
+plot.plot_everything_vs_resistivity_and_tiers
 % plot.plot_psn_test_stuff
 % plot.plot_xc_power_vs_num_gates
 % plot.tsv_vs_m3d_power
-plot.power_and_power_density_vs_tiers
+% plot.power_and_power_density_vs_tiers
