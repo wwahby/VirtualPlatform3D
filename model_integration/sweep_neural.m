@@ -42,10 +42,8 @@ simulation.insanity_temperature = 1e3; % (C)
 
 simulation.ignore_repeater_area = 0; % 0 = restrict area, 1 = ignore area limit
 
-simulation.max_wiring_layers = 1e4;
-
 %% Typical Rent Exponents
-rent_exp_neural=0.75;
+rent_exp_neural = 0.8;
 rent_exp_logic = 0.6;
 rent_exp_mem = 0.4;
 rent_exp_gpu = 0.55;
@@ -53,12 +51,12 @@ rent_exp_gpu = 0.55;
 %% Logic core parameters
 design.compression_factor = 1; % linear scaling factor. 1 = actual 32nm design, 4.57 = equivalent 7nm SB
 design.Ng_core = 100e9; %86M transistors, assume 2in NAND -> /4 to get total NAND gates
-design.Ach_mm2 = 1000/(design.compression_factor^2);
+design.Ach_mm2 = (500^2)/(design.compression_factor^2);
 design.gate_pitch = 465e-9*2/design.compression_factor;
 design.min_pitch = 112.5e-9/design.compression_factor;
-design.fmax = 0.25e9;
+design.fmax = 0.1e9;
 design.w_trans = 32e-9/design.compression_factor;
-design.rent_exp = rent_exp_logic;
+design.rent_exp = rent_exp_neural;
 
 %% Thermal parameters
 % Thermal resistances of known heat sinks (From Yue's paper)
@@ -81,7 +79,7 @@ rho_pt = 106e-9;
 %rho_co_al = 0e-9;
 rho_all_mets = [rho_ag rho_cu rho_au rho_al rho_w rho_ni rho_pt];
 
-%% Thermal Conductivities
+%% thermal conductivities
 k_tim = 3;       % TIM
 k_chip = 149;      % typically silicon
 k_underfill = 0.9; % underfill
@@ -94,11 +92,11 @@ k_interposer = 149; % interposer
 k_air = 0.024;      % Air
 
 %% Sweep settings
-tiers = [1 2 4 8];
+tiers = [1, 2, 3, 4];
 num_gates_vec = design.Ng_core;
-thicknesses = [1]*1e-6;
-tsv_aspect_ratio = 10;
+thicknesses = [0.1e-6];
 force_thickness = 1;
+tsv_aspect_ratio = 10;
 rel_permittivities = [3];
 frequencies = design.fmax;
 heat_fluxes = [ h_air];% h_water h_water];
@@ -109,10 +107,10 @@ decap_ratios = [0.1]; % Fraction of die area used for decoupling capacitors
 wire_resistivities = [rho_cu]; %[10:10:60]*1e-9;
 wire_thermal_conductivities = [k_copper];
 wire_material_flags = {'00'}; % binary strings. bit1 = use_graphene, bit0 = use alt_em_mat
-%scaling_factors = [32/22 32/14 32/10 32/7 32/5];
-%node_labels = {'32nm', '22nm', '14nm', '10nm', '7nm', '5nm'}; % labels for plots involving scaling factors
-scaling_factors = 1; 
-node_labels = {'32nm'}; % labels for plots involving scaling factors
+scaling_factors = [32/32]; % 32/22 32/14 32/10 32/7 32/5];
+node_labels = {'32nm'}; %{'32nm', '22nm', '14nm', '10nm', '7nm', '5nm'}; % labels for plots involving scaling factors
+% scaling_factors = 1; 
+% node_labels = {'32nm'}; % labels for plots involving scaling factors
 barrier_thicknesses = [0e-9];
 barrier_resistivities = [1000e-9];
 power_forced_vec = linspace(0,25,21); % (W) If simulation.force_power is 1, this forces power consumption to these values during sweep for thermal purposes
@@ -137,8 +135,7 @@ sweep_design
 % plot.plot_power_tsvs_vs_scaling
 % plot.plot_temp_underfill_vs_tiers
 % plot.plot_metal_levs_and_power_vs_permittivity
-plot.plot_everything_vs_resistivity_and_tiers
+% plot.plot_everything_vs_resistivity_and_tiers
 % plot.plot_psn_test_stuff
 % plot.plot_xc_power_vs_num_gates
-% plot.tsv_vs_m3d_power
-% plot.power_and_power_density_vs_tiers
+plot.m3d_vs_tsv_cu_w_power
