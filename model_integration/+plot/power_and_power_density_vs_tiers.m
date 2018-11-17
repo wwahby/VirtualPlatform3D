@@ -10,7 +10,7 @@ end
 f1 = figure(1);
 clf
 hold on
-[ax h1 h2] = plotyy(1:num_stacks, power_vec, 1:num_stacks, power_density_vec/1e4);
+[ax h1 h2] = plotyy(tiers, power_vec, tiers, power_density_vec/1e4);
 set(h1,'color','b')
 set(ax(1),'ycolor','k')
 set(h2,'color','r')
@@ -52,7 +52,7 @@ ax0.Position(2) = ax0.Position(2) + 0.03;
 
 % first axes for left y-axis
 ax1 = axes ('Position', get (ax0, 'Position'));
-h1 = plot(ax1, 1:num_stacks, power_vec);
+h1 = plot(ax1, tiers, power_vec);
 set (ax1, 'Box', 'off', 'Color', 'none', 'YAxisLocation', 'left');
 ax1.XLabel.String = 'Number of Tiers';
 ax1.YLabel.String = 'Power (W)';
@@ -60,7 +60,7 @@ h1.Color = 'b';
 
 % second axes for right y-axis assuming common x-axis controlled by ax1
 ax2 = axes ('Position', get (ax0, 'Position'));
-h2 = plot(ax2, 1:num_stacks, power_density_vec/1e4);
+h2 = plot(ax2, tiers, power_density_vec/1e4);
 h2.Color = 'r';
 ax2.YLabel.String = 'Power Density (W/cm^2)';
 ax2.FontSize = text_size;
@@ -73,3 +73,6 @@ set(htext,'FontSize',text_size)
 set (ax2, 'Box', 'off', 'Color', 'none', 'XTick', [], 'YAxisLocation', 'right');
 axes(ax1)
 fixfigs(2,2,14,12)
+
+
+%%
