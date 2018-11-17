@@ -88,7 +88,7 @@ repeater_size = zeros(1,length(Iidf));
 
 % Preallocate a bunch of stuff
 % assume we won't use more than some ridiculous number of layers
-max_layers = 100;
+max_layers = simulation.max_wiring_layers; %previous default was 100
 Ln_vec = zeros(1,max_layers);
 pn_vec = zeros(1,max_layers);
 pn_orig_vec = zeros(1,max_layers);
