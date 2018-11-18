@@ -119,7 +119,7 @@ set(gca,'xscale','log')
 xlabel('Interconnect Length (GP)')
 ylabel('Number of Interconnects')
 
-tsv_width_vec = 1:2:20;
+tsv_width_vec = 1:2:12;
 
 twl_vec = zeros(1,length(tsv_width_vec) );
 twlc_vec = zeros(1, length(tsv_width_vec) );
@@ -204,5 +204,17 @@ plot(tsv_width_um, err_rel*100, 'k', 'linewidth', 1.5)
 plot(tsv_width_um, err_rel_b*100, 'b', 'linewidth', 1.5)
 xlabel('TSV Width (microns)')
 ylabel('Relative Error (%)')
-ylim([0 100])
+%ylim([0 100])
+xlim([1 10])
 
+
+figure(7)
+clf
+hold on
+grid on
+%plot(tsv_width_um, err_rel*100, 'k', 'linewidth', 1.5)
+plot(tsv_width_um, err_rel_b*100, 'k', 'linewidth', 1.5)
+xlabel('TSV Width (microns)')
+ylabel('Relative Error (%)')
+ylim([0 20])
+xlim([1 10])
