@@ -192,10 +192,17 @@ plot(tsv_width_vec*pitch_gate_m*1e6, twl_orig_vec, 'k', 'linewidth', 1.5)
 plot(tsv_width_vec*pitch_gate_m*1e6, twl_vec, 'b', 'linewidth', 1.5)
 plot(tsv_width_vec*pitch_gate_m*1e6, twlc_vec, 'r', 'linewidth', 1.5)
 
+tsv_width_um = tsv_width_vec*pitch_gate_m*1e6;
 
-
-function twl = get_total_length(wld)
-    ll = 0:(length(wld)-1);
-    twl = sum(ll.*wld);
-end
+err_rel = abs(twl_orig_vec - twlc_vec)./twl_orig_vec;
+err_rel_b = abs(twl_vec - twlc_vec)./twl_vec;
+figure(6)
+clf
+hold on
+grid on
+plot(tsv_width_um, err_rel*100, 'k', 'linewidth', 1.5)
+plot(tsv_width_um, err_rel_b*100, 'b', 'linewidth', 1.5)
+xlabel('TSV Width (microns)')
+ylabel('Relative Error (%)')
+ylim([0 100])
 
