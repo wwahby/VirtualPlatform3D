@@ -6,3 +6,4 @@ g_tsv = (Nuc_1d*w_tsv)^2;
 Iexp = xcm.calc_Iexp(alpha,k,p,Mt,Lx,S,r,g_tsv);
 
 Iidf = Mt.*Iexp;
+Iidf(isnan(Iidf)) = 0;
