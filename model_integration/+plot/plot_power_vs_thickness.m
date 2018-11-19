@@ -1,6 +1,7 @@
 
 colors = {'k', 'b', 'r', 'g'};
 colors_dashed = {'k--', 'b--', 'r--', 'g--'};
+colors_dot = {'k:', 'b:', 'r:', 'g:'};
 
 figure(1)
 clf
@@ -20,9 +21,11 @@ for nind = 1:num_stacks
     end
     plvec = power_vec;
     plvec2 = power_vec + tsv_power_vec;
+    plvec3 = xc_power_vec; % + tsv_power_vec;
         
     plot(thicknesses*1e6, plvec, colors{nind}, 'linewidth', 1.5)
     plot(thicknesses*1e6, plvec2, colors_dashed{nind}, 'linewidth', 1.5)
+    %plot(thicknesses*1e6, plvec3, colors{nind}, 'linewidth', 1.5)
 end
 
 set(gca,'xscale','log')
